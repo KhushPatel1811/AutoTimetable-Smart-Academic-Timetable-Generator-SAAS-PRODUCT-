@@ -1,0 +1,39 @@
+@import "tailwindcss";
+
+@layer components {
+    .input-box {
+        @apply w-full max-w-[350px] md:max-w-[300px] sm:max-w-[250px] rounded-2xl border border-slate-300 bg-white/80 px-4 py-3 text-slate-800 outline-none transition-all duration-300 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-200 mt-2 mb-3;
+    }
+
+    .dashboard-item {
+        @apply border-gray-600 mt-7 -mx-4;
+    }
+
+    .dashboard-item-style {
+        @apply flex justify-center text-lg border w-50 ml-3 mt-2 mb-2 p-2 rounded-xl border-purple-950 hover:bg-linear-to-br from-blue-400 to-purple-400;
+    }
+
+    .search-bar {
+        @apply flex items-center w-1/4 gap-2 border border-gray-300 rounded-lg px-3 py-2 m-4;
+    }
+
+    .table-style {
+        @apply border p-3 w-1/8;
+    }
+
+    .add-btn {
+        @apply border border-gray-300 p-3 m-3 rounded bg-blue-500 text-white font-bold hover:bg-blue-700 hover:cursor-pointer;
+    }
+
+    .delete-btn {
+        @apply border border-gray-300 p-3 m-3 rounded bg-red-500 text-white font-bold hover:bg-red-700 hover:cursor-pointer;
+    }
+
+    .label-style {
+        @apply text-xl font-bold;
+    }
+
+    .addTeacher-div {
+        @apply flex flex-col sm:flex-row sm:items-start sm:gap-6
+    }
+}
