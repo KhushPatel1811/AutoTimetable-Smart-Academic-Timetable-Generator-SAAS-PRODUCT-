@@ -1,8 +1,17 @@
 import { useFieldArray, useForm } from "react-hook-form";
 import BackGround from "../../../Utilities/Background";
 import ProfileNavbar from "../Profile/ProfileNavbar";
+import axios from "axios";
+import { useEffect, useState } from "react";
+import { toast, ToastContainer } from "react-toastify";
+import { useNavigate } from "react-router";
 
 function AddSubject() {
+    interface Department {
+        departmentName:string
+    }
+
+
     interface Subject {
         subjectName: string,
         subjectCode: string,
@@ -11,14 +20,20 @@ function AddSubject() {
         subjectType: string,
         weekly_Lecture_Hour: number,
         weekly_Lab_Hour: number,
-        preferred_room_type: string
+        preferred_Room_Type: string,
+        teacherName: string[]
     }
 
     interface FormData {
         Subjects: Subject[]
     }
 
-    const {register, control, handleSubmit, formState:{errors, isSubmitting, isValid}} = useForm<FormData>({
+    interface Teacher {
+        teacherId: string,
+        teacherName: string
+    }
+
+    const {register, control, watch, handleSubmit, formState:{errors, isSubmitting, isValid}} = useForm<FormData>({
         defaultValues:{
             Subjects: [{
                 subjectName: '',
@@ -28,7 +43,8 @@ function AddSubject() {
                 subjectType: 'Lecture',
                 weekly_Lecture_Hour: 1,
                 weekly_Lab_Hour: 1,
-                preferred_room_type: 'Lecture'
+                preferred_Room_Type: 'Lecture',
+                teacherName: []
             }]
         },
         mode: 'onChange',
@@ -40,8 +56,89 @@ function AddSubject() {
         name: 'Subjects'
     })
 
-    function submitData(data: FormData) {
+
+    const [departmentData, setDepartmentData] = useState<Department[]>([])
+    const navigate = useNavigate()
+    const [teacherData, setTeacherData] = useState<Record<number, Teacher[]>>({});
+
+    useEffect(()=>{
+        async function fetchData() {
+            try {
+                const response = await axios.get('http://localhost:1000/departments')
+                console.log('FETCHED DEPARTMENT DATA:', response.data)
+                setDepartmentData(response.data?.department)
+            }
+            catch(err: any) {
+                console.log('Error Occurred:', err)
+                console.log('Response:', err.response?.data?.message);
+                console.log('Status:', err.response?.status);
+                toast.error(err.response?.data?.message || 'Error Occurred Fetching Department Details')
+            }
+        }
+        fetchData()
+    },[])
+
+
+async function fetchTeachersData(index: number, department: string) {
+    const subject = watch(`Subjects.${index}.subjectName`);
+    department = watch(`Subjects.${index}.departmentName`);
+    // ✅ FIX: prevent bad API call
+    if (!department || !subject) return;
+
+    try {
+        const response = await axios.get(
+            "http://localhost:1000/teachers/fetchDetails",
+            {
+                params: { department, subject }
+            }
+        );
+
+        setTeacherData((prev) => ({
+            ...prev,
+            [index]: response.data?.teachers || []
+        }));    
+    } 
+    catch (err) {
+        console.error(err);
+
+        setTeacherData((prev) => ({
+            ...prev,
+            [index]: []
+        }));
+    } 
+}
+
+    async function submitData(data: FormData) {
         console.log(data)
+        const userItem = localStorage.getItem('user')
+        const userId = userItem ? JSON.parse(userItem)._id : ''
+        const instituteId = userItem ? JSON.parse(userItem).instituteId : ''
+
+        console.log('USER ID IN FRONTEND:', userId)
+        console.log('INSTITUTE ID IN FRONTEND:', instituteId)
+        try {
+            const response = await axios.post('http://localhost:1000/subjects/add', {...data, userId, instituteId}, {
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${localStorage.getItem('token')}`
+                }
+            })
+            console.log('DATA SUBMITTED:', response.data)
+
+            if(response.data) {
+                toast.success('Subject Data Added Successfully')
+
+                setTimeout(()=>{
+                    navigate('/subjects')
+                },3000)
+            }
+        }
+        catch(err: any) {
+            console.log('Error Occurred:', err)
+            console.log('Response:', err.response?.data?.message);
+            console.log('Status:', err.response?.status);
+            toast.error(err.response?.data?.message || 'Error Occurred While Submitting Subject Data')
+        }
     }
 
     return(
@@ -53,6 +150,7 @@ function AddSubject() {
 
                 <div className="flex-1">
                     <ProfileNavbar content="Add Subject Page" />
+                    <ToastContainer position="top-right" autoClose={2000} />
                     <h1 className="text-4xl text-center font-bold mb-5">Subject Details</h1>
 
                     <div className="bg-white z-10 mx-5">
@@ -76,7 +174,7 @@ function AddSubject() {
                                                         message: "Maximum 50 characters required"
                                                     },
                                                     pattern: {
-                                                        value: /^[A-Za-z ]+$/,
+                                                        value: /^[A-Za-z0-9 ]+$/,
                                                         message: "Special Characters Not Allowed"
                                                     }
                                                 })}/>
@@ -128,9 +226,18 @@ function AddSubject() {
                                         {/* DEPARTMENT */}
                                         <div>
                                             <label className="text-sm font-medium">Department</label>
-                                            <input type="text" placeholder="Enter department name" className="input-box" {...register(`Subjects.${index}.departmentName`, {
-                                                    required: "Department is required"
-                                                })}/>
+                                            <select className="input-box" {...register(`Subjects.${index}.departmentName`, {
+                                                    required: "Department is required",
+                                                    onChange: (e)=>fetchTeachersData(index, e.target.value)
+                                                })}>
+                                                    <option value="">Select Department</option>
+                                                    {
+                                                        departmentData != null && 
+                                                        departmentData.map((dept, index)=>(
+                                                            <option key={index} value={dept.departmentName}>{dept.departmentName}</option>
+                                                        ))
+                                                    }
+                                                </select>
                                             <p className="text-red-500 text-xs mt-1">
                                                 {errors?.Subjects?.[index]?.departmentName?.message}
                                             </p>
@@ -147,7 +254,7 @@ function AddSubject() {
                                                 <option value="">Select type</option>
                                                 <option value="Lecture">Lecture</option>
                                                 <option value="Lab">Lab</option>
-                                                <option value="Lecture_Lab">Lecture + Lab</option>
+                                                <option value="Lecture + Lab">Lecture + Lab</option>
                                             </select>
                                             <p className="text-red-500 text-xs mt-1">
                                                 {errors?.Subjects?.[index]?.subjectType?.message}
@@ -193,7 +300,7 @@ function AddSubject() {
                                         {/* ROOM TYPE */}
                                         <div>
                                             <label className="text-sm font-medium">Preferred Room</label>
-                                            <select className="input-box" {...register(`Subjects.${index}.preferred_room_type`, {
+                                            <select className="input-box" {...register(`Subjects.${index}.preferred_Room_Type`, {
                                                 required: "Room type is required"
                                             })}>
                                                 <option value="">Select room</option>
@@ -203,25 +310,36 @@ function AddSubject() {
                                                 <option value="Auditorium">Auditorium</option>
                                             </select>
                                             <p className="text-red-500 text-xs mt-1">
-                                                {errors?.Subjects?.[index]?.preferred_room_type?.message}
+                                                {errors?.Subjects?.[index]?.preferred_Room_Type?.message}
                                             </p>
+                                        </div>
+
+                                        <div>
+                                            <label htmlFor={`teacherName_${index}`}>Teacher Name</label>
+                                            <select multiple className="input-box h-32" {...register(`Subjects.${index}.teacherName`)}>
+                                                {(teacherData[index] ?? []).map((teacher) => (
+                                                    <option key={teacher.teacherId} value={teacher.teacherId}>
+                                                        {teacher.teacherName}
+                                                    </option>
+                                                ))}
+                                            </select>                                        
                                         </div>
 
 
                                         {/* DELETE BUTTON */}
                                         <div className="flex items-end">
-                                            <button type="button" onClick={() => append({subjectName: "",subjectCode: "",semester: 1,departmentName: "",subjectType: "",weekly_Lecture_Hour: 0,weekly_Lab_Hour: 0,preferred_room_type: ""})} className="bg-blue-600 text-white px-4 py-2 rounded mt-4 mx-4 font-bold">
+                                            <button type="button" onClick={() => append({subjectName: "",subjectCode: "",semester: 1,departmentName: "",subjectType: "Lecture",weekly_Lecture_Hour: 1,weekly_Lab_Hour: 1,preferred_Room_Type: "Lecture", teacherName:[]})} className="bg-blue-600 text-white px-4 py-2 rounded mt-4 mx-4 font-bold hover:cursor-pointer hover:bg-blue-700">
                                                 Add Row
                                             </button>
 
-                                            <button type="button" onClick={() => remove(index)} className="bg-red-500 hover:bg-red-600 text-white px-3 py-2 rounded font-bold">
+                                            <button type="button" onClick={() => remove(index)} className="bg-red-500 hover:bg-red-600 text-white px-3 py-2 rounded font-bold hover:cursor-pointer">
                                                 Delete
                                             </button>
                                         </div>
                                     </div>
                                 ))}
-                                <div className="flex justify-center mb-5">
-                                    <button className="add-btn">Submit Subject Data</button>
+                                <div className="flex justify-center my-5">
+                                    <button className={`add-btn ${isSubmitting || !isValid ? 'opacity-50 cursor-not-allowed' : ""} `} disabled={isSubmitting || !isValid}>{isSubmitting ? 'Registering...': 'Register Subject'}</button>
                                 </div>
                             </div>
                         </form>

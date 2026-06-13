@@ -17,6 +17,8 @@ import AddRooms from "./Pages/DashboardItems/Rooms/AddRoom"
 import EditRoom from "./Pages/DashboardItems/Rooms/EditRoom"
 import Subjects from "./Pages/DashboardItems/Subjects/Subjects"
 import AddSubject from "./Pages/DashboardItems/Subjects/AddSubjects"
+import EditSubject from "./Pages/DashboardItems/Subjects/EditSubjects"
+import TimetableDashboard from "./Pages/DashboardItems/TimeTable/TimeTableDashboard"
 
 function App() {
   return (
@@ -39,6 +41,8 @@ function App() {
         <Route path="/rooms/edit/:roomId" element={<ProtectedRoute> <EditRoom /> </ProtectedRoute>} />
         <Route path="/subjects" element={<ProtectedRoute> <Subjects /> </ProtectedRoute>} />
         <Route path="/subjects/add" element={<ProtectedRoute> <AddSubject /> </ProtectedRoute>} />
+        <Route path="/subjects/edit/:subjectId" element={<ProtectedRoute> <EditSubject /> </ProtectedRoute>} />
+        <Route path="/generate" element={<ProtectedRoute> <TimetableDashboard /> </ProtectedRoute>} />
       </Routes>
     </div>
   )

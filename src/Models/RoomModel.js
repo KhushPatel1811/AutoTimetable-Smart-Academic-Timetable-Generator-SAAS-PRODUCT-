@@ -1,6 +1,18 @@
 import mongoose from 'mongoose'
 
 const roomSchema = new mongoose.Schema({
+    userId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref:' User',
+        required: [true, 'User Id Is Required']
+    },
+
+    instituteId: {
+        type:String,
+        ref: 'Teacher',
+        required: [true, 'Institute Id Is Required']
+    },
+
     roomName: {
         type: String,
         trim: true,
@@ -19,14 +31,21 @@ const roomSchema = new mongoose.Schema({
         type: String,
         trim: true,
         required: [true, 'Room Type Is Required'],
-        enum: ['Lecture', 'Lab', 'Seminar', 'Auditorium']
+        enum: {
+            values:['Lecture', 'Lab', 'Seminar', 'Auditorium'],
+            message: 'Invalid Room Type'
+        },
+        default: 'Lecture'
     },
     
     roomStatus: {
         type: String,
         trim: true,
         required: [true, 'Room Availability Is Required'],
-        enum: ['Available', 'Occupied', 'Under Maintenance'], message:'Invalid Room Status',
+        enum: {
+            values: ['Available', 'Occupied', 'Under Maintenance'],
+            message:'Invalid Room Status',
+        },
         default: 'Available'
     },
     

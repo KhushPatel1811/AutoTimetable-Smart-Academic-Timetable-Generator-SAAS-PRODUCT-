@@ -26,7 +26,6 @@ function Subjects() {
     useEffect(() => {
         async function fetchData() {
             try {
-
                 const res = await axios.get("http://localhost:1000/subjects", {
                     params: { search, departmentFilter, semesterFilter, type }
                 });
@@ -34,6 +33,7 @@ function Subjects() {
                 setSubjects(res.data.subjects);
 
                 const dept = await axios.get("http://localhost:1000/departments");
+                console.log("DEPARTMENT DATA:", dept.data)
                 setDepartments(dept.data.department);
             } 
             catch (err: any) {
@@ -43,30 +43,43 @@ function Subjects() {
         fetchData();
     }, [search, departmentFilter, semesterFilter, type]);
 
+    useEffect(()=>{
+        console.log("subjects: ",subjects)
+        console.log("departments: ",departments)
+    },[subjects, departments])
 
+
+
+    //! CLEAR FILTER FUNCTION
     function clearFilter() {
         setSearch('')
         setDepartmentFilter('')
         setSemesterFilter('')
         setType('')
-        window.location.reload()
+        // window.location.reload()
     }
 
 
     // DELETE
     const deleteSubject = async (id: string) => {
 
-        if (!confirm("Delete Subject?")) return;
+        if (!confirm("Do You Really Want To Delete Subject?")) return;
 
         try {
-            await axios.delete(`http://localhost:1000/subjects/${id}`);
-            toast.success("Subject Deleted Successfully");
-            window.location.reload();
+            const response = await axios.delete(`http://localhost:1000/subjects/delete/${id}`);
+
+            if(response) {
+                toast.success("Subject Deleted Successfully");
+
+                setTimeout(()=>{
+                    window.location.reload();
+                },3000)
+            }
         } catch (err: any) {
             console.log('Error Occurred:', err)
             console.log('Response:', err.response?.data?.message)
             console.log('Status:', err.response?.status)
-            toast.error("Error deleting");
+            toast.error(err.response?.data?.message || 'Subject Deletion Request Failed');
         }
     };
 
@@ -94,7 +107,7 @@ function Subjects() {
         {
             icon: Layers3,
             title: "Lecture+Lab",
-            count: subjects.filter((s: any) => s.subjectType === "LECTURE_LAB").length,
+            count: subjects.filter((s: any) => s.subjectType === "LECTURE + LAB").length,
             color: "from-pink-500 to-rose-500"
         }
     ];
@@ -106,8 +119,10 @@ function Subjects() {
 
 
             <div className=" bg-gray-50 flex-1 flex flex-col overflow-auto">
-                <ProfileNavbar content="Subjects" />
-                <ToastContainer />
+                <div className="bg-white z-10 border-b border-gray-200 pb-5">
+                    <ProfileNavbar content="Subjects" />
+                    <ToastContainer />
+                </div>
 
                 {/* HEADER */}
                 <div className="p-6">
@@ -167,7 +182,7 @@ function Subjects() {
                                 <select className="w-full outline-none text-sm bg-transparent cursor-pointer" onChange={(e)=>setDepartmentFilter(e.target.value)}>
                                 <option value="">All Departments</option>
                                 {departments.map((d: any) => (
-                                    <option key={d.departmentName}>{d.departmentName}</option>
+                                    <option key={d.departmentName} value={d.departmentName}>{d.departmentName}</option>
                                 ))}
                             </select>
                         </div>
@@ -192,9 +207,9 @@ function Subjects() {
                             <BookOpen size={18} className="text-gray-400 shrink-0"/>
                                 <select className="w-full outline-none text-sm bg-transparent cursor-pointer" onChange={(e)=>setType(e.target.value)}>
                                 <option value="">Type</option>
-                                <option value="LECTURE">Lecture</option>
-                                <option value="LAB">Lab</option>
-                                <option value="LECTURE_LAB">Lecture+Lab</option>
+                                <option value="Lecture">Lecture</option>
+                                <option value="Lab">Lab</option>
+                                <option value="Lecture + Lab">Lecture + Lab</option>
                             </select>
                         </div>
 
@@ -206,62 +221,70 @@ function Subjects() {
 
 
                     {/* TABLE */}
-                    <div className="bg-white mt-6 rounded-xl overflow-hidden">
+                    <div className="bg-white border border-gray-200 rounded-2xl shadow-xs overflow-hidden">
+                        <div className="w-full overflow-x-auto scrollbar-thin">
+                            <table className="w-full text-left border-collapse min-w-225">
 
-                        <table className="w-full text-sm">
-
-                            <thead className="bg-gray-100">
-                                <tr>
-                                    <th className="p-3">Name</th>
-                                    <th>Code</th>
-                                    <th>Type</th>
-                                    <th>Semester</th>
-                                    <th>Department</th>
-                                    <th>Teachers</th>
-                                    <th>Actions</th>
-                                </tr>
-                            </thead>
-
-                            <tbody>
-                                {subjects.map((s: any) => (
-                                    <tr key={s.subjectId} className="border-t">
-
-                                        <td className="p-3 font-medium">{s.subjectName}</td>
-                                        <td>{s.subjectCode}</td>
-
-                                        <td>
-                                            <span className="px-2 py-1 text-xs rounded bg-indigo-100 text-indigo-700">
-                                                {s.subjectType}
-                                            </span>
-                                        </td>
-
-                                        <td>{s.semester}</td>
-                                        <td>{s.departmentName}</td>
-
-                                        <td>
-                                            <div className="flex gap-1 flex-wrap">
-                                                {s.teachers?.map((t: any) => (
-                                                    <span key={t.teacherId} className="bg-gray-100 px-2 py-1 text-xs rounded">
-                                                        {t.teacherName}
-                                                    </span>
-                                                ))}
-                                            </div>
-                                        </td>
-
-                                        <td className="flex gap-2 p-2">
-                                            <button onClick={() => navigate(`/subjects/edit/${s.subjectId}`)} className="bg-blue-100 text-blue-700 px-2 py-1 rounded">
-                                                Edit
-                                            </button>
-
-                                            <button onClick={() => deleteSubject(s.subjectId)} className="bg-red-100 text-red-700 px-2 py-1 rounded">
-                                                Delete
-                                            </button>
-                                        </td>
+                                <thead>
+                                    <tr className="bg-gray-50 border-b border-gray-200 text-gray-700 text-xs uppercase font-semibold tracking-wider">
+                                        <th className="p-4">Subject Name</th>
+                                        <th className="p-4">Code</th>
+                                        <th className="p-4">Type</th>
+                                        <th className="p-4">Semester</th>
+                                        <th className="p-4">Department</th>
+                                        <th className="p-4">Teachers</th>
+                                        <th className="p-4 text-right">Actions</th>
                                     </tr>
-                                ))}
-                            </tbody>
-                        </table>
-                    </div>
+                                </thead>
+
+                                <tbody className="text-sm text-gray-600">
+                                    {subjects.map((s: any) => (
+                                        <tr key={s.subjectId} className="hover:bg-gray-50/70 transition-colors">
+                                            <td className="p-4 font-medium text-gray-900">
+                                                {s.subjectName}
+                                            </td>
+
+                                            <td className="p-4 font-mono text-xs text-gray-500">
+                                                {s.subjectCode}
+                                            </td>
+
+                                            <td className="p-4">
+                                                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-indigo-50 text-indigo-700 border border-indigo-100">
+                                                    {s.subjectType}
+                                                </span>
+                                            </td>
+
+                                            <td className="p-4">
+                                                {s.semester}
+                                            </td>
+
+                                            <td className="p-4">
+                                                {s.departmentName}
+                                            </td>
+
+                                            <td className="p-4">
+                                                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-50 text-blue-700 border border-blue-100">
+                                                    {s.teacherName?.length || 0} Teacher{s.teacherName?.length !== 1 ? "s" : ""}
+                                                </span>
+                                            </td>
+
+                                            <td className="p-4 text-right whitespace-nowrap">
+                                                <div className="inline-flex items-center gap-2">
+                                                    <button onClick={() => navigate(`/subjects/edit/${s.subjectId}`)} className="text-blue-600 hover:text-blue-800 bg-blue-50 hover:bg-blue-100 px-3 py-1.5 rounded-lg text-xs font-semibold transition cursor-pointer">
+                                                        Edit
+                                                    </button>
+
+                                                    <button onClick={() => deleteSubject(s.subjectId)} className="text-red-600 hover:text-red-800 bg-red-50 hover:bg-red-100 px-3 py-1.5 rounded-lg text-xs font-semibold transition cursor-pointer">
+                                                        Delete
+                                                    </button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>                    
                 </div>
             </div>
         </div>

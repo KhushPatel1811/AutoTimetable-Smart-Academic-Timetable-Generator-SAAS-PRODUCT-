@@ -8,6 +8,8 @@ import profileRoutes from './src/Routes/profile.route.js'
 import teacherRoutes from './src/Routes/teacher.route.js'
 import departmentRoutes from './src/Routes/department.route.js'
 import roomRoutes from './src/Routes/room.route.js'
+import subjectRoutes from './src/Routes/subject.route.js'
+import timeTableRoutes from './src/Routes/timetable.route.js'
 dotenv.config();    
 
 const app = express();
@@ -47,4 +49,13 @@ app.use('/teachers', teacherRoutes)
 // Departments
 app.use('/departments', departmentRoutes)
 
+// Rooms
 app.use('/rooms', roomRoutes)
+
+
+// Subjects
+app.use('/subjects', subjectRoutes)
+
+
+//Timetable
+app.use('/timetable', timeTableRoutes)

@@ -1,6 +1,8 @@
 import express from 'express'
 import Room from '../Models/RoomModel.js'
 import Department from '../Models/DepartmentModel.js'
+import Room_Registration_Middleware from '../Middleware/Room_Registration_Middleware.js'
+import { validationResult } from 'express-validator'
 
 const router = express.Router()
 
@@ -36,8 +38,14 @@ router.get('/', async(req, resp, next)=>{
 })
 
 
-router.post('/add', async(req, resp, next)=>{
+router.post('/add', Room_Registration_Middleware ,async(req, resp, next)=>{
     console.log("BACKEND RECEIVING ROOM DATA", req.body)
+
+    const errors = validationResult(req)
+    if(!errors.isEmpty()) {
+        return resp.status(400).json({success: false, errors: errors.array()})
+    }
+
     try {
         const rooms = []
         let nextId = 1
@@ -55,16 +63,18 @@ router.post('/add', async(req, resp, next)=>{
         
         for(const roomData of req.body.Rooms) {
             const departmentId = await Department.findOne({departmentName: req.body.departmentName}).select('departmentId')
+            console.log('INSTITUTE ID:', req.body.instituteId)
+            console.log('USER ID:', req.body.userId)
             
             rooms.push({
                 roomId: `ROOM${String(nextId).padStart(4,'0')}`,
+                instituteId: req.body.instituteId,
+                userId: req.body.userId,
                 roomName: roomData.roomName,
                 roomType: roomData.roomType,
                 roomStatus: roomData.roomStatus,
                 departmentName: roomData.departmentName,
-                departmentId: departmentId,
-                instituteId: roomData.instituteId,
-                userId: roomData.userId
+                departmentId: departmentId?.departmentId
             })
             nextId++
         }
@@ -91,7 +101,7 @@ router.get('/edit/:roomId', async(req,resp,next)=>{
 })
 
 
-router.put('/edit/:roomId', async(req, resp, next)=>{
+router.put('/edit/:roomId', Room_Registration_Middleware ,async(req, resp, next)=>{
     const {roomName, roomType, roomStatus, departmentName} = req.body
     try {
         const room = await Room.findOne({roomId: req.params.roomId})

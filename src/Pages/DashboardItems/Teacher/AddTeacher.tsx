@@ -67,9 +67,12 @@ import { useEffect, useState } from "react";
         async function submitData(data: Teacher) {
             console.log(data)
 
+            const userItem = localStorage.getItem('user')
+            const userId = userItem? JSON.parse(userItem).userId : ''
+
             try {
                 //! INSERTING TEACHER DATA
-                const response = await axios.post('http://localhost:1000/teachers/add', data, {
+                const response = await axios.post('http://localhost:1000/teachers/add', {...data, userId}, {
                     headers: {
                         'Content-Type': 'application/json',
                         'Authorization':    `Bearer ${localStorage.getItem('token')}`

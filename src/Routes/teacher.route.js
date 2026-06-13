@@ -159,4 +159,46 @@ router.delete('/delete/:teacherId', async(req,resp,next)=>{
     }
 })
 
+
+router.get('/fetchDetails', async (req, res) => {
+    const { department, subject } = req.query;
+
+    console.log('Department Name from query:', department);
+    console.log('SUBJECT RECEIVED IN BACKEND:', subject);
+
+    try {
+        // validation
+        if (!department?.trim() || !subject?.trim()) {
+            return res.status(400).json({
+                message: 'Department and Subject are required'
+            });
+        }
+
+        const teachers = await Teacher.find({
+            teacherDepartment: department,
+            "Subjects.subjects": subject
+        }).select('teacherId teacherName');
+
+        console.log('TEACHER DATA:', teachers);
+
+        // optional: better UX instead of treating as error
+        if (teachers.length === 0) {
+            return res.status(404).json({
+                message: 'No teachers found',
+                teachers: []
+            });
+        }
+
+        return res.status(200).json({
+            teachers
+        });
+
+    } catch (err) {
+        console.error(err);
+        return res.status(500).json({
+            message: err.message
+        });
+    }
+});
+
 export default router
