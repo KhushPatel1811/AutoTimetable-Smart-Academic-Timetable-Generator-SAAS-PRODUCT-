@@ -1,124 +1,113 @@
 import { useNavigate, useParams } from "react-router"
 import ProfileNavbar from "../Profile/ProfileNavbar"
-import BackGround from "../../../Utilities/Background"
+import Sidebar from "../../../Components/Dashboard/Sidebar"
 import { useForm } from "react-hook-form"
 import { useEffect } from "react"
 import axios from "axios"
 import { toast, ToastContainer } from "react-toastify"
+import { Building2, Sparkles, ChevronLeft, Save } from "lucide-react"
 
 function EditDepartment() {
-    const {departmentId} = useParams()
+    const { departmentId } = useParams()
     const navigate = useNavigate()
 
     interface Department {
         departmentName: string
     }
 
-    const {register, handleSubmit, reset, formState:{errors, isValid, isSubmitting}} = useForm<Department>({
-        defaultValues: {
-            departmentName: ''
-        },
+    const { register, handleSubmit, reset, formState: { errors, isValid, isSubmitting } } = useForm<Department>({
+        defaultValues: { departmentName: '' },
         mode: 'onChange'
     })
 
-
-    useEffect(()=>{
+    useEffect(() => {
         async function fetchData() {
             try {
                 const response = await axios.get(`http://localhost:1000/departments/edit/${departmentId}`)
-                console.log('RESPONSE DATA: ',response.data)
-                reset({departmentName: response.data?.department?.departmentName})
-                
-            } 
-            catch(err: any) {
-                console.log('Error Occurred: ',err)
-                console.log('Response: ',err.response?.data?.message)
-                console.log('Status: ', err.response?.status)
+                reset({ departmentName: response.data?.department?.departmentName })
+            } catch (err: any) {
+                console.log('Error Occurred: ', err)
             }
         }
         fetchData()
     }, [reset, departmentId])
 
-
-
     async function updateData(data: Department) {
-        console.log(data)
-
-        try{
-            const response = await axios.put('http://localhost:1000/departments/edit', {...data, departmentId}, {
-                headers:{
+        try {
+            await axios.put('http://localhost:1000/departments/edit', { ...data, departmentId }, {
+                headers: {
                     "Content-Type": 'application/json',
                     'Authorization': `Bearer ${localStorage.getItem('token')}`
                 }
             })
-
-            console.log('RESPONSE DATA', response.data)
-
-            if(response) {
-                toast.success('Department Updated Successfully')
-
-                setTimeout(()=>{
-                    navigate('/departments')
-                },3000)
-            }
-        }
-        catch(err:any) {
-            console.log('Error Occurred:', err)
-            console.log('Response: ',err.response?.data?.message)
-            console.log('Status:', err.response?.status)
-            toast.error(err.response?.data?.message || 'Department Updation Failed')
+            toast.success('Department cluster redefined')
+            setTimeout(() => navigate('/departments'), 2000)
+        } catch (err: any) {
+            toast.error(err.response?.data?.message || 'Updation failed')
         }
     }
 
+    return (
+        <div className="flex h-screen w-screen bg-slate-50 overflow-hidden">
+            <Sidebar />
 
-    return(
-        <>
-            <div>
-                <div className="fixed inset-0 -z-10 pointer-events-none">
-                    <BackGround />
+            <div className="flex-1 flex flex-col h-full overflow-y-auto animate-page">
+                {/* Header Sticky Bar Container */}
+                <div className="sticky top-0 left-0 w-full z-50 bg-white/80 backdrop-blur-md border-b border-slate-200 px-4 sm:px-6 py-4 flex items-center justify-between">
+                    <div className="flex items-center gap-4 w-full">
+                        {/* Optional back button if used inside EditTeacher */}
+                        <button type="button" onClick={() => navigate(-1)} className="p-2 hover:bg-slate-100 rounded-xl transition-colors text-slate-400 hover:text-slate-900">
+                            <ChevronLeft className="w-5 h-5" />
+                        </button>
+                        
+                        {/* The Navbar component now safely gets full structural space */}
+                        <ProfileNavbar content="Modify Teacher Profile" />
+                    </div>
+                    <ToastContainer position="top-right" autoClose={2000} />
                 </div>
-                
-                <div>
-                    <ProfileNavbar content="Edit Department Page" />
-                    <ToastContainer position="top-right" autoClose={2000}/>
 
-                    <form onSubmit={handleSubmit(updateData)}>
-                        <div className="border rounded-xl mx-15 mt-10 bg-white z-10">
-                            <h1 className="text-center text-2xl font-bold mt-4 mb-4">Edit Department Details</h1>
-                            <div>
-                                <div className="flex justify-center">
-                                    <label className="text-lg mt-4 ml-4 font-semibold" htmlFor={`departmentNam`}>Department Name</label>
-                                    <div>
-                                        <input type="text" className="input-box ml-4" id={`departmentNam`} placeholder="Enter Department Name" {...register(`departmentName`, {
-                                            required: 'Department Name Is Required',
-                                            minLength: {
-                                                value:3,
-                                                message: 'At Least 3 characters are required'
-                                            },
-                                            maxLength: {
-                                                value:50,
-                                                message: 'At Least 50 characters are required'
-                                            },
-                                            pattern: {
-                                                value: /^[A-Za-z0-9 ]+$/,
-                                                message: 'Department Name Should Not Contain Special Characters'
-                                            }
-                                        })}/>
+                <div className="p-8 max-w-2xl mx-auto w-full space-y-10">
+                    <div className="flex items-center gap-6">
+                        <div className="p-4 bg-indigo-600 rounded-[1.5rem] shadow-xl shadow-indigo-100">
+                            <Building2 className="w-8 h-8 text-white" />
+                        </div>
+                        <div>
+                            <h1 className="text-3xl font-black text-slate-900 tracking-tight">Refine Department</h1>
+                            <p className="text-slate-500 font-bold text-sm uppercase tracking-widest mt-1">Institutional Sub-unit Registry</p>
+                        </div>
+                    </div>
 
-                                        <div>
-                                            {errors.departmentName && <p className="text-red-500">{errors.  departmentName.message}</p> }
-                                        </div>
-                                    </div>
-                                </div>
+                    <form onSubmit={handleSubmit(updateData)} className="space-y-8">
+                        <div className="premium-card space-y-6">
+                            <div className="space-y-2">
+                                <label className="text-[11px] font-black text-slate-400 uppercase tracking-widest ml-1">Operational Unit Identity</label>
+                                <input 
+                                    type="text" 
+                                    className="input-box !py-4 scale-105 origin-left transition-all" 
+                                    placeholder="Enter Department Name" 
+                                    {...register(`departmentName`, { required: true })} 
+                                />
+                                {errors.departmentName && <p className="text-rose-500 text-[10px] font-black uppercase mt-1 ml-1">Identification Required</p>}
                             </div>
-                            <div className="flex justify-center">
-                                <button disabled={isSubmitting || !isValid} className={`add-btn ${(isSubmitting || !isValid) ? 'opacity-50 cursor-not-allowed' : 'add-btn'}`}>{(isSubmitting || !isValid) ? 'Updating Department Data' : 'Update Department Detail'}</button>
-                            </div>
+                        </div>
+
+                        <div className="flex items-center justify-end gap-4">
+                            <button type="button" onClick={() => navigate('/departments')} className="secondary-btn !py-4 !px-10">
+                                Abort
+                            </button>
+                            <button 
+                                type="submit" 
+                                disabled={isSubmitting || !isValid} 
+                                className={`add-btn !py-4 !px-12 gap-3 shadow-xl shadow-indigo-100 hover:scale-105 ${isSubmitting || !isValid ? "opacity-50 grayscale" : ""}`}
+                            >
+                                {isSubmitting ? <Sparkles className="w-5 h-5 animate-spin" /> : <Save className="w-5 h-5" />}
+                                Commit Change
+                            </button>
                         </div>
                     </form>
                 </div>
             </div>
-        </>
+        </div>
     )
 }
 

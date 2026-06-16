@@ -14,16 +14,15 @@ const teacherSchema = new mongoose.Schema({
         trim: true,
         minLength: [3, "Name must be at least 3 characters"],
         maxLength: [50, "Name cannot exceed 50 characters"],
-        match: [/^[A-Za-z ]+$/, "Name should contain only letters"],
+        match: [/^[A-Za-z0-9\s.,&()-]+$/, "Name contains invalid characters"],
     },
 
     instituteName: {
     type: String,
     required: [true, 'Institute Name Is Required'],
     minLength: [3, "Institute Name must be at least 3 characters"],
-    maxLength: [50, "Institute Name cannot exceed 50 characters"],
-
-    match:[/^[A-Za-z0-9\s.,&()-]+$/, 'College Name Should Contain Only Characters']
+    maxLength: [100, "Institute Name cannot exceed 100 characters"],
+    match:[/^[A-Za-z0-9\s.,&()-]+$/, 'Institute Name contains invalid characters']
     },
 
 

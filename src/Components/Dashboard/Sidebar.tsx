@@ -1,4 +1,6 @@
-import {User, LayoutDashboard, Calendar, Users, BookOpen, DoorOpen, Layers, FileText, BarChart3, Settings, LogOut, X} from "lucide-react";
+import React from "react";
+import { User, LayoutDashboard, Calendar, Users, BookOpen, DoorOpen, Layers, FileText, BarChart3, Settings, LogOut, X, ShieldCheck } from "lucide-react";
+import { useLocation, useNavigate, Link } from "react-router-dom"; // Switched to Link to prevent full page reloads
 
 interface SidebarProps {
     isOpen?: boolean;
@@ -6,102 +8,140 @@ interface SidebarProps {
 }
 
 function Sidebar({ isOpen, onClose }: SidebarProps) {
+    const navigate = useNavigate();
+    const location = useLocation();
+    
+    // Safety check parsing local storage profile elements
+    const storedUser = JSON.parse(localStorage.getItem("user") || "{}");
+    const role = storedUser?.role || "Admin"; 
+    const userName = storedUser?.adminName || storedUser?.name || "User";
 
-    const storedUser = JSON.parse(localStorage.getItem("user")); // admin, teacher, student
-    const role = storedUser?.role
-    console.log(role)
-
-        const menuItemsByRole = {
+    // Cleaned up navigation mapping categories using clean, premium user-friendly naming protocols
+    const menuItemsByRole = {
         Admin: [
-            { icon: User, label: "Profile", href: "/profile" },
-            { icon: LayoutDashboard, label: "Dashboard", href: "/dashboard" },
-            { icon: Calendar, label: "Generate TimeTable", href: "/generate" },
-            { icon: Users, label: "Teachers", href: "/teachers" },
-            { icon: BookOpen, label: "Subjects", href: "/subjects" },
-            { icon: DoorOpen, label: "Rooms", href: "/rooms" },
-            { icon: Layers, label: "Divisions / Departments", href: "/departments" },
-            { icon: FileText, label: "TimeTable", href: "/timetables" },
-            { icon: BarChart3, label: "Reports", href: "/reports" },
-            { icon: Settings, label: "Settings", href: "/settings" }
+            { icon: LayoutDashboard, label: "Overview", href: "/dashboard" },
+            { icon: Calendar, label: "Generate Timetable", href: "/generate" },
+            { icon: Users, label: "Faculty Members", href: "/teachers" },
+            { icon: BookOpen, label: "Courses & Subjects", href: "/subjects" },
+            { icon: DoorOpen, label: "Classrooms & Rooms", href: "/rooms" },
+            { icon: Layers, label: "Departments", href: "/departments" },
+            { icon: FileText, label: "All Timetables", href: "/timetables" },
+            { icon: User, label: "Admin Profile", href: "/profile" },
+            { icon: BarChart3, label: "Analytics & Reports", href: "/reports" },
+            { icon: Settings, label: "System Settings", href: "/settings" }
         ],
-
         Teacher: [
-            { icon: User, label: "Profile", href: "/profile" },
-            { icon: LayoutDashboard, label: "Dashboard", href: "/dashboard" },
+            { icon: LayoutDashboard, label: "Overview", href: "/dashboard" },
             { icon: Calendar, label: "My Availability", href: "/availability" },
-            { icon: FileText, label: "My Timetable", href: "/my-timetable" }
+            { icon: FileText, label: "My Timetable", href: "/my-timetable" },
+            { icon: User, label: "Teacher Profile", href: "/profile" },
         ],
-
         Student: [
-            { icon: User, label: "Profile", href: "/profile" },
-            { icon: LayoutDashboard, label: "Dashboard", href: "/dashboard" },
-            { icon: Users, label: "Teacher Availability", href: "/teacher-availability" },
-            { icon: FileText, label: "My Timetable", href: "/my-timetable" }
+            { icon: LayoutDashboard, label: "Overview", href: "/dashboard" },
+            { icon: Users, label: "Faculty Directory", href: "/teacher-availability" },
+            { icon: FileText, label: "Class Timetable", href: "/my-timetable" },
+            { icon: User, label: "Student Profile", href: "/profile" },
         ]
     };
 
-    const menuItems = menuItemsByRole[role as keyof typeof menuItemsByRole] || []
-    console.log(menuItems)
+    const menuItems = menuItemsByRole[role as keyof typeof menuItemsByRole] || [];
 
-    return(
+    const handleLogout = () => {
+        localStorage.clear();
+        navigate('/auth/login');
+    };
+
+    return (
         <>
-        {/* Mobile Overlay */}
-        {isOpen && (
-            <div 
-                className="fixed top-0 h-screen inset-0 bg-black/40 backdrop-blur-sm z-40 md:hidden transition-opacity" 
-                onClick={onClose}
-            />
-        )}
+            {/* Mobile Overlay Background Panel */}
+            {isOpen && (
+                <div 
+                    className="fixed inset-0 bg-slate-900/60 backdrop-blur-md z-40 md:hidden transition-opacity duration-500" 
+                    onClick={onClose}
+                />
+            )}
 
-        <aside className={`
-            bg-purple-950 w-70 fixed md:sticky top-0 h-screen z-50 transition-transform duration-300 ease-in-out flex flex-col shadow-2xl md:shadow-none
-            ${isOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}
-        `}>
-            <div className="flex border-b border-gray-500 pb-12 pt-4 pl-3 justify-between items-start">        
-                <div className="flex">
-                    <div className="bg-purple-600 m-2 p-2 rounded-xl shadow-[0_0_10px_rgba(126,34,206,0.5)]">
-                        <Calendar stroke="white" size={30} />
-                    </div>
-
-                    <div className="text-xl text-white font-bold mt-2 ml-2">
-                        AutoTimeTable
-                        <br />
-                        <div className="text-gray-200 font-normal text-sm">
-                            Smart Scheduling
+            {/* Sidebar Structural Frame Wrapper */}
+            <aside className={`
+                bg-slate-950 w-72 fixed md:sticky top-0 h-screen z-50 transition-all duration-500 ease-[cubic-bezier(0.2,0.8,0.2,1)] flex flex-col border-r border-white/5
+                ${isOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}
+            `}>
+                {/* Branding Core Section */}
+                <div className="p-8 pb-10 border-b border-white/5 relative group">
+                    <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-600/10 rounded-full blur-3xl -mr-16 -mt-16 group-hover:bg-indigo-600/20 transition-all duration-1000" />
+                    
+                    <div className="flex items-center gap-4 relative z-10">
+                        <div className="p-3 bg-indigo-600 rounded-2xl shadow-xl shadow-indigo-500/20 rotate-3 group-hover:rotate-0 transition-transform duration-500">
+                            <ShieldCheck className="w-6 h-6 text-white" />
+                        </div>
+                        <div className="space-y-0.5">
+                            <h2 className="text-white font-black tracking-tight text-lg leading-none">Infinite <span className="text-indigo-400">Scheduler</span></h2>
+                            <p className="text-[10px] font-black text-slate-500 uppercase tracking-[0.3em]">Campus Portal</p>
                         </div>
                     </div>
+
+                    {/* Mobile Close Button */}
+                    <button onClick={onClose} className="md:hidden absolute top-6 right-6 p-2 text-slate-500 hover:text-white transition-colors">
+                        <X size={20} />
+                    </button>
                 </div>
 
-                {/* Mobile Close Button */}
-                <button onClick={onClose} className="md:hidden p-4 text-white hover:bg-purple-900/50 rounded-bl-xl transition-colors">
-                    <X size={24} />
-                </button>
-            </div>
-
-            <nav className="flex flex-col text-white mt-5 border-b border-gray-500 pb-5 overflow-y-auto max-h-[calc(100vh-250px)] [scrollbar-thin] [scrollbar-color:#4b2185_transparent]">
-                {
-                    menuItems.map((item)=>{
-                        const Icon = item.icon
-                        const isActive: boolean = window.location.pathname === item.href
+                {/* Primary Navigation Router Connections */}
+                <nav className="flex-1 px-4 py-6 space-y-1.5 overflow-y-auto custom-scrollbar">
+                    {menuItems.map((item) => {
+                        const Icon = item.icon;
+                        const isActive = location.pathname === item.href || (item.href !== '/dashboard' && location.pathname.startsWith(item.href));
+                        
                         return (
-                            <a href={item.href} key={item.label} className={`flex m-2 p-2 hover:bg-linear-to-br from-blue-400 to-purple-400 hover:rounded-xl transition-all duration-200 ${isActive ? 'bg-linear-to-br from-blue-400 to-purple-400 rounded-xl' : '' }`}>
-                                <Icon size={20} />
-                                <span className="ml-2.5">{item.label}</span>
-                            </a>
-                        )
-                    })
-                }
-            </nav>
+                            <Link 
+                                to={item.href} 
+                                key={item.label} 
+                                onClick={onClose}
+                                className={`flex items-center gap-4 px-5 py-3.5 rounded-2xl transition-all duration-300 group
+                                    ${isActive 
+                                        ? 'bg-indigo-600 text-white shadow-xl shadow-indigo-600/20' 
+                                        : 'text-slate-400 hover:text-white hover:bg-white/5'
+                                    }`}
+                            >
+                                <Icon size={18} className={`${isActive ? 'text-white' : 'text-slate-500 group-hover:text-indigo-400'} transition-colors`} />
+                                <span className="text-[11px] font-black uppercase tracking-widest">{item.label}</span>
+                                {isActive && <div className="ml-auto w-1.5 h-1.5 bg-white rounded-full shadow-[0_0_8px_rgba(255,255,255,0.8)]" />}
+                            </Link>
+                        );
+                    })}
+                </nav>
 
-            <div className="text-white mt-auto p-2">
-                <button className={`flex p-2 w-full hover:bg-linear-to-br from-blue-400 to-purple-400 hover:rounded-xl cursor-pointer transition-all mb-7`}>
-                    <LogOut stroke="white" size={20}/>
-                    <span className="ml-2.5">LogOut</span>
-                </button>
-            </div>
-        </aside>
+                {/* User Profile Footer Card Area */}
+                <div className="p-4 mt-auto border-t border-white/5 bg-slate-950">
+                    <div className="bg-white/5 rounded-2xl p-4 border border-white/5 space-y-4">
+                        <div className="flex items-center gap-3 px-1">
+                            <div className="w-9 h-9 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 border border-white/20 flex items-center justify-center font-black text-white text-xs shrink-0">
+                                {userName.charAt(0).toUpperCase()}
+                            </div>
+                            <div className="flex-1 min-w-0">
+                                <p className="text-[11px] font-black text-white truncate uppercase tracking-tight">{userName}</p>
+                                <p className="text-[9px] font-bold text-slate-500 uppercase tracking-wider">{role} Access</p>
+                            </div>
+                        </div>
+
+                        {/* Standardized Sign-out Action element */}
+                        <button 
+                            onClick={handleLogout}
+                            className="w-full flex items-center justify-center gap-2.5 py-3.5 rounded-xl bg-white/5 hover:bg-rose-500/10 text-slate-400 hover:text-rose-500 border border-transparent hover:border-rose-500/20 transition-all duration-300 group cursor-pointer"
+                        >
+                            <LogOut size={14} className="group-hover:-translate-x-0.5 transition-transform" />
+                            <span className="text-[10px] font-black uppercase tracking-widest">Sign Out</span>
+                        </button>
+                    </div>
+                    
+                    <div className="text-center mt-4 flex items-center justify-center gap-2">
+                        <div className="w-1 h-1 bg-emerald-500 rounded-full animate-pulse" />
+                        <p className="text-[8px] font-black text-slate-600 uppercase tracking-[0.4em]">System Connected</p>
+                    </div>
+                </div>
+            </aside>
         </>
-    )
+    );
 }
 
 export default Sidebar;

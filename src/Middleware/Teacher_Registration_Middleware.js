@@ -5,7 +5,7 @@ function TeacherRegistrationMiddleware() {
         body('teacherName')
         .trim()
         .notEmpty().withMessage('Teacher Name Is Required')
-        .matches(/^[A-Za-z ]+$/).withMessage('Teacher Name Should Contain Only Characters'),
+        .matches(/^[A-Za-z0-9\s.,&()-]+$/).withMessage('Name Contains Invalid Characters'),
 
         body('teacherEmail')
         .trim()
@@ -22,7 +22,7 @@ function TeacherRegistrationMiddleware() {
         body('teacherDepartment')
         .trim()
         .notEmpty().withMessage('Teacher Department Is Required')
-        .matches(/^[A-Za-z ]+$/).withMessage('Department Name Should Contain Only Characters'),
+        .matches(/^[A-Za-z0-9\s.,&()-]+$/).withMessage('Department Name Contains Invalid Characters'),
 
         body('teacherAvailability')
         .trim()
@@ -36,7 +36,7 @@ function TeacherRegistrationMiddleware() {
         body('Subjects.*.subjects')
         .trim()
         .notEmpty().withMessage('Subject Name is Required')
-        .matches(/^[A-Za-z ]+$/).withMessage('Subject Name Should Contain Only Characters')
+        .matches(/^[A-Za-z0-9\s.,&()-]+$/).withMessage('Subject Name Contains Invalid Characters')
     ]
 }
 

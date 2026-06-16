@@ -21,20 +21,13 @@ function Department() {
 
             try {
                 const response = await axios.get('http://localhost:1000/departments')
-                
-                console.log("Department Data: ", response.data)
-                console.log('SET DEPARTMENT', response.data?.department)
-
                 const department = response.data?.department
-
                 if(department) {
                     setDepartmentData(department)
                 }
             }
-            catch(err:any) {
+            catch(err: any) {
                 console.log('Error Occurred: ',err)
-                console.log('Response:', err.response?.data?.message)
-                console.log('Status:', err.response?.status)
             }
         }
         fetchData()
@@ -51,96 +44,122 @@ function Department() {
                         'Authorization' : `Bearer ${localStorage.getItem('token')}`
                     }
                 })
-                console.log(response.data)
     
                 if(response) {
                     toast.success('Department Deleted Successfully')
-    
                     setTimeout(()=>{
                         window.location.reload()
                     },2500)
                 }
             }
             catch(err: any) {
-                console.log('Error Occurred:', err)
-                console.log('Response:',  err.response?.data?.message)
-                console.log('Status:', err.response?.status)
                 toast.error(err.response?.data?.message || 'Delete Request Failed')
             }
         }
     }
 
-    return(
-        <>
-            <div className="flex h-screen w-screen overflow-hidden bg-gray-50">
-                <div className="h-full z-50">
-                    <Sidebar />
+    return (
+        <div className="flex h-screen w-screen overflow-hidden bg-slate-50">
+            <Sidebar />
+
+            <div className="flex-1 h-full overflow-y-auto animate-page">
+                <div className="sticky top-0 z-10 bg-white/80 backdrop-blur-md border-b border-slate-200">
+                    <ProfileNavbar content="Academic Wing Registry" />
+                    <ToastContainer position="top-right" autoClose={2000} />
                 </div>
 
-                <div className="flex-1">
-                    <div className="border-b border-gray-300 z-1 bg-white">
-                        <ProfileNavbar content="Department List Page" />
-                        <ToastContainer position="top-right"  autoClose={2000}/>
-                    </div>
-
-                    {/* Department Management Card */}
-                    <div className="bg-linear-to-r from-blue-500 via-purple-500 to-pink-500 min-h-24 rounded-2xl p-6 flex items-center shadow-sm m-3">
-                        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center w-full gap-4">
-                            <div className="flex items-center">
-                                <div className="flex items-center justify-center w-14 h-14 rounded-xl bg-white/20 backdrop-blur-md shadow-lg shrink-0">
-                                    <Users stroke="white" strokeWidth={2} size={28} />
-                                </div>
-                                <div className="ml-4">
-                                    <h1 className="text-white text-xl sm:text-2xl font-bold tracking-tight">Manage Departments / Classes</h1>
-                                    <p className="text-white/80 text-xs sm:text-sm">Manage Departments / Classes In Your Institute</p>
-                                </div>
+                <div className="p-8 max-w-7xl mx-auto space-y-8">
+                    {/* Page Header Card */}
+                    <div className="bg-linear-to-r from-indigo-600 to-indigo-500 rounded-[2.5rem] p-10 shadow-2xl shadow-indigo-100 flex items-center justify-between border border-indigo-400/20 relative overflow-hidden group">
+                        <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full -mr-20 -mt-20 group-hover:scale-110 transition-transform duration-700" />
+                        
+                        <div className="flex items-center space-x-6 relative z-10">
+                            <div className="p-5 bg-white/20 backdrop-blur-xl rounded-3xl shadow-inner border border-white/30">
+                                <Users className="w-8 h-8 text-white" />
                             </div>
-                            <button 
-                                className="bg-white px-5 py-2.5 rounded-xl font-bold text-gray-900 text-sm w-full sm:w-auto shadow-md hover:bg-gray-50 transition active:scale-95 cursor-pointer shrink-0" 
-                                onClick={() => navigate('/departments/add')}>
-                                + Add Department
-                            </button>  
+                            <div>
+                                <h1 className="text-3xl font-black text-white tracking-tight">Organization Wings</h1>
+                                <p className="text-indigo-100 font-bold text-sm tracking-wide opacity-80 uppercase">Manage your departments and classrooms</p>
+                            </div>
                         </div>
-                    </div>
 
+                        <button 
+                            className="bg-white px-8 py-4 rounded-2xl font-black text-indigo-600 text-sm shadow-xl hover:shadow-2xl hover:scale-105 active:scale-95 transition-all duration-300 cursor-pointer relative z-10 uppercase tracking-widest"
+                            onClick={() => navigate('/departments/add')}>
+                            + New Department
+                        </button>
+                    </div>
 
                     {/* Department List Table */}
-                    <div className="bg-white border border-gray-200 rounded-2xl shadow-xs overflow-hidden mx-3">
-                        <div className="w-full overflow-x-auto scrollbar-thin">
-                            <table className="w-full text-left border-collapse">
+                    <div className="premium-card p-0! overflow-hidden">
+                        <div className="p-8 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
+                            <h3 className="text-sm font-black text-slate-800 uppercase tracking-wider">Active Departments</h3>
+                            <div className="badge-indigo">Live Count: {departmentData?.length || 0}</div>
+                        </div>
+
+                        <div className="overflow-x-auto">
+                            <table className="w-full text-left">
                                 <thead>
-                                    <tr className="bg-gray-50 border-b border-gray-200 text-gray-700 text-xs uppercase font-semibold tracking-wider">
-                                        <th className="p-4">Sr. No</th>
-                                        <th className="p-4">Department Name</th>
-                                        <th className="p-4">Department Code</th>
-                                        <th className="p-4">Created At</th>
-                                        <th className="p-4 text-right">Actions</th>
+                                    <tr className="border-b border-slate-100 text-[11px] font-black text-slate-400 uppercase tracking-widest">
+                                        <th className="p-6">Index</th>
+                                        <th className="p-6">Department Identity</th>
+                                        <th className="p-6">System ID</th>
+                                        <th className="p-6">Registration Date</th>
+                                        <th className="p-6 text-right">Operations</th>
                                     </tr>
                                 </thead>
 
-                                <tbody className="text-sm text-gray-600">
-                                    {
-                                        departmentData != null && departmentData.map((department, index)=>(
-                                            <tr key={index} className="transition-colors">
-                                                <td className="p-4">{index+1}</td>
-                                                <td className="p-4">{department.departmentName}</td>
-                                                <td className="p-4">{department.departmentId}</td>
-                                                <td className="p-4">{new Date(department.createdAt).toLocaleTimeString()}</td>
-                                                <td className="p-4">
-                                                    <button className="text-blue-700 bg-blue-50 hover:bg-blue-100 hover:cursor-pointer mx-5 px-2 py-1 rounded text-xs font-semibold" onClick={()=>navigate(`/departments/edit/${department.departmentId}`)}>Edit</button>
-                                                    <button className="text-red-700 bg-red-50 hover:bg-red-100 hover:cursor-pointer px-2 py-1 rounded text-xs font-semibold" onClick={()=>deleteData(`${department.departmentId}`)}>Delete</button>
-                                                </td>
-                                            </tr>
-                                        ))
-                                    }
+                                <tbody className="text-sm">
+                                    {departmentData != null && departmentData.map((department, index) => (
+                                        <tr key={index} className="group hover:bg-slate-50/80 transition-colors border-b border-slate-50 last:border-none">
+                                            <td className="p-6 font-black text-slate-300 text-lg">{(index + 1).toString().padStart(2, '0')}</td>
+                                            <td className="p-6">
+                                                <div className="font-black text-slate-800">{department.departmentName}</div>
+                                                <div className="text-[10px] text-slate-400 uppercase font-bold tracking-tighter">Academic Wing</div>
+                                            </td>
+                                            <td className="p-6">
+                                                <span className="font-mono text-xs text-indigo-600 bg-indigo-50 px-3 py-1 rounded-lg border border-indigo-100">
+                                                    {department.departmentId}
+                                                </span>
+                                            </td>
+                                            <td className="p-6 text-slate-500 font-bold text-xs italic">
+                                                {new Date(department.createdAt).toLocaleDateString(undefined, {
+                                                  year: 'numeric', month: 'long', day: 'numeric'
+                                                })}
+                                            </td>
+                                            <td className="p-6 text-right">
+                                                <div className="flex items-center justify-end space-x-2">
+                                                    <button 
+                                                        className="secondary-btn py-2! px-4!" 
+                                                        onClick={() => navigate(`/departments/edit/${department.departmentId}`)}
+                                                    >
+                                                        Edit
+                                                    </button>
+                                                    <button 
+                                                        className="delete-btn" 
+                                                        onClick={() => deleteData(department.departmentId)}
+                                                    >
+                                                        Remove
+                                                    </button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    ))}
                                 </tbody>
                             </table>
+                            
+                            {(!departmentData || departmentData.length === 0) && (
+                                <div className="p-20 text-center space-y-4 opacity-40">
+                                    <Users className="w-12 h-12 text-slate-200 mx-auto" />
+                                    <p className="text-xs font-black text-slate-500 uppercase tracking-widest">No departments found in registry</p>
+                                </div>
+                            )}
                         </div>
                     </div>
                 </div>
             </div>
-        </>
-    )
+        </div>
+    );
 }
 
 export default Department;

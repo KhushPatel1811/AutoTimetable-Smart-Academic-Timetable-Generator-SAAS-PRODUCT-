@@ -36,7 +36,7 @@ const SubjectSchema = new mongoose.Schema({
     semester: {
         type: Number,
         required: [true, 'Semester Is Required'],
-        match:(/^[0-9]$/, 'Semester Should Contain Only Numbers')
+        match:(/^[0-9]+$/, 'Semester Should Contain Only Numbers')
     },
 
     departmentName: {

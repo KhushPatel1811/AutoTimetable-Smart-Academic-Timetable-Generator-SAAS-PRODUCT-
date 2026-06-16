@@ -1,124 +1,132 @@
-import { Moon } from 'lucide-react'
-import mongoose from 'mongoose'
+import mongoose from "mongoose";
 
-//! 1. Define the innermost schema for individual lecture/lab slots
-const ScheduleSlotSchema = new mongoose.Schema ({
-    subjectName: { 
-        type: String, 
-        required: [true, 'Subject Name Is Required' ]
+const ScheduleSlotSchema = new mongoose.Schema({
+    subjectName: {
+        type: String,
+        default: "Free"
     },
-
-    subjectCode: { 
-        type: String, 
-        required: [true, 'Subject Code Is Required'] 
+    subjectCode: {
+        type: String,
+        default: "-"
     },
-
-    teacherName: { 
-        type: String, 
-        required: [true, 'Teacher Name Is Required'] 
-    },
-
-    roomNumber: { 
-        type: String, 
-        required: [true, 'Room Number Is Required'] 
-    },
-
     subjectType: {
-        type: String, 
-        enum: ['Lecture', 'Lab', 'Lecture + Lab'], 
-        required: [true, 'Subject Type Is Required'] 
+        type: String,
+        enum: ["Lecture", "Lab", "Lecture + Lab", "Free"],
+        default: "Free"
+    },
+    teacherName: {
+        type: String,
+        default: "-"
+    },
+    roomNumber: {
+        type: String,
+        default: "-"
+    },
+    free: {
+        type: Boolean,
+        default: false
     }
-})
+}, { _id: false });
 
-
-
-
-//! 2. Define the schema for a single day, using a Map for dynamic timeSlot keys
 const DayScheduleSchema = new mongoose.Schema({
     day: {
         type: String,
-        required: [true, 'Day Is Required']
+        required: true
     },
-
     slots: {
-        type: Map,
-        of: ScheduleSlotSchema,
-        default:[]
-    }   
-})
-
-
-
-//! 3. Define the schema for an entire division's weekly breakdown
+        type: [ScheduleSlotSchema],
+        default: []
+    }
+}, { _id: false });
 
 const DivisionScheduleSchema = new mongoose.Schema({
     divisionName: {
         type: String,
-        required: [true, 'Division Name Is Required']
+        required: true
     },
-
     schedule: [DayScheduleSchema]
-})
+}, { _id: false });
 
-
-
-
-//! 4. Define the root Timetable schema with metadata and configuration values
 const timeTableSchema = new mongoose.Schema({
-    departmentName: { 
-        type: String, 
-        required: [true, 'Department Name Is Required'] 
+    instituteId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User",
+        required: true,
+        index: true
     },
 
-    semester: { 
-        type: Number, 
-        required: [true, 'Semester Is Required'] 
+    departmentName: {
+        type: String,
+        required: true
     },
 
-    totalDivisions: { 
-        type: Number, 
-        required: [true, 'Total Divisions Is Required'] 
+    semester: {
+        type: Number,
+        required: true
     },
 
-    totalDays: { 
-        type: Number, 
-        required: [true, 'Total Days Is Required'] 
+    totalDivisions: {
+        type: Number,
+        required: true
     },
 
-    dayStartTime: { 
-        type: String, 
-        required: [true, 'Day StartTime Is Required'] 
+    totalDays: {
+        type: Number,
+        required: true
     },
 
-    dayEndTime: { 
-        type: String, 
-        required: [true, 'Day EndTime Is Required'] 
-    },
-    
-    lectureDuration: { 
-        type: Number, 
-        required: [true, 'Lecture Duration Is Required'] 
+    dayStartTime: {
+        type: String,
+        required: true
     },
 
-    labDuration: { 
-        type: Number, 
-        required: [true, 'Lab Duration Is Required'] 
+    dayEndTime: {
+        type: String,
+        required: true
     },
 
-    version: { 
-        type: Number, 
-        default: 1 
+    lectureDuration: {
+        type: Number,
+        required: true
     },
 
-    isLatest: { 
-        type: Boolean, 
-        default: true 
+    labDuration: {
+        type: Number,
+        required: true
+    },
+
+    version: {
+        type: Number,
+        default: 1
+    },
+
+    isLatest: {
+        type: Boolean,
+        default: true
+    },
+
+    status: {
+        type: String,
+        enum: ["Generating", "Completed", "Failed"],
+        default: "Completed"
+    },
+
+    createdBy: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User"
     },
 
     divisions: [DivisionScheduleSchema]
 }, {
     timestamps: true
-})
+});
+
+timeTableSchema.index({
+    instituteId: 1,
+    departmentName: 1,
+    semester: 1,
+    isLatest: 1
+});
 
 const TimeTable = mongoose.model('TimeTable', timeTableSchema)
 

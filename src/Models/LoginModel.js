@@ -32,7 +32,7 @@ const userSchema = new mongoose.Schema({
         default: 'Student'
     },
     instituteId: {
-        type: mongoose.Schema.Types.ObjectId,
+        type: String,
         required: [true, 'Institute Id Is Required'],
         trim: true,
         index: true

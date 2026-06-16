@@ -1,195 +1,199 @@
-import { useEffect, useState } from "react"
-import ProfileNavbar from "./ProfileNavbar"
-import ProfileCard from "./ProfileCard"
-import { useForm } from "react-hook-form"
-import axios from "axios"
-import Sidebar from "../../../Components/Dashboard/Sidebar"
-import { ToastContainer, toast } from "react-toastify"
+import React, { useEffect, useState } from "react";
+import { useForm } from "react-hook-form";
+import axios from "axios";
+import { ToastContainer, toast } from "react-toastify";
+import { UserCircle2, Building2, Mail, ShieldCheck } from "lucide-react";
+import Sidebar from "../../../Components/Dashboard/Sidebar";
+import ProfileNavbar from "./ProfileNavbar";
+import ProfileCard from "./ProfileCard";
+import "react-toastify/dist/ReactToastify.css";
+import { useNavigate } from "react-router";
 
 function ProfileEdit() {
-    interface User {
-        _id:string,
-        adminName: string,
-        instituteName: string,
-        email: string,
-        createdAt: Date,
-        updatedAt: Date
+    const navigate = useNavigate()
+    interface UserProfileData {
+        _id: string;
+        adminName: string;
+        instituteName: string;
+        email: string;
+        createdAt: string;
+        updatedAt: string;
     }
 
-    const {register, handleSubmit,  reset, formState: {errors}} = useForm<User>({
+    const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+    const [user, setUser] = useState<UserProfileData | null>(null);
+
+    const { register, handleSubmit, reset, formState: { errors, isSubmitting } } = useForm<UserProfileData>({
         defaultValues: {
             _id: '',
             adminName: '',
             instituteName: '',
             email: '',
-            createdAt: new Date(),
-            updatedAt: new Date()
+            createdAt: '',
+            updatedAt: ''
         }
-    })
+    });
 
-    const [user, setUser] = useState<User | null>(null)
-
-    useEffect(()=>{
-        const storedUser = localStorage.getItem('user') || null
-        if(storedUser) {
-            const parsedUser = JSON.parse(storedUser)
-            reset(parsedUser)
-            setUser(parsedUser)
+    useEffect(() => {
+        const storedUser = localStorage.getItem('user') || null;
+        if (storedUser) {
+            const parsedUser = JSON.parse(storedUser);
+            reset(parsedUser);
+            setUser(parsedUser);
         }
-    },[reset])
+    }, [reset]);
 
-    async function updateData(formData : User) {
-        console.log('CLIENT: Submitting form data:', formData)
+    async function updateData(formData: UserProfileData) {
         try {
-            const response = await axios.post('http://localhost:1000/profile/edit',formData, {
+            const response = await axios.post('http://localhost:1000/profile/edit', formData, {
                 headers: {
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${localStorage.getItem('token')}`
                 }
-            })
-            console.log('SERVER RESPONSE:', response.data)
+            });
             
             if (response.data.updatedUser) {
-                localStorage.setItem('user', JSON.stringify(response.data.updatedUser))
-                reset(response.data.updatedUser)
-                setUser(response.data.updatedUser)
-                toast.success('Profile Updated Successfully')
+                localStorage.setItem('user', JSON.stringify(response.data.updatedUser));
+                reset(response.data.updatedUser);
+                setUser(response.data.updatedUser);
+                toast.success('Your profile has been updated successfully.');
+
+                setTimeout(()=>{
+                    navigate('/profile')
+                },3000)
             }
-        } 
-        catch(err: any) {
-            console.log('Error Occurred: ', err)
-            console.log('Response: ',err.response?.data.message)
-            console.log('Status: ', err.response?.status)
-            toast.error(err.response?.data?.message || 'Profile Update Failed')
+        } catch (err: any) {
+            toast.error(err.response?.data?.message || 'Could not save your updates. Please try again.');
         }
     }
 
-    return(
-        <>
-        <div className="flex min-h-screen overflow-x-hidden fixed inset-0">
-            <Sidebar />
-            <ToastContainer position="top-right" autoClose={2000} />
+    return (
+        <div className="flex h-screen w-screen bg-slate-950 text-slate-100 overflow-hidden">
+            <Sidebar 
+                isOpen={isSidebarOpen} 
+                onClose={() => setIsSidebarOpen(false)} 
+            />
+            <ToastContainer theme="dark" position="top-right" autoClose={2500} />
 
-            <div className="w-full flex-1 transition-all duration-300">
-                <ProfileNavbar content="Edit Profile Page" />
+            <div className="flex-1 flex flex-col h-full overflow-y-auto custom-scrollbar">
+                <ProfileNavbar onMenuToggle={() => setIsSidebarOpen(true)} content="Edit Profile Settings" />
 
-                <div className="bg-linear-to-br from-purple-100/60 to-pink-100/60 transition-all duration-300">
-                    <div className="bg-linear-to-bl from-blue-100/60 to-green-100/60 pb-8 px-4 md:px-6 lg:px-10">
-
-                        <div className="pt-10 text-center md:text-left">
-
-                            <div className="flex flex-col md:flex-row justify-between items-center md:items-start gap-4">
-
-                                <div>
-                                    <div className="text-2xl md:text-3xl font-bold">
-                                        AutoTimeTable
-                                    </div>
-
-                                    <div className="text-gray-500 text-sm md:text-base">
-                                        Manage administrative credentials and institution preferences
-                                    </div>
-                                </div>
+                <div className="p-6 md:p-10 max-w-400 w-full mx-auto space-y-10">
+                    
+                    {/* Header Block */}
+                    <div className="text-left space-y-2">
+                        <div className="flex items-center gap-3">
+                            <div className="p-2.5 bg-indigo-600 rounded-xl shadow-lg shadow-indigo-600/10">
+                                <ShieldCheck className="w-5 h-5 text-white" />
                             </div>
-
-                            <div className="flex flex-col xl:flex-row mt-10 gap-8 xl:gap-12 justify-center xl:justify-start items-center xl:items-start">
-
-                                {/* Profile Card */}
-                                <div className="w-full max-w-sm">
-                                    <ProfileCard />
-                                </div>
-
-                                {/* Profile Details */}
-                                <div className="bg-gray-50 w-full max-w-2xl rounded-2xl shadow-sm">
-
-                                    <div className="flex flex-col sm:flex-row sm:justify-between gap-3 p-5">
-                                        <div className="text-lg font-bold">
-                                            Update Profile Details
-                                        </div>
-                                    </div>
-
-                                    <hr className="border-gray-300 mx-5" />
-
-                                    <form
-                                        method="POST"
-                                        onSubmit={handleSubmit(updateData)}
-                                    >
-                                        <div className="m-5">
-
-                                            <div>
-                                                <label htmlFor="adminName"> Admin Account Holder Name </label>
-                                                <input type="text" className="input-box" id="adminName" {...register('adminName', {
-                                                        required: 'Admin Name is required',
-                                                        minLength: {
-                                                            value: 3,
-                                                            message: 'Admin Name must be at least 3 characters long'
-                                                        },
-                                                        maxLength: {
-                                                            value: 50,
-                                                            message: 'Admin Name must be at most 50 characters long'
-                                                        },
-                                                        pattern: {
-                                                            value: /^[A-Za-z ]+$/,
-                                                            message: 'Admin Name must contain only alphabets and spaces'
-                                                        }
-                                                    })}/>
-
-                                                <div className="text-red-500">
-                                                    {errors?.adminName && <p>{errors.adminName.message}</p>}
-                                                </div>
-                                            </div>
-
-                                            <div>
-                                                <label htmlFor="instituteName"> School / College Name </label>
-
-                                                <input type="text" className="input-box" id="instituteName" {...register('instituteName', {
-                                                        required: 'Institute Name Is Required',
-                                                        minLength: {
-                                                            value: 3,
-                                                            message: 'Institute Name Must Be At Least 3 Characters Long'
-                                                        },
-                                                        maxLength: {
-                                                            value: 50,
-                                                            message: 'Institute Name Must Be At Most 50 Characters Long'
-                                                        }
-                                                    })} />
-
-                                                <div className="text-red-500">
-                                                    {errors?.instituteName && <p>{errors.instituteName.message}</p>}
-                                                </div>
-                                            </div>
-
-                                            <div>
-                                                <label htmlFor="email"> Email Address </label>
-
-                                                <input type="text" className="input-box" id="email" {...register('email', {
-                                                        required: 'Email Is Required',
-                                                        pattern: {
-                                                            value: /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/,
-                                                            message: 'Email Is Invalid'
-                                                        }
-                                                    })}/>
-
-                                                <div className="text-red-500">
-                                                    {errors?.email && <p>{errors.email.message}</p>}
-                                                </div>
-                                            </div>
-
-                                            <div className="flex justify-center mt-6">
-                                                <button type="submit" className="w-full sm:w-auto px-8 py-3 rounded-lg bg-blue-600 text-white font-bold hover:bg-blue-700 transition cursor-pointer" >
-                                                    Update Data
-                                                </button>
-                                            </div>
-                                        </div>
-                                    </form>
-                                </div>
-                            </div>
+                            <h1 className="text-3xl font-black text-white tracking-tight">
+                                Edit <span className="text-indigo-400">Account Details</span>
+                            </h1>
                         </div>
+                        <p className="text-slate-400 text-sm font-medium max-w-xl">
+                            Update your personal information, school or college name, and contact details below.
+                        </p>
+                    </div>
+
+                    {/* Operational Workspace Grid */}
+                    <div className="flex flex-col lg:flex-row gap-8 items-start">
+                        
+                        {/* Profile Sticky Card Card */}
+                        <div className="w-full lg:w-95 shrink-0 lg:sticky lg:top-6">
+                            <ProfileCard />
+                        </div>
+
+                        {/* Form Card */}
+                        <div className="flex-1 w-full bg-white/2 border border-white/10 rounded-3xl overflow-hidden shadow-2xl">
+                            
+                            <div className="p-6 border-b border-white/5 bg-white/2">
+                                <h3 className="text-sm font-black text-slate-200 uppercase tracking-widest">Personal Information</h3>
+                            </div>
+
+                            <form onSubmit={handleSubmit(updateData)} className="p-6 md:p-8 space-y-6">
+                                
+                                {/* Full Name Field */}
+                                <div className="space-y-2">
+                                    <label htmlFor="adminName" className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1 flex items-center gap-2">
+                                        <UserCircle2 className="w-3 h-3 text-indigo-400" /> Your Full Name
+                                    </label>
+                                    <input 
+                                        type="text" 
+                                        id="adminName" 
+                                        className="w-full px-4 py-3 bg-slate-900 border border-white/10 rounded-xl text-slate-200 font-medium text-sm focus:outline-none focus:border-indigo-500 transition-colors"
+                                        placeholder="Enter your full name"
+                                        {...register('adminName', {
+                                            required: 'Please enter your name.',
+                                            minLength: { value: 3, message: 'Name must be at least 3 characters long.' },
+                                            maxLength: { value: 50, message: 'Name cannot be longer than 50 characters.' },
+                                            pattern: { value: /^[A-Za-z ]+$/, message: 'Please use only letters and spaces.' }
+                                        })}
+                                    />
+                                    {errors.adminName && (
+                                        <p className="text-xs text-red-400 font-semibold mt-1 ml-1">{errors.adminName.message}</p>
+                                    )}
+                                </div>
+
+                                {/* Institution Name Field */}
+                                <div className="space-y-2">
+                                    <label htmlFor="instituteName" className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1 flex items-center gap-2">
+                                        <Building2 className="w-3 h-3 text-indigo-400" /> Institution Name (School / College)
+                                    </label>
+                                    <input 
+                                        type="text" 
+                                        id="instituteName" 
+                                        className="w-full px-4 py-3 bg-slate-900 border border-white/10 rounded-xl text-slate-200 font-medium text-sm focus:outline-none focus:border-indigo-500 transition-colors"
+                                        placeholder="Enter your school or college name"
+                                        {...register('instituteName', {
+                                            required: 'Please enter your institution name.',
+                                            minLength: { value: 3, message: 'Institution name must be at least 3 characters long.' },
+                                            maxLength: { value: 50, message: 'Institution name cannot be longer than 50 characters.' }
+                                        })}
+                                    />
+                                    {errors.instituteName && (
+                                        <p className="text-xs text-red-400 font-semibold mt-1 ml-1">{errors.instituteName.message}</p>
+                                    )}
+                                </div>
+
+                                {/* Email Address Field */}
+                                <div className="space-y-2">
+                                    <label htmlFor="email" className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1 flex items-center gap-2">
+                                        <Mail className="w-3 h-3 text-indigo-400" /> Email Address
+                                    </label>
+                                    <input 
+                                        type="text" 
+                                        id="email" 
+                                        className="w-full px-4 py-3 bg-slate-900 border border-white/10 rounded-xl text-slate-200 font-medium text-sm focus:outline-none focus:border-indigo-500 transition-colors"
+                                        placeholder="Enter your email address"
+                                        {...register('email', {
+                                            required: 'Please enter your email address.',
+                                            pattern: { value: /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/, message: 'Please enter a valid email address.' }
+                                        })}
+                                    />
+                                    {errors.email && (
+                                        <p className="text-xs text-red-400 font-semibold mt-1 ml-1">{errors.email.message}</p>
+                                    )}
+                                </div>
+
+                                {/* Submit Trigger */}
+                                <div className="pt-4 border-t border-white/5 flex justify-end">
+                                    <button 
+                                        type="submit" 
+                                        disabled={isSubmitting}
+                                        className="w-full sm:w-auto px-6 py-3 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-black uppercase tracking-wider transition-colors shadow-lg shadow-indigo-600/10 disabled:opacity-50 cursor-pointer"
+                                    >
+                                        {isSubmitting ? 'Saving changes...' : 'Save Changes'}
+                                    </button>
+                                </div>
+                                
+                            </form>
+                        </div>
+
                     </div>
                 </div>
             </div>
         </div>
-    </>
-    )
+    );
 }
 
-export default ProfileEdit
+export default ProfileEdit;

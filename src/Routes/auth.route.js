@@ -36,7 +36,7 @@ router.post("/login",async (req, resp)=>{
             message: 'Login Successful',
             user: {
                 _id: user._id,
-                instituteId:user.instituteId,
+                instituteId:user._id,
                 adminName: user.adminName,
                 instituteName: user.instituteName,
                 email: user.email,
@@ -70,6 +70,14 @@ router.post('/register', RegistrationMiddleware() ,async(req, resp, next)=> {
         const existingUser = await User.findOne({email});
         if(existingUser){
             return resp.status(400).json({message:'User with this email already exists'})
+        }
+
+        // Ensure only 1 Admin per Institute Name
+        if (role === 'Admin') {
+            const existingAdmin = await User.findOne({ instituteName, role: 'Admin' });
+            if (existingAdmin) {
+                return resp.status(400).json({ message: `An administrator already exists for "${instituteName}". Please join as a Teacher or Student, or use a different Institute Name.` });
+            }
         }
         
         // Hashing Password and Storing User in Database

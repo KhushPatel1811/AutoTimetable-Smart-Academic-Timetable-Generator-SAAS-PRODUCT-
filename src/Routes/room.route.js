@@ -3,6 +3,7 @@ import Room from '../Models/RoomModel.js'
 import Department from '../Models/DepartmentModel.js'
 import Room_Registration_Middleware from '../Middleware/Room_Registration_Middleware.js'
 import { validationResult } from 'express-validator'
+import authMiddleware from '../Middleware/AuthMiddleware.js'
 
 const router = express.Router()
 
@@ -38,7 +39,7 @@ router.get('/', async(req, resp, next)=>{
 })
 
 
-router.post('/add', Room_Registration_Middleware ,async(req, resp, next)=>{
+router.post('/add', authMiddleware, Room_Registration_Middleware ,async(req, resp, next)=>{
     console.log("BACKEND RECEIVING ROOM DATA", req.body)
 
     const errors = validationResult(req)
@@ -61,15 +62,16 @@ router.post('/add', Room_Registration_Middleware ,async(req, resp, next)=>{
         }
 
         
+        const instituteId = req.user.instituteId || req.body.instituteId || req.user.id
+        const userId = req.user.id || req.body.userId
+
         for(const roomData of req.body.Rooms) {
-            const departmentId = await Department.findOne({departmentName: req.body.departmentName}).select('departmentId')
-            console.log('INSTITUTE ID:', req.body.instituteId)
-            console.log('USER ID:', req.body.userId)
+            const departmentId = await Department.findOne({departmentName: roomData.departmentName}).select('departmentId')
             
             rooms.push({
                 roomId: `ROOM${String(nextId).padStart(4,'0')}`,
-                instituteId: req.body.instituteId,
-                userId: req.body.userId,
+                instituteId: instituteId,
+                userId: userId,
                 roomName: roomData.roomName,
                 roomType: roomData.roomType,
                 roomStatus: roomData.roomStatus,

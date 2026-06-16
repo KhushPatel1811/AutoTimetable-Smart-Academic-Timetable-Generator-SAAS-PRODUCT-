@@ -1,67 +1,87 @@
+import React, { useEffect, useState } from "react";
 import { ShieldCheck } from "lucide-react";
-import { useEffect, useState } from "react";
-const months: string[] = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']
+
+const months: string[] = [
+    'January', 'February', 'March', 'April', 'May', 'June', 
+    'July', 'August', 'September', 'October', 'November', 'December'
+];
 
 function ProfileCard() {
     interface User {
-        _id: string,
-        adminName: string,
-        instituteName: string,
-        email: string,
-        createdAt: Date
+        _id: string;
+        adminName: string;
+        instituteName: string;
+        email: string;
+        createdAt: string; // Updated to string since localStorage dates parse as ISO strings
     }
 
-    const [user, setUser] = useState<User | null>(null)
-    const [date, setDate] = useState<string>('')
+    const [user, setUser] = useState<User | null>(null);
+    const [date, setDate] = useState<string>('');
 
-    useEffect(()=>{
-        const storedUser = localStorage.getItem('user') || null
-
-        if(storedUser) {
-            setUser(JSON.parse(storedUser))
+    useEffect(() => {
+        const storedUser = localStorage.getItem('user') || null;
+        if (storedUser) {
+            setUser(JSON.parse(storedUser));
         }
-    },[])
+    }, []);
 
-    useEffect(()=>{
-        if(!user?.createdAt) {
-            return
-        }
-        const createdAt = new Date(user.createdAt)
-        const today = createdAt.getDate()
-        const month = months[createdAt.getMonth()]
-        const year = createdAt.getFullYear()
-        setDate(`${today} ${month}, ${year}`)
-    },[user])
+    useEffect(() => {
+        if (!user?.createdAt) return;
+        
+        const createdAt = new Date(user.createdAt);
+        const day = createdAt.getDate();
+        const month = months[createdAt.getMonth()];
+        const year = createdAt.getFullYear();
+        setDate(`${day} ${month}, ${year}`);
+    }, [user]);
 
-    return(
-        <>
-            <div className=" flex flex-col border-white lg:w-80 md:w-60 sm:w-40 max-w-sm mx-auto lg:mx-0 rounded-2xl shadow-md">
-                <div className="bg-linear-to-br from-blue-500 via-cyan-500 to-green-500 h-24 rounded-t-2xl"></div>
-                <div className="flex justify-center z-1">
-                    <div className="border border-white bg-white rounded-full w-fit p-4 text-4xl text-blue-600 -mt-10"><span>{user?.adminName?.charAt(0)?.toUpperCase()}</span><span>{user?.adminName?.charAt(1)?.toUpperCase()}</span></div>
-                </div>
+    // Generate initials safely or fallback to placeholder
+    const userInitial = user?.adminName?.charAt(0)?.toUpperCase() || "?";
 
-                <div className="bg-gray-50 -mt-8 rounded-b-2xl">
-                    <div className="flex justify-center mt-8">
-                        <div className="text-2xl font-bold">{user?.adminName?.toUpperCase()}</div>
-                    </div>
-
-                    <div className="flex justify-center">
-                        <div className="flex mt-5 bg-blue-100 w-fit pt-1 pb-1 pl-2 pr-2 rounded-2xl text-sm">
-                            <ShieldCheck stroke="blue" size={20}/>
-                            <span className="ml-2 text-blue-600">System User</span>
-                        </div>
-                    </div>
-
-                    <div className="flex flex-col items-center mt-5 mb-5">
-                        <div className="text-gray-500">{user?.instituteName?.toUpperCase()}</div>
-                        <div className="text-gray-500">Registered: {date}</div>
-                    </div>
+    return (
+        <div className="w-full max-w-sm mx-auto flex flex-col bg-white/[0.02] border border-white/10 rounded-3xl overflow-hidden shadow-2xl backdrop-blur-md">
+            
+            {/* Top Banner Accent Decoration */}
+            <div className="bg-gradient-to-br from-indigo-600 via-purple-600 to-indigo-800 h-24 w-full opacity-80" />
+            
+            {/* Profile Avatar Container */}
+            <div className="flex justify-center z-10 -mt-11">
+                <div className="flex items-center justify-center bg-slate-900 border border-white/20 rounded-full w-22 h-22 text-3xl font-black text-indigo-400 shadow-xl select-none">
+                    {userInitial}
                 </div>
             </div>
-        </>
 
-    )
+            {/* Profile Information Block */}
+            <div className="px-6 pb-6 pt-4 flex flex-col items-center text-center space-y-5">
+                
+                {/* Admin Name details */}
+                <div className="space-y-1">
+                    <h2 className="text-xl font-black text-white tracking-tight">
+                        {user?.adminName || "Loading profile..."}
+                    </h2>
+                </div>
+
+                {/* Account Role Badge */}
+                <div className="flex items-center gap-1.5 px-3 py-1 bg-indigo-500/10 border border-indigo-500/20 rounded-full text-xs font-bold text-indigo-400">
+                    <ShieldCheck size={14} />
+                    <span>Administrator</span>
+                </div>
+
+                {/* Subtext Registration Metadata Footer */}
+                <div className="w-full pt-4 border-t border-white/5 space-y-1">
+                    <p className="text-xs font-bold text-slate-300 tracking-wide uppercase">
+                        {user?.instituteName || "No Institute Data"}
+                    </p>
+                    {date && (
+                        <p className="text-[10px] font-medium text-slate-500">
+                            Registered: {date}
+                        </p>
+                    )}
+                </div>
+                
+            </div>
+        </div>
+    );
 }
 
 export default ProfileCard;

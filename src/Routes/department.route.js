@@ -2,6 +2,7 @@ import express from 'express'
 import Department_Registration_Middleware from '../Middleware/Department_Registration_Middleware.js'
 import { validationResult } from 'express-validator'
 import Department from '../Models/DepartmentModel.js'
+import authMiddleware from '../Middleware/AuthMiddleware.js'
 
 const router = express.Router()
 
@@ -19,7 +20,7 @@ router.get('/', async(req,resp,next)=>{
 
 
 
-router.post('/add', Department_Registration_Middleware(), async(req, resp, next)=>{
+router.post('/add', authMiddleware, Department_Registration_Middleware(), async(req, resp, next)=>{
     const errors = validationResult(req)
     if(!errors.isEmpty()) {
         return resp.status(400).json({errors: errors.array()})
@@ -40,8 +41,10 @@ router.post('/add', Department_Registration_Middleware(), async(req, resp, next)
 
     try {
         const departmentToInsert = []
+        const instituteId = req.user.instituteId || req.body.instituteId || req.user.id
+        const userId = req.user.id || req.body.userId
 
-        const {DepartmentName, instituteId, userId} = req.body
+        const {DepartmentName} = req.body
         for(const dept of DepartmentName) {
             const existingDepartment = await Department.findOne({
                 instituteId,

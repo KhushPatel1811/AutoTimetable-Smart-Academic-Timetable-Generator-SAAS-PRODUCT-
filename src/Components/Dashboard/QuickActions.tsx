@@ -1,77 +1,91 @@
+import React from "react";
 import { CalendarPlus, UserPlus, BookPlus, DoorClosed, Eye, Zap } from "lucide-react";
 
 function QuickActions() {
     const actions = [
         {
             icon: CalendarPlus,
-            title: 'Generate New TimeTable',
-            description: 'Create Optimized Schedule Instantly',
+            title: 'Generate Timetable',
+            description: 'Create optimized schedules instantly.',
             color: 'from-indigo-500 to-purple-500',
-            hover_color: 'from-indigo-100 to-purple-100',
-            shadow: 'shadow-indigo-500/30'
+            glow: 'group-hover:shadow-indigo-500/20',
+            border: 'hover:border-indigo-500/30'
         },
         {
             icon: UserPlus,
             title: 'Add Teacher',
-            description: 'Register New Faculty Member',
+            description: 'Register new faculty profiles.',
             color: 'from-blue-500 to-cyan-500',
-            hover_color: 'from-blue-100 to-cyan-100',
-            shadow: 'shadow-blue-500/30'
+            glow: 'group-hover:shadow-blue-500/20',
+            border: 'hover:border-blue-500/30'
         },
         {
             icon: BookPlus,
             title: 'Add Subject',
-            description: 'Create new Course Entry',
+            description: 'Create new course curricula.',
             color: 'from-purple-500 to-pink-500',
-            hover_color: 'from-purple-100 to-pink-100',
-            shadow: 'shadow-purple-500/30'
+            glow: 'group-hover:shadow-purple-500/20',
+            border: 'hover:border-purple-500/30'
         },
         {
             icon: DoorClosed,
             title: 'Allocate Rooms',
-            description: 'Manage Classroom assignments',
+            description: 'Manage classroom constraints.',
             color: 'from-green-500 to-emerald-500',
-            hover_color: 'from-green-100 to-emerald-100',
-            shadow: 'shadow-green-500/30'
+            glow: 'group-hover:shadow-green-500/20',
+            border: 'hover:border-green-500/30'
         },
         {
             icon: Eye,
-            title: 'View TimeTable',
-            description: 'Browse All Generated Schedules',
+            title: 'View Timetable',
+            description: 'Browse all active coordinates.',
             color: 'from-orange-500 to-amber-500',
-            hover_color: 'from-orange-100 to-amber-100',
-            shadow: 'shadow-orange-500/30'
+            glow: 'group-hover:shadow-orange-500/20',
+            border: 'hover:border-orange-500/30'
         }
-    ]
-    return(
-        <>
-            <div className="flex m-5 mt-8">
-                <Zap stroke="indigo" />
+    ];
+
+    return (
+        <div className="px-4 sm:px-6 md:px-3 mx-3 mt-8 space-y-6">
+            
+            {/* Component Header Label Row */}
+            <div className="flex items-center gap-2.5 text-white font-black text-xs uppercase tracking-widest bg-white/5 w-fit px-4 py-2 rounded-xl border border-white/10 shadow-inner">
+                <Zap stroke="#6366f1" fill="#6366f1" className="w-4 h-4 animate-pulse" />
                 <span>Quick Actions</span>
             </div>
 
-            <div className="flex flex-wrap -mt-5">
-                {
-                    actions.map((item, index) => {
-                        const Icon = item.icon
+            {/* Fully Responsive Grid System Wrapper */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-5">
+                {actions.map((item, index) => {
+                    const Icon = item.icon;
 
-                        return (
-                            <div key={index} className={`border border-gray-50 w-80 rounded-xl m-5 p-7 hover:shadow-2xl ${item.shadow} backdrop-blur-sm hover:bg-linear-to-br ${item.hover_color} cursor-pointer group`}>
-                                <div>
-                                    <Icon className={`bg-linear-to-br ${item.color} w-fit rounded-xl p-2 group-hover:scale-110 transition-transform duration-600`} size={60} stroke='white' />
-                                </div>
-
-                                <div className="mt-4">
-                                    <span className="font-bold text-sm">{item.title}</span>
-                                    <div className="text-gray-500 text-xs">{item.description}</div>
+                    return (
+                        <div 
+                            key={index} 
+                            className={`group relative bg-white/5 border border-white/10 rounded-2xl p-6 transition-all duration-300 hover:bg-white/10 hover:-translate-y-1 hover:shadow-2xl ${item.glow} ${item.border} cursor-pointer flex flex-col justify-between`}
+                        >
+                            {/* Icon Background Frame Wrapper */}
+                            <div className="mb-5">
+                                <div className={`bg-gradient-to-br ${item.color} w-fit rounded-xl p-3 shadow-lg group-hover:scale-110 transition-transform duration-500`}>
+                                    <Icon className="w-6 h-6 text-white" />
                                 </div>
                             </div>
-                        )
-                    })
-                }
+
+                            {/* Text Content Block */}
+                            <div className="space-y-1">
+                                <h3 className="font-black text-sm text-white tracking-tight group-hover:text-indigo-400 transition-colors">
+                                    {item.title}
+                                </h3>
+                                <p className="text-slate-400 text-xs font-medium leading-relaxed">
+                                    {item.description}
+                                </p>
+                            </div>
+                        </div>
+                    );
+                })}
             </div>
-        </>
-    ) 
+        </div>
+    );
 }
 
 export default QuickActions;

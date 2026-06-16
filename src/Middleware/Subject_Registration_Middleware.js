@@ -19,7 +19,7 @@ const Subject_Registration_Middleware = [
     body('Subjects.*.departmentName')
     .trim()
     .notEmpty().withMessage('Department Name Is Required')
-    .matches(/^[A-Za-z0-9 ]+$/).withMessage('Department Name Should Not Contain Special Characters'),
+    .matches(/^[A-Za-z0-9\s.,&()-]+$/).withMessage('Department Name contains invalid characters'),
 
     body('Subjects.*.subjectType')
     .trim()

@@ -3,6 +3,7 @@ import Subject_Registration_Middleware from '../Middleware/Subject_Registration_
 import Subject from '../Models/SubjectModel.js'
 import { validationResult } from 'express-validator'
 import { Regex } from 'lucide-react'
+import authMiddleware from '../Middleware/AuthMiddleware.js'
 const router = express.Router()
 
 router.get('/', async(req, resp, next)=>{
@@ -10,6 +11,10 @@ router.get('/', async(req, resp, next)=>{
     const filter = {}
 
     try {
+        const instId = req.query.instituteId || req.user?.instituteId;
+        if (instId) {
+            filter.instituteId = instId;
+        }
 
         if(search) {
             filter.$or = [
@@ -19,7 +24,7 @@ router.get('/', async(req, resp, next)=>{
         }
         
         if(departmentFilter) {
-            filter.departmentName = departmentFilter
+            filter.departmentName = { $regex: `^${departmentFilter}$`, $options: 'i' };
         }
 
 
@@ -41,7 +46,7 @@ router.get('/', async(req, resp, next)=>{
 
 
 
-router.post('/add', Subject_Registration_Middleware, async(req, resp, next)=>{
+router.post('/add', authMiddleware, Subject_Registration_Middleware, async(req, resp, next)=>{
     console.log('SUBJECT REGISTRATION DATA RECEIVED IN BACKEND', req.body)
 
     const {subjectName, subjectCode, semester, departmentName, subjectType, weekly_Lecture_Hour, weekly_Lab_Hour, preferred_Room_Types} = req.body
@@ -67,11 +72,13 @@ router.post('/add', Subject_Registration_Middleware, async(req, resp, next)=>{
             }
         }
 
+        const instituteId = req.user.instituteId || req.body.instituteId || req.user.id
+
         for(const subject of req.body.Subjects) {
             subjects.push({
                 subjectId: `SUB${String(nextId).padStart(4, '0')}`,
-                userId: req.body.userId,
-                instituteId: req.body.instituteId,
+                userId: req.user.id || req.body.userId,
+                instituteId: instituteId,
                 ...subject
             })
             nextId++

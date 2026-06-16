@@ -1,9 +1,10 @@
 import { useFieldArray, useForm } from "react-hook-form"
 import ProfileNavbar from "../Profile/ProfileNavbar"
-import BackGround from "../../../Utilities/Background"
+import Sidebar from "../../../Components/Dashboard/Sidebar"
 import axios from "axios"
 import { toast, ToastContainer } from "react-toastify"
 import { useNavigate } from "react-router"
+import { Building2, Sparkles, ChevronLeft, Save, Plus, Trash2 } from "lucide-react"
 
 function AddDepartment() {
     const navigate = useNavigate()
@@ -14,122 +15,127 @@ function AddDepartment() {
         }[]
     }
 
-
-    const {register, handleSubmit, control, formState: {errors, isSubmitting, isValid}} = useForm({
+    const { register, handleSubmit, control, formState: { errors, isSubmitting, isValid } } = useForm<Department>({
         defaultValues: {
-            DepartmentName: [{departmentName: ''}]
+            DepartmentName: [{ departmentName: '' }]
         },
-        mode: 'onChange',
-        reValidateMode: 'onChange'
+        mode: 'onChange'
     })
 
-    const {fields, append, remove} = useFieldArray({
+    const { fields, append, remove } = useFieldArray({
         control,
         name: 'DepartmentName'
     })
 
-
-    
-    async function submitData(data: Department):Promise<void> {
-        console.log(data)
-
-        const user  = localStorage.getItem('user')
-        const instituteId: string = user ? JSON.parse(user).instituteId : null
-        const userId: string = user ? JSON.parse(user)._id : null
-
-        console.log('Institute Id', instituteId)
-        console.log('User Id', userId)
+    async function submitData(data: Department): Promise<void> {
+        const user = JSON.parse(localStorage.getItem('user') || '{}');
+        const userId = user._id || user.id;
+        const instituteId = user.instituteId || user.instituteID;
 
         try {
-            const response = await axios.post('http://localhost:1000/departments/add',{...data, instituteId, userId}, {
-                headers:{
-                    'Content-Type' : 'application/json',
-                    'Authorization':  `Bearer ${localStorage.getItem('token')}`
+            await axios.post('http://localhost:1000/departments/add', { ...data, instituteId, userId }, {
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${localStorage.getItem('token')}`
                 }
             })
-
-            
-            console.log(response.data)
-
-            if(response) {
-                toast.success('Department Added Successfully')
-                setTimeout(()=>{
-                    navigate('/departments')
-                }, 3000)
-            }
-        }
-        catch(err: any) {
-            console.log('Error Occurred: ',err)
-            console.log('Response: ',err.response?.data?.message)
-            console.log('Status: ', err.response?.status)
-            toast.error(err.response?.data?.message || 'Department Registration Failed')
+            toast.success('Department cluster established')
+            setTimeout(() => navigate('/departments'), 2000)
+        } catch (err: any) {
+            toast.error(err.response?.data?.message || 'Cluster initialization failed')
         }
     }
 
-    return(
-        <>
-            <div className="flex h-screen w-screen overflow-hidden">
-                <div className="pointer-events-none -z-10">
-                    <BackGround />               
-                </div>
-                <div className="flex-1">
-                    <ProfileNavbar content="Department Registration Page" />
+    return (
+        <div className="flex h-screen w-screen bg-slate-50 overflow-hidden">
+            <Sidebar />
+
+            <div className="flex-1 flex flex-col h-full overflow-y-auto animate-page">
+                {/* Header Sticky Bar Container */}
+                <div className="sticky top-0 left-0 w-full z-50 bg-white/80 backdrop-blur-md border-b border-slate-200 px-4 sm:px-6 py-4 flex items-center justify-between">
+                    <div className="flex items-center gap-4 w-full">
+                        {/* Optional back button if used inside EditTeacher */}
+                        <button type="button" onClick={() => navigate(-1)} className="p-2 hover:bg-slate-100 rounded-xl transition-colors text-slate-400 hover:text-slate-900">
+                            <ChevronLeft className="w-5 h-5" />
+                        </button>
+                        
+                        {/* The Navbar component now safely gets full structural space */}
+                        <ProfileNavbar content="Modify Teacher Profile" />
+                    </div>
                     <ToastContainer position="top-right" autoClose={2000} />
+                </div>
 
-                    <form onSubmit={handleSubmit(submitData)}>
-                        <div className="border w-auto m-3 bg-white rounded-2xl mx-20">
-                            <div className="text-2xl md:text-xl font-bold text-center m-8">
-                                <h1>Enter Department Details</h1>
+                <div className="p-8 max-w-4xl mx-auto w-full space-y-10">
+                    {/* Header Branding */}
+                    <div className="flex items-center gap-6">
+                        <div className="p-4 bg-indigo-600 rounded-[1.5rem] shadow-xl shadow-indigo-100">
+                            <Building2 className="w-8 h-8 text-white" />
+                        </div>
+                        <div>
+                            <h1 className="text-3xl font-black text-slate-900 tracking-tight">Provision Department Cluster</h1>
+                            <p className="text-slate-500 font-bold text-sm uppercase tracking-widest mt-1">Institutional Sub-unit Registry</p>
+                        </div>
+                    </div>
+
+                    <form onSubmit={handleSubmit(submitData)} className="space-y-8">
+                        <div className="premium-card space-y-8">
+                            <div className="flex items-center justify-between mb-2">
+                                <h3 className="text-[10px] font-black text-indigo-500 uppercase tracking-[0.3em]">Operational Units</h3>
+                                <button type="button" className="secondary-btn !py-2 !px-4 text-[10px] flex items-center gap-2 group" onClick={() => append({ departmentName: '' })}>
+                                    <Plus className="w-3 h-3 group-hover:rotate-90 transition-transform" /> Add Unit
+                                </button>
                             </div>
-                            {
-                                fields.map((field, index) => (
-                                    <div key={field.id} className="ml-11 mb-6">
-                                        <div className="flex items-start">
-                                            <label htmlFor={`departmentName_${index}`}className="mt-5 ml-2 text-xl font-bold">
-                                                Department Name
-                                            </label>
 
-                                            <div className="ml-5">
-                                                <input type="text" id={`departmentName_${index}`} className="input-box w-80" placeholder="Enter Department Name" {...register(`DepartmentName.${index}.departmentName`, {
-                                                        required: 'Department Name Is Required',
-                                                        minLength: {
-                                                            value: 3,
-                                                            message: 'At Least 3 characters required'
-                                                        },
-                                                        maxLength: {
-                                                            value: 50,
-                                                            message: 'At Most 50 characters required'
-                                                        },
-                                                        pattern: {
-                                                            value: /^[A-Za-z ]+$/,
-                                                            message: 'Department Name Should Contain Only Characters'
-                                                        }
-                                                    })}/>
-
-                                                {errors.DepartmentName?.[index]?.departmentName && <p className="text-red-500">{errors.DepartmentName[index]?.departmentName?.message}</p>}
+                            <div className="space-y-4">
+                                {fields.map((field, index) => (
+                                    <div key={field.id} className="group relative animate-slide-up" style={{ animationDelay: `${index * 50}ms` }}>
+                                        <div className="flex items-center gap-6 p-6 rounded-[2rem] bg-slate-50/50 border border-slate-100 group-hover:border-indigo-100 group-hover:bg-indigo-50/30 transition-all">
+                                            <div className="w-12 h-12 bg-white rounded-2xl flex items-center justify-center font-black text-slate-300 text-sm shadow-sm group-hover:text-indigo-600 transition-colors shrink-0">
+                                                {index + 1}
+                                            </div>
+                                            
+                                            <div className="flex-1 space-y-1">
+                                                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Department Identity</label>
+                                                <input 
+                                                    type="text" 
+                                                    placeholder="e.g. Faculty of Neural Networks" 
+                                                    className="input-box !py-3 !bg-white border-none group-hover:ring-1 group-hover:ring-indigo-200"
+                                                    {...register(`DepartmentName.${index}.departmentName`, { required: true })}
+                                                />
                                             </div>
 
-                                            <div className="ml-5 flex gap-2">
-                                                <button type="button" className="add-btn hover:cursor-pointer" onClick={() => append({ departmentName: '' })}>
-                                                    Add Row
+                                            {fields.length > 1 && (
+                                                <button 
+                                                    type="button" 
+                                                    className="p-3 text-slate-300 hover:text-rose-500 hover:bg-rose-50 rounded-xl transition-all"
+                                                    onClick={() => remove(index)}
+                                                >
+                                                    <Trash2 className="w-5 h-5" />
                                                 </button>
-
-                                                <button type="button" disabled={fields.length === 1} className={`delete-btn ${fields.length === 1 ? 'cursor-not-allowed opacity-50' : 'hover:cursor-pointer'}`} onClick={() => remove(index)}>
-                                                    Delete Row
-                                                </button>
-                                            </div>
+                                            )}
                                         </div>
                                     </div>
-                                ))
-                            }           
-                             <div className="flex justify-center my-5">
-                                <button className={`add-btn ${isSubmitting || !isValid ? 'opacity-50 cursor-not-allowed' : ""} `} disabled={isSubmitting || !isValid}>{isSubmitting ? 'Registering...': 'Register Department'}</button>
+                                ))}
                             </div>
+                        </div>
+
+                        <div className="flex items-center justify-end gap-4 pt-4">
+                            <button type="button" onClick={() => navigate('/departments')} className="secondary-btn !py-4 !px-10">
+                                Discard
+                            </button>
+                            <button 
+                                type="submit" 
+                                disabled={isSubmitting || !isValid} 
+                                className={`add-btn !py-4 !px-12 gap-3 shadow-xl shadow-indigo-100 hover:scale-105 active:scale-95 ${isSubmitting || !isValid ? "opacity-50 grayscale" : ""}`}
+                            >
+                                {isSubmitting ? <Sparkles className="w-5 h-5 animate-spin" /> : <Save className="w-5 h-5" />}
+                                Commit Cluster to Registry
+                            </button>
                         </div>
                     </form>
                 </div>
             </div>
-        </>
+        </div>
     )
 }
 

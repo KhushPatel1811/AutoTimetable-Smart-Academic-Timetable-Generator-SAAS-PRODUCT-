@@ -41,12 +41,11 @@ router.get('/', async(req,resp,next) => {
 
 router.post('/add',authMiddleware, TeacherRegistrationMiddleware() ,async (req, resp, next) => {
     const {teacherName, instituteName, teacherEmail, teacherPhoneNumber, teacherDepartment, teacherAvailability, Subjects}  = req.body
-    const instituteId = req.user.instituteId
-
-    console.log('BACKEND RECEIVING NEW TEACHER DATA')
-    console.log('Data: ', req.body)
-    console.log('Subjects: ',req.body.Subjects);
-    console.log('Subjects TYPE: ',typeof req.body.Subjects);
+    console.log('DEBUG: Backend req.user:', req.user)
+    console.log('DEBUG: Backend req.body:', req.body)
+    
+    const instituteId = req.user.instituteId || req.body.instituteId || req.user.id
+    console.log('DEBUG: Calculated instituteId:', instituteId)
     
 
     const errors = validationResult(req) 

@@ -5,36 +5,36 @@ import axios from "axios";
 import { useEffect, useState } from "react";
 import { toast, ToastContainer } from "react-toastify";
 import { useNavigate } from "react-router";
+import { BookOpen, Plus, Trash2, GraduationCap, Layers3, Hash, CalendarDays, Building2, Sliders, ShieldAlert } from "lucide-react";
 
 function AddSubject() {
     interface Department {
-        departmentName:string
+        departmentName: string;
     }
 
-
     interface Subject {
-        subjectName: string,
-        subjectCode: string,
-        semester: number,
-        departmentName: string,
-        subjectType: string,
-        weekly_Lecture_Hour: number,
-        weekly_Lab_Hour: number,
-        preferred_Room_Type: string,
-        teacherName: string[]
+        subjectName: string;
+        subjectCode: string;
+        semester: number;
+        departmentName: string;
+        subjectType: string;
+        weekly_Lecture_Hour: number;
+        weekly_Lab_Hour: number;
+        preferred_Room_Type: string;
+        teacherName: string[];
     }
 
     interface FormData {
-        Subjects: Subject[]
+        Subjects: Subject[];
     }
 
     interface Teacher {
-        teacherId: string,
-        teacherName: string
+        teacherId: string;
+        teacherName: string;
     }
 
-    const {register, control, watch, handleSubmit, formState:{errors, isSubmitting, isValid}} = useForm<FormData>({
-        defaultValues:{
+    const { register, control, watch, handleSubmit, formState: { errors, isSubmitting, isValid } } = useForm<FormData>({
+        defaultValues: {
             Subjects: [{
                 subjectName: '',
                 subjectCode: '',
@@ -49,305 +49,308 @@ function AddSubject() {
         },
         mode: 'onChange',
         reValidateMode: 'onChange'
-    })
+    });
 
-    const {fields, append, remove} = useFieldArray({
+    const { fields, append, remove } = useFieldArray({
         control,
         name: 'Subjects'
-    })
+    });
 
-
-    const [departmentData, setDepartmentData] = useState<Department[]>([])
-    const navigate = useNavigate()
+    const [departmentData, setDepartmentData] = useState<Department[]>([]);
+    const navigate = useNavigate();
     const [teacherData, setTeacherData] = useState<Record<number, Teacher[]>>({});
 
-    useEffect(()=>{
+    // Fetch departments on page load
+    useEffect(() => {
         async function fetchData() {
             try {
-                const response = await axios.get('http://localhost:1000/departments')
-                console.log('FETCHED DEPARTMENT DATA:', response.data)
-                setDepartmentData(response.data?.department)
-            }
-            catch(err: any) {
-                console.log('Error Occurred:', err)
-                console.log('Response:', err.response?.data?.message);
-                console.log('Status:', err.response?.status);
-                toast.error(err.response?.data?.message || 'Error Occurred Fetching Department Details')
+                const response = await axios.get('http://localhost:1000/departments');
+                setDepartmentData(response.data?.department || []);
+            } catch (err: any) {
+                toast.error(err.response?.data?.message || 'Error fetching department details');
             }
         }
-        fetchData()
-    },[])
+        fetchData();
+    }, []);
 
+    // Fetch teachers when department or subject changes
+    async function fetchTeachersData(index: number, department: string) {
+        const subject = watch(`Subjects.${index}.subjectName`);
+        department = watch(`Subjects.${index}.departmentName`);
+        if (!department || !subject) return;
 
-async function fetchTeachersData(index: number, department: string) {
-    const subject = watch(`Subjects.${index}.subjectName`);
-    department = watch(`Subjects.${index}.departmentName`);
-    // ✅ FIX: prevent bad API call
-    if (!department || !subject) return;
-
-    try {
-        const response = await axios.get(
-            "http://localhost:1000/teachers/fetchDetails",
-            {
-                params: { department, subject }
-            }
-        );
-
-        setTeacherData((prev) => ({
-            ...prev,
-            [index]: response.data?.teachers || []
-        }));    
-    } 
-    catch (err) {
-        console.error(err);
-
-        setTeacherData((prev) => ({
-            ...prev,
-            [index]: []
-        }));
-    } 
-}
-
-    async function submitData(data: FormData) {
-        console.log(data)
-        const userItem = localStorage.getItem('user')
-        const userId = userItem ? JSON.parse(userItem)._id : ''
-        const instituteId = userItem ? JSON.parse(userItem).instituteId : ''
-
-        console.log('USER ID IN FRONTEND:', userId)
-        console.log('INSTITUTE ID IN FRONTEND:', instituteId)
         try {
-            const response = await axios.post('http://localhost:1000/subjects/add', {...data, userId, instituteId}, {
+            const response = await axios.get(
+                "http://localhost:1000/teachers/fetchDetails",
+                { params: { department, subject } }
+            );
+
+            setTeacherData((prev) => ({
+                ...prev,
+                [index]: response.data?.teachers || []
+            }));
+        } catch (err) {
+            setTeacherData((prev) => ({
+                ...prev,
+                [index]: []
+            }));
+        }
+    }
+
+    // Submit form data
+    async function submitData(data: FormData) {
+        const userItem = localStorage.getItem('user');
+        const user = userItem ? JSON.parse(userItem) : null;
+        const userId = user ? (user._id || user.id) : '';
+        const instituteId = user ? (user.instituteId || user.instituteID) : '';
+
+        try {
+            const response = await axios.post('http://localhost:1000/subjects/add', { ...data, userId, instituteId }, {
                 headers: {
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${localStorage.getItem('token')}`
                 }
-            })
-            console.log('DATA SUBMITTED:', response.data)
+            });
 
-            if(response.data) {
-                toast.success('Subject Data Added Successfully')
-
-                setTimeout(()=>{
-                    navigate('/subjects')
-                },3000)
+            if (response.data) {
+                toast.success('Subject added successfully');
+                setTimeout(() => {
+                    navigate('/subjects');
+                }, 2000);
             }
-        }
-        catch(err: any) {
-            console.log('Error Occurred:', err)
-            console.log('Response:', err.response?.data?.message);
-            console.log('Status:', err.response?.status);
-            toast.error(err.response?.data?.message || 'Error Occurred While Submitting Subject Data')
+        } catch (err: any) {
+            toast.error(err.response?.data?.message || 'Error occurred while saving data');
         }
     }
 
-    return(
-        <>
-            <div className="flex">
-                <div className="h-full -z-10">
-                    <BackGround />
+    return (
+        <div className="flex min-h-screen w-screen bg-slate-100 relative">
+            <div className="fixed inset-0 -z-10">
+                <BackGround />
+            </div>
+
+            <div className="flex-1 flex flex-col pb-12">
+                {/* Navbar Header */}
+                <div className="sticky top-0 z-50 bg-white border-b border-slate-200 px-6 py-4 shadow-xs">
+                    <ProfileNavbar content="Manage Curriculum" />
+                    <ToastContainer position="top-right" autoClose={2000} />
                 </div>
 
-                <div className="flex-1">
-                    <ProfileNavbar content="Add Subject Page" />
-                    <ToastContainer position="top-right" autoClose={2000} />
-                    <h1 className="text-4xl text-center font-bold mb-5">Subject Details</h1>
+                <div className="p-6 max-w-7xl w-full mx-auto space-y-6">
+                    {/* Page Description Banner */}
+                    <div className="bg-indigo-600 rounded-2xl p-6 text-white flex flex-col sm:flex-row items-center justify-between gap-4 shadow-md">
+                        <div className="flex items-center space-x-4">
+                            <div className="p-3 bg-indigo-500 rounded-xl">
+                                <BookOpen className="w-6 h-6 text-white" />
+                            </div>
+                            <div>
+                                <h1 className="text-2xl font-bold">Add New Subjects</h1>
+                                <p className="text-indigo-100 text-sm mt-0.5">Fill out the fields below to add new courses to your institute</p>
+                            </div>
+                        </div>
 
-                    <div className="bg-white z-10 mx-5">
-                        <form action="" onSubmit={handleSubmit(submitData)}>
-                            <div className="border rounded-xl">
-                                {
-                                fields.map((field, index) => (
-                                    <div key={field.id} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 p-4 mb-4">
+                        <button 
+                            type="button"
+                            className="bg-white text-indigo-600 px-5 py-2.5 rounded-lg font-semibold text-sm hover:bg-indigo-50 transition-colors shadow-xs"
+                            onClick={() => navigate("/subjects")}>
+                            Back to List
+                        </button>
+                    </div>
 
+                    {/* Main Form */}
+                    <form onSubmit={handleSubmit(submitData)} className="space-y-6">
+                        <div className="space-y-6">
+                            {fields.map((field, index) => (
+                                <div key={field.id} className="relative bg-white border border-slate-200 p-6 rounded-2xl shadow-sm hover:border-indigo-300 transition-colors">
+                                    
+                                    {/* Counter Badge */}
+                                    <div className="absolute top-0 left-6 -translate-y-1/2 bg-slate-800 text-white font-bold text-xs px-3 py-1 rounded-full shadow-xs">
+                                        Subject #{index + 1}
+                                    </div>
+
+                                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 pt-2">
+                                        
                                         {/* SUBJECT NAME */}
-                                        <div>
-                                            <label className="text-sm font-medium">Subject Name</label>
-                                            <input type="text" placeholder="Enter subject name" className="input-box" {...register(`Subjects.${index}.subjectName`, {
-                                                    required: "Subject name is required",
-                                                    minLength: {
-                                                        value: 3,
-                                                        message: "Minimum 3 characters required"
-                                                    },
-                                                    maxLength: {
-                                                        value: 50,
-                                                        message: "Maximum 50 characters required"
-                                                    },
-                                                    pattern: {
-                                                        value: /^[A-Za-z0-9 ]+$/,
-                                                        message: "Special Characters Not Allowed"
-                                                    }
-                                                })}/>
-                                            <p className="text-red-500 text-xs mt-1">
-                                                {errors?.Subjects?.[index]?.subjectName?.message}
-                                            </p>
+                                        <div className="space-y-1">
+                                            <label className="text-xs font-semibold text-slate-500 flex items-center gap-1">
+                                                <GraduationCap size={14} className="text-indigo-500" /> Subject Name
+                                            </label>
+                                            <input type="text" placeholder="e.g. Computer Networks" className="input-box border border-slate-300 rounded-lg p-2.5 w-full text-sm" {...register(`Subjects.${index}.subjectName`, {
+                                                required: "Subject name is required",
+                                                minLength: { value: 3, message: "Minimum 3 characters" },
+                                                maxLength: { value: 50, message: "Maximum 50 characters" },
+                                                pattern: { value: /^[A-Za-z0-9\s.,&()-]+$/, message: "Contains invalid characters" }
+                                            })}/>
+                                            {errors?.Subjects?.[index]?.subjectName?.message && (
+                                                <p className="text-red-500 text-xs flex items-center gap-1 mt-1">
+                                                    <ShieldAlert size={12} /> {errors.Subjects[index].subjectName.message}
+                                                </p>
+                                            )}
                                         </div>
-
 
                                         {/* SUBJECT CODE */}
-                                        <div>
-                                            <label className="text-sm font-medium">Subject Code</label>
-                                            <input type="text" placeholder="e.g. CS101" className="input-box" {...register(`Subjects.${index}.subjectCode`, {
-                                                    required: "Subject code is required",
-                                                    pattern:{
-                                                        value: /^[A-Za-z0-9]+$/,
-                                                        message: ''
-                                                    }
-                                                })}/>
-                                            <p className="text-red-500 text-xs mt-1">
-                                                {errors?.Subjects?.[index]?.subjectCode?.message}
-                                            </p>
+                                        <div className="space-y-1">
+                                            <label className="text-xs font-semibold text-slate-500 flex items-center gap-1">
+                                                <Hash size={14} className="text-indigo-500" /> Subject Code
+                                            </label>
+                                            <input type="text" placeholder="e.g. CS101" className="input-box border border-slate-300 rounded-lg p-2.5 w-full text-sm" {...register(`Subjects.${index}.subjectCode`, {
+                                                required: "Subject code is required",
+                                                pattern: { value: /^[A-Za-z0-9]+$/, message: "Alphanumeric characters only" }
+                                            })}/>
+                                            {errors?.Subjects?.[index]?.subjectCode?.message && (
+                                                <p className="text-red-500 text-xs flex items-center gap-1 mt-1">
+                                                    <ShieldAlert size={12} /> {errors.Subjects[index].subjectCode.message}
+                                                </p>
+                                            )}
                                         </div>
-
-
 
                                         {/* SEMESTER */}
-                                        <div>
-                                            <label className="text-sm font-medium">Semester</label>
-                                            <input type="number" placeholder="Enter semester (1-8)" className="input-box" {...register(`Subjects.${index}.semester`, {
-                                                    required: "Semester is required",
-                                                    valueAsNumber: true,
-                                                    min: {
-                                                        value: 1,
-                                                        message: "Minimum semester is 1"
-                                                    },
-                                                    max: {
-                                                        value: 8,
-                                                        message: "Maximum semester is 8"
-                                                    }
-                                                })}/>
-                                            <p className="text-red-500 text-xs mt-1">
-                                                {errors?.Subjects?.[index]?.semester?.message}
-                                            </p>
+                                        <div className="space-y-1">
+                                            <label className="text-xs font-semibold text-slate-500 flex items-center gap-1">
+                                                <CalendarDays size={14} className="text-indigo-500" /> Semester
+                                            </label>
+                                            <input type="number" placeholder="1-12" className="input-box border border-slate-300 rounded-lg p-2.5 w-full text-sm" {...register(`Subjects.${index}.semester`, {
+                                                required: "Semester is required",
+                                                valueAsNumber: true,
+                                                min: { value: 1, message: "Minimum is 1" },
+                                                max: { value: 12, message: "Maximum is 12" }
+                                            })}/>
+                                            {errors?.Subjects?.[index]?.semester?.message && (
+                                                <p className="text-red-500 text-xs flex items-center gap-1 mt-1">
+                                                    <ShieldAlert size={12} /> {errors.Subjects[index].semester.message}
+                                                </p>
+                                            )}
                                         </div>
-
-
 
                                         {/* DEPARTMENT */}
-                                        <div>
-                                            <label className="text-sm font-medium">Department</label>
-                                            <select className="input-box" {...register(`Subjects.${index}.departmentName`, {
-                                                    required: "Department is required",
-                                                    onChange: (e)=>fetchTeachersData(index, e.target.value)
-                                                })}>
-                                                    <option value="">Select Department</option>
-                                                    {
-                                                        departmentData != null && 
-                                                        departmentData.map((dept, index)=>(
-                                                            <option key={index} value={dept.departmentName}>{dept.departmentName}</option>
-                                                        ))
-                                                    }
-                                                </select>
-                                            <p className="text-red-500 text-xs mt-1">
-                                                {errors?.Subjects?.[index]?.departmentName?.message}
-                                            </p>
+                                        <div className="space-y-1">
+                                            <label className="text-xs font-semibold text-slate-500 flex items-center gap-1">
+                                                <Building2 size={14} className="text-indigo-500" /> Department
+                                            </label>
+                                            <select className="input-box border border-slate-300 rounded-lg p-2.5 w-full bg-white text-sm cursor-pointer" {...register(`Subjects.${index}.departmentName`, {
+                                                required: "Department is required",
+                                                onChange: (e) => fetchTeachersData(index, e.target.value)
+                                            })}>
+                                                <option value="">Select Department</option>
+                                                {departmentData.map((dept, dIdx) => (
+                                                    <option key={dIdx} value={dept.departmentName}>{dept.departmentName}</option>
+                                                ))}
+                                            </select>
+                                            {errors?.Subjects?.[index]?.departmentName?.message && (
+                                                <p className="text-red-500 text-xs flex items-center gap-1 mt-1">
+                                                    <ShieldAlert size={12} /> {errors.Subjects[index].departmentName.message}
+                                                </p>
+                                            )}
                                         </div>
-
-
 
                                         {/* SUBJECT TYPE */}
-                                        <div>
-                                            <label className="text-sm font-medium">Subject Type</label>
-                                            <select className="input-box" {...register(`Subjects.${index}.subjectType`, {
-                                                    required: "Subject type is required"
-                                                })}>
-                                                <option value="">Select type</option>
-                                                <option value="Lecture">Lecture</option>
-                                                <option value="Lab">Lab</option>
+                                        <div className="space-y-1">
+                                            <label className="text-xs font-semibold text-slate-500 flex items-center gap-1">
+                                                <Layers3 size={14} className="text-indigo-500" /> Subject Type
+                                            </label>
+                                            <select className="input-box border border-slate-300 rounded-lg p-2.5 w-full bg-white text-sm cursor-pointer" {...register(`Subjects.${index}.subjectType`, {
+                                                required: "Subject type is required"
+                                            })}>
+                                                <option value="Lecture">Lecture Only</option>
+                                                <option value="Lab">Lab Only</option>
                                                 <option value="Lecture + Lab">Lecture + Lab</option>
                                             </select>
-                                            <p className="text-red-500 text-xs mt-1">
-                                                {errors?.Subjects?.[index]?.subjectType?.message}
-                                            </p>
                                         </div>
-
-
 
                                         {/* LECTURE HOURS */}
-                                        <div>
-                                            <label className="text-sm font-medium">Lecture Hours</label>
-                                            <input type="number" placeholder="e.g. 3" className="input-box" {...register(`Subjects.${index}.weekly_Lecture_Hour`, {
+                                        <div className="space-y-1">
+                                            <label className="text-xs font-semibold text-slate-500 flex items-center gap-1">
+                                                <Sliders size={14} className="text-indigo-500" /> Lecture Hours / Week
+                                            </label>
+                                            <input type="number" className="input-box border border-slate-300 rounded-lg p-2.5 w-full text-sm" {...register(`Subjects.${index}.weekly_Lecture_Hour`, {
                                                 valueAsNumber: true,
-                                                min: {
-                                                    value: 0,
-                                                    message: "Cannot be negative"
-                                                }
+                                                min: { value: 0, message: "Cannot be negative" }
                                             })}/>
-                                            <p className="text-red-500 text-xs mt-1">
-                                                {errors?.Subjects?.[index]?.weekly_Lecture_Hour?.message}
-                                            </p>
                                         </div>
-
-
 
                                         {/* LAB HOURS */}
-                                        <div>
-                                            <label className="text-sm font-medium">Lab Hours</label>
-                                            <input type="number" placeholder="e.g. 2" className="input-box" {...register(`Subjects.${index}.weekly_Lab_Hour`, {
+                                        <div className="space-y-1">
+                                            <label className="text-xs font-semibold text-slate-500 flex items-center gap-1">
+                                                <Sliders size={14} className="text-indigo-500" /> Lab Hours / Week
+                                            </label>
+                                            <input type="number" className="input-box border border-slate-300 rounded-lg p-2.5 w-full text-sm" {...register(`Subjects.${index}.weekly_Lab_Hour`, {
                                                 valueAsNumber: true,
-                                                min: {
-                                                    value: 0,
-                                                    message: "Cannot be negative"
-                                                }
+                                                min: { value: 0, message: "Cannot be negative" }
                                             })}/>
-                                            <p className="text-red-500 text-xs mt-1">
-                                                {errors?.Subjects?.[index]?.weekly_Lab_Hour?.message}
-                                            </p>
                                         </div>
 
-
-
                                         {/* ROOM TYPE */}
-                                        <div>
-                                            <label className="text-sm font-medium">Preferred Room</label>
-                                            <select className="input-box" {...register(`Subjects.${index}.preferred_Room_Type`, {
+                                        <div className="space-y-1">
+                                            <label className="text-xs font-semibold text-slate-500 flex items-center gap-1">
+                                                <Building2 size={14} className="text-indigo-500" /> Preferred Room Type
+                                            </label>
+                                            <select className="input-box border border-slate-300 rounded-lg p-2.5 w-full bg-white text-sm cursor-pointer" {...register(`Subjects.${index}.preferred_Room_Type`, {
                                                 required: "Room type is required"
                                             })}>
-                                                <option value="">Select room</option>
-                                                <option value="Lecture">Lecture Room</option>
-                                                <option value="Lab">Lab Room</option>
+                                                <option value="Lecture">Classroom</option>
+                                                <option value="Lab">Laboratory</option>
                                                 <option value="Seminar">Seminar Hall</option>
                                                 <option value="Auditorium">Auditorium</option>
                                             </select>
-                                            <p className="text-red-500 text-xs mt-1">
-                                                {errors?.Subjects?.[index]?.preferred_Room_Type?.message}
-                                            </p>
                                         </div>
 
-                                        <div>
-                                            <label htmlFor={`teacherName_${index}`}>Teacher Name</label>
-                                            <select multiple className="input-box h-32" {...register(`Subjects.${index}.teacherName`)}>
+                                        {/* TEACHER SELECTION */}
+                                        <div className="md:col-span-2 lg:col-span-3 space-y-1">
+                                            <label className="text-xs font-semibold text-slate-500">
+                                                Assign Faculty <span className="text-xs text-slate-400 font-normal">(Hold Ctrl/Cmd to select multiple)</span>
+                                            </label>
+                                            <select multiple className="border border-slate-300 rounded-lg p-2 w-full bg-white h-24 text-sm cursor-pointer" {...register(`Subjects.${index}.teacherName`)}>
                                                 {(teacherData[index] ?? []).map((teacher) => (
-                                                    <option key={teacher.teacherId} value={teacher.teacherId}>
+                                                    <option key={teacher.teacherId} value={teacher.teacherName} className="p-1 rounded-md text-sm">
                                                         {teacher.teacherName}
                                                     </option>
                                                 ))}
-                                            </select>                                        
+                                            </select>
                                         </div>
 
-
-                                        {/* DELETE BUTTON */}
-                                        <div className="flex items-end">
-                                            <button type="button" onClick={() => append({subjectName: "",subjectCode: "",semester: 1,departmentName: "",subjectType: "Lecture",weekly_Lecture_Hour: 1,weekly_Lab_Hour: 1,preferred_Room_Type: "Lecture", teacherName:[]})} className="bg-blue-600 text-white px-4 py-2 rounded mt-4 mx-4 font-bold hover:cursor-pointer hover:bg-blue-700">
-                                                Add Row
-                                            </button>
-
-                                            <button type="button" onClick={() => remove(index)} className="bg-red-500 hover:bg-red-600 text-white px-3 py-2 rounded font-bold hover:cursor-pointer">
-                                                Delete
+                                        {/* REMOVE BUTTON */}
+                                        <div className="flex items-end justify-end">
+                                            <button 
+                                                type="button" 
+                                                onClick={() => remove(index)} 
+                                                className="w-full text-center px-4 py-2.5 bg-red-50 text-red-600 border border-red-200 rounded-lg hover:bg-red-600 hover:text-white transition-colors flex items-center justify-center gap-2 text-sm font-semibold cursor-pointer">
+                                                <Trash2 size={14} /> Remove Form
                                             </button>
                                         </div>
                                     </div>
-                                ))}
-                                <div className="flex justify-center my-5">
-                                    <button className={`add-btn ${isSubmitting || !isValid ? 'opacity-50 cursor-not-allowed' : ""} `} disabled={isSubmitting || !isValid}>{isSubmitting ? 'Registering...': 'Register Subject'}</button>
                                 </div>
-                            </div>
-                        </form>
-                    </div>
+                            ))}
+
+                            {/* Empty Form State */}
+                            {fields.length === 0 && (
+                                <div className="p-12 text-center border-2 border-dashed border-slate-300 rounded-2xl bg-white/50 space-y-2">
+                                    <BookOpen className="w-10 h-10 mx-auto text-slate-300" />
+                                    <p className="text-slate-500 font-medium text-sm">No subject fields active. Add a row below to begin.</p>
+                                </div>
+                            )}
+                        </div>
+
+                        {/* Bottom Actions */}
+                        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-4 border-t border-slate-200">
+                            <button 
+                                type="button" 
+                                onClick={() => append({ subjectName: "", subjectCode: "", semester: 1, departmentName: "", subjectType: "Lecture", weekly_Lecture_Hour: 1, weekly_Lab_Hour: 1, preferred_Room_Type: "Lecture", teacherName: [] })} 
+                                className="w-full sm:w-auto px-5 py-3 bg-white border border-slate-300 text-slate-700 font-semibold text-sm rounded-xl hover:border-indigo-500 hover:text-indigo-600 transition-all flex items-center justify-center gap-2 cursor-pointer">
+                                <Plus size={16} /> Add More Subjects
+                            </button>
+
+                            <button 
+                                type="submit"
+                                className={`w-full sm:w-auto px-8 py-3 bg-indigo-600 text-white font-semibold text-sm rounded-xl flex items-center justify-center gap-2 transition-all ${isSubmitting || !isValid ? 'opacity-50 cursor-not-allowed' : "hover:bg-indigo-700 cursor-pointer"}`} 
+                                disabled={isSubmitting || !isValid}>
+                                {isSubmitting ? 'Saving...' : 'Save All Subjects'}
+                            </button>
+                        </div>
+                    </form>
                 </div>
             </div>
-        </>
-    )
+        </div>
+    );
 }
 
 export default AddSubject;
