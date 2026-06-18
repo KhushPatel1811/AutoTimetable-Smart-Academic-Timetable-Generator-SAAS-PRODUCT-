@@ -2,39 +2,61 @@ import Subject from "../Models/SubjectModel.js";
 import Teacher from "../Models/TeacherModel.js";
 import Room from "../Models/RoomModel.js";
 
-const DAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
+const DAYS = [
+    "Monday",
+    "Tuesday",
+    "Wednesday",
+    "Thursday",
+    "Friday",
+    "Saturday",
+    "Sunday"
+];
 
-const generateEmptyTimetable = async ({ instituteId, departmentName, semester, totalDivisions, totalDays, totalSlotsPerDay }) => {
+/**
+ * STEP 1: EMPTY STRUCTURE
+ */
+const generateEmptyTimetable = async ({
+    instituteId,
+    departmentName,
+    semester,
+    totalDivisions,
+    totalDays,
+    totalSlotsPerDay
+}) => {
+
     const subjects = await Subject.find({
         instituteId,
         departmentName,
         semester
     });
-    console.log("Subjects found:", subjects.length);
 
     const teachers = await Teacher.find({
         instituteId,
         teacherDepartment: departmentName
     });
-    console.log("Teachers found:", teachers.length);
 
-    const rooms = await Room.find({
+    let rooms = await Room.find({
         instituteId,
         departmentName,
         roomStatus: "Available"
     });
-    console.log("Rooms found:", rooms.length);
 
-    // Build empty division grids
+    if (!rooms.length) {
+        rooms = await Room.find({ roomStatus: "Available" });
+    }
+
     const divisions = [];
+
     for (let i = 0; i < totalDivisions; i++) {
         const schedule = [];
+
         for (let d = 0; d < totalDays; d++) {
             schedule.push({
                 day: DAYS[d],
                 slots: Array(totalSlotsPerDay).fill(null)
             });
         }
+
         divisions.push({
             divisionName: `Division ${String.fromCharCode(65 + i)}`,
             schedule
@@ -45,200 +67,232 @@ const generateEmptyTimetable = async ({ instituteId, departmentName, semester, t
 };
 
 /**
- * Build a lecture queue from subjects.
- * - For "Lecture" type: creates weekly_Lecture_Hour entries, each duration = 1 slot
- * - For "Lab" type: creates weekly_Lab_Hour entries, each duration = labSlotsNeeded contiguous slots
- * - For "Lecture + Lab": creates both lecture entries AND lab entries
- * 
- * @param {Array} subjects - Subject documents from DB
- * @param {number} lectureDuration - Duration of one lecture slot in minutes
- * @param {number} labDuration - Duration of one lab session in minutes
- * @returns {Array} lectureQueue - Array of lecture objects to be scheduled
+ * STEP 2: BUILD LECTURE QUEUE
  */
 export const buildLectureQueue = (subjects, lectureDuration, labDuration) => {
-    const lectureQueue = [];
 
-    // How many contiguous slots does one lab session occupy?
+    const queue = [];
     const labSlotsNeeded = Math.max(1, Math.ceil(labDuration / lectureDuration));
+    const toNumber = (value) => Number(value) || 0;
 
     for (const subject of subjects) {
-        const subjectType = (subject.subjectType || "Lecture").trim();
 
-        // --- Add LECTURE entries ---
-        if (subjectType === "Lecture" || subjectType === "Lecture + Lab") {
-            const lectureCount = subject.weekly_Lecture_Hour || 0;
+        const type = (subject.subjectType || "Lecture").trim();
+
+        // IMPORTANT: subject.teacherName = [teacherIds]
+        const teacherIds = (subject.teacherName || [])
+            .map(id => id?.toString().trim())
+            .filter(Boolean);
+
+        const lectureCount = toNumber(subject.weekly_Lecture_Hour);
+        const rawLabHours = toNumber(subject.weekly_Lab_Hour);
+
+        if (type === "Lecture" || type === "Lecture + Lab") {
+
             for (let i = 0; i < lectureCount; i++) {
-                lectureQueue.push({
+                queue.push({
                     subjectId: subject._id,
                     subjectName: subject.subjectName,
                     subjectCode: subject.subjectCode,
                     subjectType: "Lecture",
-                    teacherNames: subject.teacherName || [],
+                    teacherIds,
                     preferredRoomType: "Lecture",
-                    duration: 1  // 1 slot
+                    duration: 1
                 });
             }
         }
 
-        // --- Add LAB entries ---
-        if (subjectType === "Lab" || subjectType === "Lecture + Lab") {
-            const labCount = subject.weekly_Lab_Hour || 0;
-            for (let i = 0; i < labCount; i++) {
-                lectureQueue.push({
+        if (type === "Lab" || type === "Lecture + Lab") {
+
+            const count = Math.ceil(rawLabHours / labSlotsNeeded);
+
+            for (let i = 0; i < count; i++) {
+                queue.push({
                     subjectId: subject._id,
                     subjectName: subject.subjectName,
                     subjectCode: subject.subjectCode,
                     subjectType: "Lab",
-                    teacherNames: subject.teacherName || [],
+                    teacherIds,
                     preferredRoomType: "Lab",
-                    duration: labSlotsNeeded  // contiguous slots
+                    duration: labSlotsNeeded
                 });
             }
         }
     }
 
-    console.log("Lecture Queue Length:", lectureQueue.length, `(Lab sessions need ${labSlotsNeeded} contiguous slots each)`);
-    return lectureQueue;
+    console.log("Lecture Queue Size:", queue.length);
+    return queue;
 };
 
 /**
- * Allocate subjects into division timetables.
- * 
- * KEY DESIGN:
- *  - Each division gets its OWN copy of the full lecture queue (all subjects).
- *  - Teacher and room conflicts are tracked GLOBALLY across divisions
- *    (a teacher can't be in two divisions at the same day+slot).
- *  - Lab entries occupy contiguous slots on the same day.
- *  - Any slot that can't be assigned gets marked { free: true }.
- *  - Algorithm NEVER throws — it gracefully marks unplaceable slots as free.
- *
- * @param {Array} lectureQueue - Base lecture queue (will be cloned per division)
- * @param {Array} divisions - Division grid objects with empty schedules
- * @param {Array} teachers - Teacher documents from DB
- * @param {Array} rooms - Room documents from DB
- * @param {number} totalSlotsPerDay - Number of slots per day
- * @returns {Array} divisions - Populated division timetables
+ * STEP 3: ALLOCATION ENGINE (FIXED)
  */
-export const allocateSubjects = (lectureQueue, divisions, teachers, rooms, totalSlotsPerDay) => {
+export const allocateSubjects = (
+    lectureQueue,
+    divisions,
+    teachers,
+    rooms,
+    totalSlotsPerDay
+) => {
 
-    // Global conflict trackers (across ALL divisions)
-    // Key format: "teacherId_dayIndex_slotIndex" or "roomId_dayIndex_slotIndex"
     const teacherBusy = {};
     const roomBusy = {};
 
-    // Process each division independently — each division gets all subjects
+    // ✅ MAP USING teacherId (IMPORTANT FIX)
+    const teacherMap = new Map(
+        teachers.map(t => [
+            (t.teacherId || "").toString().trim(),
+            t
+        ])
+    );
+
+    console.log("Available Teachers:", teachers.map(t => t.teacherId));
+
+    const getTeacherId = (t) =>
+        (t.teacherId || "").toString().trim();
+
     for (let divIdx = 0; divIdx < divisions.length; divIdx++) {
+
         const division = divisions[divIdx];
-        console.log(`\n--- Scheduling ${division.divisionName} ---`);
 
-        // Shuffle the lecture queue for variety between divisions
-        const divisionQueue = shuffleArray([...lectureQueue]);
+        const shuffledQueue = shuffleArray([...lectureQueue]);
 
-        for (const lecture of divisionQueue) {
+        for (const lecture of shuffledQueue) {
+
             let placed = false;
 
-            // Find ALL matching teachers (not just the first)
-            const matchingTeachers = teachers.filter(t =>
-                lecture.teacherNames.includes(t.teacherName)
-            );
+            console.log("\nLecture:", lecture.subjectName);
+            console.log("Lecture teacherIds:", lecture.teacherIds);
 
-            // Find ALL matching rooms of the preferred type
-            const matchingRooms = rooms.filter(r =>
-                r.roomType === lecture.preferredRoomType
-            );
+            const lectureTeacherIds = (lecture.teacherIds || [])
+                .map(id => id?.toString().trim())
+                .filter(Boolean);
 
-            if (matchingTeachers.length === 0 || matchingRooms.length === 0) {
-                console.warn(`  ⚠ No teacher/room for "${lecture.subjectName}" (need ${lecture.preferredRoomType} room). Skipping.`);
+            // -------------------------
+            // TEACHER SELECTION (FIXED)
+            // -------------------------
+            let selectedTeacher = null;
+
+            for (const id of lectureTeacherIds) {
+                if (teacherMap.has(id)) {
+                    selectedTeacher = teacherMap.get(id);
+                    break;
+                }
+            }
+
+            // fallback chain (safe)
+            if (!selectedTeacher) {
+                selectedTeacher =
+                    teachers.find(t => t.teacherAvailability === "Available") ||
+                    teachers[0];
+            }
+
+            if (!selectedTeacher) {
+                console.warn("❌ No teacher available at all");
                 continue;
             }
 
-            // Try each day, then each starting slot position
-            for (let dayIndex = 0; dayIndex < division.schedule.length && !placed; dayIndex++) {
+            // -------------------------
+            // ROOM SELECTION
+            // -------------------------
+            const preferredRooms = rooms.filter(
+                r => r.roomType === lecture.preferredRoomType
+            );
+
+            const roomPool = preferredRooms.length ? preferredRooms : rooms;
+
+            // -------------------------
+            // SCHEDULING
+            // -------------------------
+            for (let dayIndex = 0;
+                dayIndex < division.schedule.length && !placed;
+                dayIndex++
+            ) {
+
                 const day = division.schedule[dayIndex];
 
-                for (let startSlot = 0; startSlot <= totalSlotsPerDay - lecture.duration && !placed; startSlot++) {
+                for (let slot = 0;
+                    slot <= totalSlotsPerDay - lecture.duration && !placed;
+                    slot++
+                ) {
 
-                    // Check if ALL needed contiguous slots are empty
-                    let slotsAvailable = true;
-                    for (let s = 0; s < lecture.duration; s++) {
-                        if (day.slots[startSlot + s] !== null) {
-                            slotsAvailable = false;
+                    // check slot free
+                    let free = true;
+
+                    for (let k = 0; k < lecture.duration; k++) {
+                        if (day.slots[slot + k] !== null) {
+                            free = false;
                             break;
                         }
                     }
-                    if (!slotsAvailable) continue;
 
-                    // Try each teacher + room combination
-                    for (const teacher of matchingTeachers) {
-                        if (placed) break;
+                    if (!free) continue;
 
-                        // Check teacher is free for ALL contiguous slots
-                        let teacherFree = true;
-                        for (let s = 0; s < lecture.duration; s++) {
-                            const tKey = `${teacher.teacherId}_${dayIndex}_${startSlot + s}`;
-                            if (teacherBusy[tKey]) {
-                                teacherFree = false;
+                    for (const room of roomPool) {
+
+                        let roomFree = true;
+
+                        for (let k = 0; k < lecture.duration; k++) {
+                            const rKey = `${room._id}_${dayIndex}_${slot + k}`;
+                            if (roomBusy[rKey]) {
+                                roomFree = false;
                                 break;
                             }
                         }
-                        if (!teacherFree) continue;
 
-                        for (const room of matchingRooms) {
-                            if (placed) break;
+                        if (!roomFree) continue;
 
-                            // Check room is free for ALL contiguous slots
-                            let roomFree = true;
-                            for (let s = 0; s < lecture.duration; s++) {
-                                const rKey = `${room.roomId}_${dayIndex}_${startSlot + s}`;
-                                if (roomBusy[rKey]) {
-                                    roomFree = false;
-                                    break;
-                                }
-                            }
-                            if (!roomFree) continue;
+                        // -------------------------
+                        // PLACE LECTURE
+                        // -------------------------
+                        for (let k = 0; k < lecture.duration; k++) {
 
-                            // SUCCESS — place the lecture in all contiguous slots
-                            for (let s = 0; s < lecture.duration; s++) {
-                                day.slots[startSlot + s] = {
-                                    subjectName: lecture.subjectName,
-                                    subjectCode: lecture.subjectCode,
-                                    subjectType: lecture.subjectType,
-                                    teacherName: teacher.teacherName,
-                                    roomNumber: room.roomName
-                                };
+                            const tKey = `${getTeacherId(selectedTeacher)}_${dayIndex}_${slot + k}`;
+                            const rKey = `${room._id}_${dayIndex}_${slot + k}`;
 
-                                // Mark teacher and room as busy globally
-                                const tKey = `${teacher.teacherId}_${dayIndex}_${startSlot + s}`;
-                                const rKey = `${room.roomId}_${dayIndex}_${startSlot + s}`;
-                                teacherBusy[tKey] = true;
-                                roomBusy[rKey] = true;
-                            }
+                            teacherBusy[tKey] = true;
+                            roomBusy[rKey] = true;
 
-                            console.log(`  ✓ ${lecture.subjectName} (${lecture.subjectType}) → ${day.day} Slot ${startSlot + 1}${lecture.duration > 1 ? `-${startSlot + lecture.duration}` : ''} [${teacher.teacherName}, ${room.roomName}]`);
-                            placed = true;
+                            day.slots[slot + k] = {
+                                subject: lecture.subjectName,
+                                subjectCode: lecture.subjectCode,
+                                type: lecture.subjectType,
+
+                                // ✅ ALWAYS FILLED
+                                teacher: selectedTeacher.teacherName,
+                                room: room.roomName
+                            };
                         }
+
+                        console.log(
+                            `✓ ${lecture.subjectName} → ${day.day} Slot ${slot + 1}`
+                        );
+
+                        placed = true;
+                        break;
                     }
                 }
             }
 
             if (!placed) {
-                console.warn(`  ✗ Could not place: ${lecture.subjectName} (${lecture.subjectType}) in ${division.divisionName}`);
+                console.warn(`✗ Could not place: ${lecture.subjectName}`);
             }
         }
     }
 
-    // Fill any remaining null slots with { free: true }
+    // -------------------------
+    // FILL FREE SLOTS
+    // -------------------------
     for (const division of divisions) {
         for (const day of division.schedule) {
             for (let i = 0; i < day.slots.length; i++) {
-                if (day.slots[i] === null) {
+                if (!day.slots[i]) {
                     day.slots[i] = {
-                        subjectName: "Free",
+                        subject: "Free",
                         subjectCode: "-",
-                        subjectType: "Free",
-                        teacherName: "-",
-                        roomNumber: "-",
-                        free: true
+                        type: "Free",
+                        teacher: "-",
+                        room: "-"
                     };
                 }
             }
@@ -249,8 +303,7 @@ export const allocateSubjects = (lectureQueue, divisions, teachers, rooms, total
 };
 
 /**
- * Fisher-Yates shuffle to randomize lecture placement order.
- * This prevents all divisions from having identical schedules.
+ * SHUFFLE
  */
 function shuffleArray(array) {
     for (let i = array.length - 1; i > 0; i--) {

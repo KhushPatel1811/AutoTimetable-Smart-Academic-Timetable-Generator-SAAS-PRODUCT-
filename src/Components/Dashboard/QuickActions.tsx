@@ -51,7 +51,7 @@ function QuickActions() {
             {/* Component Header Label Row */}
             <div className="flex items-center gap-2.5 text-white font-black text-xs uppercase tracking-widest bg-white/5 w-fit px-4 py-2 rounded-xl border border-white/10 shadow-inner">
                 <Zap stroke="#6366f1" fill="#6366f1" className="w-4 h-4 animate-pulse" />
-                <span>Quick Actions</span>
+                <span className="text-indigo-600">Quick Actions</span>
             </div>
 
             {/* Fully Responsive Grid System Wrapper */}
@@ -66,7 +66,7 @@ function QuickActions() {
                         >
                             {/* Icon Background Frame Wrapper */}
                             <div className="mb-5">
-                                <div className={`bg-gradient-to-br ${item.color} w-fit rounded-xl p-3 shadow-lg group-hover:scale-110 transition-transform duration-500`}>
+                                <div className={`bg-linear-to-br ${item.color} w-fit rounded-xl p-3 shadow-lg group-hover:scale-110 transition-transform duration-500`}>
                                     <Icon className="w-6 h-6 text-white" />
                                 </div>
                             </div>

@@ -1,10 +1,8 @@
 import express from "express";
 import TimeTable from "../Models/timetableModel.js";
 import authMiddleware from "../Middleware/AuthMiddleware.js";
-import generateEmptyTimetable, {
-    buildLectureQueue,
-    allocateSubjects
-} from "../Services/TimeTableGenerator.js";
+import generateEmptyTimetable, { buildLectureQueue } from "../Services/TimeTableGenerator.js";
+import { solveUsingORTools } from "../Services/ORToolsService.js";
 
 const router = express.Router();
 
@@ -62,21 +60,63 @@ router.post("/generate", authMiddleware, async (req, res) => {
             });
         }
 
-        const lectureQueue = buildLectureQueue(
-            subjects,
-            lectureDuration,
-            labDuration
-        );
+const lectureQueue = buildLectureQueue(
+    subjects,
+    lectureDuration,
+    labDuration
+);
 
-        console.log("Lecture Queue:", lectureQueue.length);
+const result = await solveUsingORTools({
+    totalDays,
+    totalSlotsPerDay,
 
-        const allocatedDivisions = allocateSubjects(
-            lectureQueue,
-            divisions,
-            teachers,
-            rooms,
-            totalSlotsPerDay
-        );
+    divisions: divisions.map(d => ({
+        name: d.divisionName
+    })),
+
+    teachers: teachers.map(t => ({
+        id: t.teacherId,
+        name: t.teacherName
+    })),
+
+    rooms: rooms.map(r => ({
+        id: r.roomId,
+        name: r.roomName,
+        type: r.roomType
+    })),
+
+    lectures: lectureQueue.map((l, index) => ({
+        id: index,
+        subject: l.subjectName,
+        subjectCode: l.subjectCode,
+        teacherIds: l.teacherIds,
+        roomType: l.preferredRoomType,
+        roomName: rooms.find(r => r.roomType === l.preferredRoomType)?.roomName || rooms[0]?.roomName || "-",
+        duration: l.duration,
+        type: l.subjectType
+    }))
+});
+
+if (!result.success || !Array.isArray(result.timetable)) {
+    return res.status(400).json({
+        message: "Unable to generate a valid timetable with the current constraints."
+    });
+}
+
+const allocatedDivisions = result.timetable.map(d => ({
+  divisionName: d.division,
+  schedule: d.schedule.map(day => ({
+    day: day.day,
+    slots: day.slots.map(slot => ({
+      subjectName: slot.subject,
+      subjectCode: slot.subjectCode || "-",
+      subjectType: slot.type,
+      teacherName: slot.teacher,
+      roomNumber: slot.room || slot.roomType || "-",
+      free: slot.type === "Free"
+    }))
+  }))
+}));
 
         console.log(`Timetable generated: ${allocatedDivisions.length} divisions`);
 

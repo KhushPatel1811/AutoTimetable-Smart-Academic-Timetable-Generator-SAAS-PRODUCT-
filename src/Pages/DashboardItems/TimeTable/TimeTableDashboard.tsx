@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import axios from 'axios';
 import { useReactToPrint } from 'react-to-print';
-import { Calendar, Printer, History, Sparkles, Clock, AlertCircle, CheckCircle2, GraduationCap, Grid3X3} from 'lucide-react';
+import { Calendar, Printer, History, Sparkles, Clock, AlertCircle, CheckCircle2, GraduationCap, Grid3X3 } from 'lucide-react';
 import { toast, ToastContainer } from 'react-toastify';
 
 function TimetableDashboard() {
@@ -11,12 +11,12 @@ function TimetableDashboard() {
   const [targetMode, setTargetMode] = useState('School'); // 'School' or 'College'
   const [academicYear, setAcademicYear] = useState('2024-25');
   const [totalDivisions, setTotalDivisions] = useState('2');
-  const [totalDays, setTotalDays] = useState('5'); 
+  const [totalDays, setTotalDays] = useState('5');
   const [dayStartTime, setDayStartTime] = useState('09:00');
   const [dayEndTime, setDayEndTime] = useState('16:00');
   const [lectureDuration, setLectureDuration] = useState('60');
   const [labDuration, setLabDuration] = useState('120');
-  
+
   // Data from API
   const [departments, setDepartments] = useState([]);
   const [activeSemesters, setActiveSemesters] = useState([]);
@@ -25,12 +25,12 @@ function TimetableDashboard() {
   const [historyList, setHistoryList] = useState([]);
   const [conflicts, setConflicts] = useState(null);
   const [loading, setLoading] = useState(false);
-  
+
   const printRef = useRef(null);
 
 
 
-  const generateTimeSlots = (startTime: string,endTime: string,duration: number) => {
+  const generateTimeSlots = (startTime: string, endTime: string, duration: number) => {
     const slots: string[] = [];
     console.log(startTime)
     console.log(endTime)
@@ -42,21 +42,21 @@ function TimetableDashboard() {
     const end = endHour * 60 + endMinute;
 
     while (current + duration <= end) {
-        const next = current + duration;
+      const next = current + duration;
 
-        const format = (minutes: number) => {
-            const h = Math.floor(minutes / 60);
-            const m = minutes % 60;
+      const format = (minutes: number) => {
+        const h = Math.floor(minutes / 60);
+        const m = minutes % 60;
 
-            return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
-        };
+        return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
+      };
 
-        slots.push(`${format(current)} - ${format(next)}`);
+      slots.push(`${format(current)} - ${format(next)}`);
 
-        current = next;
+      current = next;
     }
     return slots;
-};
+  };
 
 
 
@@ -76,23 +76,24 @@ function TimetableDashboard() {
       });
       setHistoryList(res.data);
     } catch (err) {
-console.error("Full Error Object:", err); // Log the whole thing to see why it failed
-    
-    // Safely extract the message
-    const errorMessage = err.response?.data?.message || err.message || "Unknown error occurred";
-    
-    toast.error(`Generation failed: ${errorMessage}`);
-    
-    // Log the "Required vs Available" details if they exist in the response
-    if (err.response?.data?.details) {
+      console.error("Full Error Object:", err); // Log the whole thing to see why it failed
+
+      // Safely extract the message
+      const errorMessage = err.response?.data?.message || err.message || "Unknown error occurred";
+
+      toast.error(`Generation failed: ${errorMessage}`);
+
+      // Log the "Required vs Available" details if they exist in the response
+      if (err.response?.data?.details) {
         console.warn("Constraint Failure Details:", err.response.data.details);
-    }    }
+      }
+    }
   }, []);
 
   // Fetch Current Timetable
   const syncLatestTimetable = useCallback(async () => {
     if (!departmentName || !semester) return;
-    
+
     setLoading(true);
     try {
       const res = await axios.get(`http://localhost:1000/timetable/latest`, {
@@ -104,7 +105,7 @@ console.error("Full Error Object:", err); // Log the whole thing to see why it f
         const timetable = res.data.timetable;
         setTimetable(timetable);
 
-        setDynamicSlots(generateTimeSlots(timetable.dayStartTime,timetable.dayEndTime,timetable.lectureDuration));
+        setDynamicSlots(generateTimeSlots(timetable.dayStartTime, timetable.dayEndTime, timetable.lectureDuration));
       } else {
         setTimetable(null);
         setDynamicSlots([]);
@@ -141,7 +142,7 @@ console.error("Full Error Object:", err); // Log the whole thing to see why it f
     if (!departmentName) return;
     const fetchActiveSems = async () => {
       try {
-        console.log("Institute ID:",getInstituteId())
+        console.log("Institute ID:", getInstituteId())
         const res = await axios.get(`http://localhost:1000/subjects`, {
           params: { departmentFilter: departmentName, instituteId: getInstituteId() },
           headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
@@ -150,7 +151,7 @@ console.error("Full Error Object:", err); // Log the whole thing to see why it f
         console.log(res.data)
         const uniqueSems = [...new Set(subs.map(s => s.semester))];
         setActiveSemesters(uniqueSems);
-        console.log('SEMESTER: ',activeSemesters)
+        console.log('SEMESTER: ', activeSemesters)
       } catch (err) {
         console.error("Failed to fetch active semesters:", err);
       }
@@ -170,33 +171,33 @@ console.error("Full Error Object:", err); // Log the whole thing to see why it f
   const triggerGenerationPipeline = async () => {
     const generatedSlots = generateTimeSlots(dayStartTime, dayEndTime, Number(lectureDuration)); // Fix Bug 6: uncommented so it's defined
     setLoading(true);
-    
+
     try {
-        const payload = {
-          instituteId: getInstituteId(),
-          departmentName,
-          semester: Number(semester),
-          totalDivisions: Number(totalDivisions),
-          totalDays: Number(totalDays),
-          totalSlotsPerDay: generatedSlots.length,
-          dayStartTime,
-          dayEndTime,
-          lectureDuration: Number(lectureDuration),
-          labDuration: Number(labDuration)
-        };
+      const payload = {
+        instituteId: getInstituteId(),
+        departmentName,
+        semester: Number(semester),
+        totalDivisions: Number(totalDivisions),
+        totalDays: Number(totalDays),
+        totalSlotsPerDay: generatedSlots.length,
+        dayStartTime,
+        dayEndTime,
+        lectureDuration: Number(lectureDuration),
+        labDuration: Number(labDuration)
+      };
 
-        const res = await axios.post('http://localhost:1000/timetable/generate', payload, {
-            headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
-        });
+      const res = await axios.post('http://localhost:1000/timetable/generate', payload, {
+        headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+      });
 
-        setTimetable(res.data.timetable);
-        setDynamicSlots(generatedSlots); // Use backend slots if available
-        fetchHistoryLedger(); // Refresh history after successful generation
-        toast.success('Timetable generated successfully!');
+      setTimetable(res.data.timetable);
+      setDynamicSlots(generatedSlots); // Use backend slots if available
+      fetchHistoryLedger(); // Refresh history after successful generation
+      toast.success('Timetable generated successfully!');
     } catch (err) {
-        toast.error("Generation failed: " + (err.response?.data?.message || "Unknown error"));
+      toast.error("Generation failed: " + (err.response?.data?.message || "Unknown error"));
     } finally {
-        setLoading(false);
+      setLoading(false);
     }
   };
 
@@ -213,43 +214,51 @@ console.error("Full Error Object:", err); // Log the whole thing to see why it f
   return (
     <div className="p-6 min-h-screen bg-slate-50 text-slate-800 font-sans">
       <ToastContainer position="top-right" autoClose={2000} />
-      
-      <div className="max-w-7xl mx-auto space-y-6">
-        
-        {/* Top Header Row */}
-        <header className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white p-4 rounded-2xl border border-slate-200 shadow-xs">
-          <div className="flex items-center space-x-3">
-            <div className="p-3 bg-indigo-600 rounded-xl text-white">
-              <Calendar className="w-6 h-6" />
-            </div>
-            <div>
-              <h1 className="text-2xl font-bold text-slate-900">Infinite Scheduler</h1>
-              <p className="text-xs text-slate-500">Create and manage your institutional timetables</p>
-            </div>
-          </div>
 
-          <div className="flex items-center gap-2 w-full sm:w-auto">
-            <button 
-              onClick={handlePrint} 
-              disabled={!timetable} 
-              className="flex-1 sm:flex-initial bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 font-medium text-sm px-4 py-2.5 rounded-xl transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-            >
-              <Printer className="w-4 h-4" /> Print
-            </button>
-            <button 
-              onClick={triggerGenerationPipeline} 
-              disabled={loading} 
-              className="flex-1 sm:flex-initial bg-indigo-600 hover:bg-indigo-700 text-white font-medium text-sm px-5 py-2.5 rounded-xl shadow-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-            >
-              <Sparkles className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
-              {loading ? 'Generating...' : 'Generate'}
-            </button>
+      <div className="max-w-7xl mx-auto space-y-6">
+
+        {/* Top Header Row */}
+        <header className="bg-linear-to-r from-indigo-600 to-indigo-500 rounded-[2.5rem] p-8 shadow-2xl shadow-indigo-100 border border-white/10 relative overflow-hidden group">
+          {/* Background Decoration */}
+          <div className="absolute top-0 right-0 w-80 h-80 bg-white/5 rounded-full -mr-24 -mt-24 group-hover:scale-110 transition-transform duration-700" />
+
+          <div className="relative z-10 flex flex-col lg:flex-row items-start lg:items-center justify-between gap-8">
+            {/* Left */}
+            <div className="flex items-center gap-6">
+              <div className="p-5 bg-white/20 backdrop-blur-2xl rounded-[1.8rem] border border-white/30 shadow-inner">
+                <Calendar className="w-9 h-9 text-white" />
+              </div>
+
+              <div>
+                <h1 className="text-4xl font-black text-white tracking-tight">
+                  Infinite Scheduler
+                </h1>
+
+                <p className="text-indigo-100 font-bold text-sm uppercase tracking-[0.25em] mt-1 opacity-90">
+                  Create and manage institutional timetables
+                </p>
+              </div>
+            </div>
+
+            {/* Right */}
+            <div className="flex flex-col sm:flex-row gap-4 w-full lg:w-auto">
+              <button onClick={handlePrint} disabled={!timetable} className="bg-white/15 backdrop-blur-xl border border-white/25 text-white px-8 py-4 rounded-2xl font-black uppercase tracking-widest text-xs hover:bg-white/25 hover:cursor-pointer hover:scale-105 active:scale-95 transition-all duration-300 disabled:opacity-40 disabled:hover:scale-100 flex items-center justify-center gap-3">
+                <Printer className="w-5 h-5" />
+                Print
+              </button>
+
+              <button onClick={triggerGenerationPipeline} disabled={loading} className="bg-white text-indigo-600 px-8 py-4 rounded-2xl font-black uppercase tracking-widest text-xs shadow-2xl hover:shadow-indigo-300 hover:scale-105 hover:cursor-pointer active:scale-95 transition-all duration-300 disabled:opacity-50 disabled:hover:scale-100 flex items-center justify-center gap-3">
+                <Sparkles className={`w-5 h-5 ${loading ? "animate-spin" : ""
+                  }`} />
+                {loading ? "Generating..." : "Generate Timetable"}
+              </button>
+            </div>
           </div>
         </header>
 
         {/* Configuration Forms */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          
+
           {/* Step 1: Mode and Targets */}
           <div className="bg-white p-5 rounded-2xl border border-slate-200 space-y-4">
             <div className="flex items-center gap-2 font-bold text-slate-900 border-b border-slate-100 pb-2">
@@ -260,11 +269,7 @@ console.error("Full Error Object:", err); // Log the whole thing to see why it f
             <div className="space-y-3">
               <div>
                 <label className="block text-xs font-semibold text-slate-500 mb-1">Department / Wing</label>
-                <select 
-                  value={departmentName} 
-                  onChange={(e) => setDepartmentName(e.target.value)} 
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                >
+                <select value={departmentName} onChange={(e) => setDepartmentName(e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
                   {departments.map(d => <option key={d._id} value={d.departmentName}>{d.departmentName}</option>)}
                   {departments.length === 0 && <option value="">No wings found</option>}
                 </select>
@@ -273,16 +278,10 @@ console.error("Full Error Object:", err); // Log the whole thing to see why it f
               <div>
                 <label className="block text-xs font-semibold text-slate-500 mb-1">Target Mode</label>
                 <div className="grid grid-cols-2 gap-2 bg-slate-100 p-1 rounded-xl">
-                  <button 
-                    onClick={() => { setTargetMode('School'); setSemester(''); }}
-                    className={`py-1.5 text-xs font-bold rounded-lg transition-colors ${targetMode === 'School' ? "bg-white text-indigo-600 shadow-xs" : "text-slate-500 hover:text-slate-800"}`}
-                  >
+                  <button onClick={() => { setTargetMode('School'); setSemester(''); }} className={`py-1.5 text-xs font-bold rounded-lg transition-colors ${targetMode === 'School' ? "bg-white text-indigo-600 shadow-xs" : "text-slate-500 hover:text-slate-800"}`}>
                     School
                   </button>
-                  <button 
-                    onClick={() => { setTargetMode('College'); setSemester(''); }}
-                    className={`py-1.5 text-xs font-bold rounded-lg transition-colors ${targetMode === 'College' ? "bg-white text-indigo-600 shadow-xs" : "text-slate-500 hover:text-slate-800"}`}
-                  >
+                  <button onClick={() => { setTargetMode('College'); setSemester(''); }} className={`py-1.5 text-xs font-bold rounded-lg transition-colors ${targetMode === 'College' ? "bg-white text-indigo-600 shadow-xs" : "text-slate-500 hover:text-slate-800"}`}>
                     College
                   </button>
                 </div>
@@ -292,33 +291,16 @@ console.error("Full Error Object:", err); // Log the whole thing to see why it f
                 <label className="block text-xs font-semibold text-slate-500 mb-1">
                   {targetMode === 'School' ? 'Class / Grade' : 'Semester'}
                 </label>
-                <select 
-                  value={semester} 
-                  onChange={(e) => setSemester(e.target.value)} 
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                >
+                <select value={semester} onChange={(e) => setSemester(e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
                   <option value="">Choose options...</option>
-                  {targetMode === 'School' 
+                  {targetMode === 'School'
                     ? schoolClasses.map(num => (
-                        <option key={num} value={num}>Class {num} {activeSemesters.includes(num) ? '✓' : ''}</option>
-                      ))
+                      <option key={num} value={num}>Class {num} {activeSemesters.includes(num) ? '✓' : ''}</option>
+                    ))
                     : collegeSemesters.map(num => (
-                        <option key={num} value={num}>Semester {num} {activeSemesters.includes(num) ? '✓' : ''}</option>
-                      ))
+                      <option key={num} value={num}>Semester {num} {activeSemesters.includes(num) ? '✓' : ''}</option>
+                    ))
                   }
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-xs font-semibold text-slate-500 mb-1">Academic Year</label>
-                <select 
-                  value={academicYear} 
-                  onChange={(e) => setAcademicYear(e.target.value)} 
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                >
-                  <option value="2023-24">2023-24</option>
-                  <option value="2024-25">2024-25</option>
-                  <option value="2025-26">2025-26</option>
                 </select>
               </div>
             </div>
@@ -334,22 +316,13 @@ console.error("Full Error Object:", err); // Log the whole thing to see why it f
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
               <div>
                 <label className="block text-xs font-semibold text-slate-500 mb-1">Total Divisions</label>
-                <input 
-                  type="number" 
-                  value={totalDivisions} 
-                  onChange={(e) => setTotalDivisions(e.target.value)} 
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" 
-                />
+                <input type="number" value={totalDivisions} onChange={(e) => setTotalDivisions(e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
               </div>
 
               <div>
                 <label className="block text-xs font-semibold text-slate-500 mb-1">Working Days / Week</label>
-                <select 
-                  value={totalDays} 
-                  onChange={(e) => setTotalDays(e.target.value)} 
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                >
-                  {[1,2,3,4,5,6,7].map(d => <option key={d} value={d}>{d} Days</option>)}
+                <select value={totalDays} onChange={(e) => setTotalDays(e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                  {[1, 2, 3, 4, 5, 6, 7].map(d => <option key={d} value={d}>{d} Days</option>)}
                 </select>
               </div>
 
@@ -357,12 +330,7 @@ console.error("Full Error Object:", err); // Log the whole thing to see why it f
                 <label className="block text-xs font-semibold text-slate-500 mb-1">Day Starts At</label>
                 <div className="relative">
                   <Clock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-                  <input 
-                    type="time" 
-                    value={dayStartTime} 
-                    onChange={(e) => setDayStartTime(e.target.value)} 
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 pl-9 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" 
-                  />
+                  <input type="time" value={dayStartTime} onChange={(e) => setDayStartTime(e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 pl-9 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
                 </div>
               </div>
 
@@ -370,32 +338,18 @@ console.error("Full Error Object:", err); // Log the whole thing to see why it f
                 <label className="block text-xs font-semibold text-slate-500 mb-1">Day Ends At</label>
                 <div className="relative">
                   <Clock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-                  <input 
-                    type="time" 
-                    value={dayEndTime} 
-                    onChange={(e) => setDayEndTime(e.target.value)} 
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 pl-9 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" 
-                  />
+                  <input type="time" value={dayEndTime} onChange={(e) => setDayEndTime(e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 pl-9 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
                 </div>
               </div>
 
               <div>
                 <label className="block text-xs font-semibold text-slate-500 mb-1">Lecture Duration (Mins)</label>
-                <input 
-                  type="number" 
-                  value={lectureDuration} 
-                  onChange={(e) => setLectureDuration(e.target.value)} 
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" 
-                />
+                <input type="number" value={lectureDuration} onChange={(e) => setLectureDuration(e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
               </div>
 
               <div>
                 <label className="block text-xs font-semibold text-slate-500 mb-1">Lab Duration (Mins)</label>
-                <input 
-                  type="number" 
-                  value={labDuration} 
-                  onChange={(e) => setLabDuration(e.target.value)} 
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" 
+                <input type="number" value={labDuration} onChange={(e) => setLabDuration(e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
                 />
               </div>
             </div>
@@ -404,7 +358,7 @@ console.error("Full Error Object:", err); // Log the whole thing to see why it f
 
         {/* Timetable Output Table Block */}
         <div className="grid grid-cols-1 xl:grid-cols-4 gap-6 items-start">
-          
+
           {/* Main Matrix Board */}
           <div ref={printRef} className="xl:col-span-3 space-y-6">
             {loading ? (
@@ -421,59 +375,75 @@ console.error("Full Error Object:", err); // Log the whole thing to see why it f
                   </div>
 
                   <div className="overflow-x-auto">
-                    <table className="w-full border-collapse text-left text-sm">
+                    <table className="w-full border-collapse text-left">
                       <thead>
-                        <tr className="bg-slate-100/70 border-b border-slate-200">
-                          <th className="p-4 font-semibold text-slate-600 w-24 border-r border-slate-200">Day</th>
-                          {dynamicSlots.map((slot) => {
-                            console.log(dynamicSlots)
-                          return(
-                            <th key={slot} className="p-4 font-semibold text-slate-600 text-center min-w-[150px]">
+                        <tr className="border-b border-slate-100 bg-slate-50/40">
+                          <th className="p-6 text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 border-r border-slate-100 w-32">
+                            Day
+                          </th>
+
+                          {dynamicSlots.map((slot) => (
+                            <th key={slot} className="p-6 text-center text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 min-w-[170px]">
                               {slot}
                             </th>
-                          )
-                          })}
+                          ))}
                         </tr>
                       </thead>
-                      <tbody className="divide-y divide-slate-200">
+
+                      <tbody>
                         {divData.schedule.map((daySlots, dayIdx) => {
                           const slotArray = Array.isArray(daySlots.slots)
                             ? daySlots.slots
                             : Object.values(daySlots.slots || {});
 
                           return (
-                            <tr key={dayIdx}>
+                            <tr key={dayIdx} className="border-b border-slate-100 hover:bg-slate-50/40 transition-colors">
+                              
                               {/* Day */}
-                              <td className="border p-4 font-bold bg-slate-50 w-32">
-                                {daySlots.day}
-                              </td>
+                              <td className="p-6 bg-slate-50 border-r border-slate-100">
+                                <div className="font-black text-slate-800 uppercase tracking-wide">
+                                  {daySlots.day}
+                                </div>
 
-                              {/* Render EVERY time slot */}
+                              </td>
                               {dynamicSlots.map((_, slotIdx) => {
                                 const cell = slotArray[slotIdx];
-
+                                
                                 return (
-                                  <td key={slotIdx} className="border w-40 h-24 align-top p-2">
+                                  <td key={slotIdx} className="p-3 border-r border-slate-100 align-top h-32">
                                     {cell && !cell.free ? (
-                                      <div className={`rounded p-2 h-full ${cell.subjectType === 'Lab' ? 'bg-amber-100' : 'bg-indigo-100'}`}>
-                                        <div className="font-semibold text-xs">
-                                          {cell.subjectName}
-                                        </div>
+                                      <div className={`h-full rounded-2xl border transition-all duration-300 hover:-translate-y-1 hover:shadow-lg p-4 flex flex-col justify-between
+                                          ${cell.subjectType === "Lab"
+                                            ? "bg-amber-50 border-amber-200"
+                                            : "bg-indigo-50 border-indigo-200"
+                                          }`}>
+                                        <div>
+                                          <div className="font-black text-slate-900 text-sm leading-tight">
+                                            {cell.subjectName}
+                                          </div>
 
-                                        <div className="text-[10px] text-slate-600">
-                                          {cell.teacherName}
-                                        </div>
+                                          <div className="text-xs text-slate-500 mt-2">
+                                            {cell.teacherName}
+                                          </div>
 
-                                        <div className="text-[10px] text-slate-500">
-                                          {cell.roomNumber}
-                                        </div>
+                                          <div className="text-xs text-slate-400">
+                                            {cell.roomNumber}
+                                          </div>
 
-                                        {cell.subjectType === 'Lab' && (
-                                          <div className="text-[9px] text-amber-700 font-bold mt-0.5">LAB</div>
-                                        )}
+                                        </div>
+                                        <div className="flex items-center justify-between mt-4">
+                                          <span
+                                            className={`text-[10px] font-black uppercase tracking-widest px-3 py-1 rounded-lg
+                                              ${cell.subjectType === "Lab"
+                                                ? "bg-amber-100 text-amber-700"
+                                                : "bg-indigo-100 text-indigo-700"
+                                              }`}>
+                                            {cell.subjectType}
+                                          </span>
+                                        </div>
                                       </div>
                                     ) : (
-                                      <div className="h-full flex items-center justify-center text-slate-300 text-xs bg-slate-50/50 rounded">
+                                      <div className="h-full rounded-2xl border-2 border-dashed border-slate-200 flex items-center justify-center text-slate-300 font-black uppercase tracking-widest text-[10px] bg-slate-50 transition-colors hover:bg-slate-100">
                                         Free
                                       </div>
                                     )}
@@ -549,7 +519,8 @@ console.error("Full Error Object:", err); // Log the whole thing to see why it f
       </div>
 
       {/* Basic Inline Minimal Styles for clean custom Scrollbars integration */}
-      <style dangerouslySetInnerHTML={{ __html: `
+      <style dangerouslySetInnerHTML={{
+        __html: `
         .custom-scrollbar::-webkit-scrollbar { width: 4px; }
         .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
       `}} />
