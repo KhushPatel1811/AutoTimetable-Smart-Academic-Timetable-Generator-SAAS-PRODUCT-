@@ -11,7 +11,7 @@ const ScheduleSlotSchema = new mongoose.Schema({
     },
     subjectType: {
         type: String,
-        enum: ["Lecture", "Lab", "Lecture + Lab", "Free"],
+        enum: ["Lecture", "Lab", "Lecture + Lab", "Break", "Free"],
         default: "Free"
     },
     teacherName: {
@@ -93,6 +93,16 @@ const timeTableSchema = new mongoose.Schema({
     labDuration: {
         type: Number,
         required: true
+    },
+
+    breakDurations: {
+        type: [Number],
+        default: []
+    },
+
+    timeSlots: {
+        type: [String],
+        default: []
     },
 
     version: {

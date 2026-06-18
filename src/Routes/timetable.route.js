@@ -18,7 +18,10 @@ router.post("/generate", authMiddleware, async (req, res) => {
         dayStartTime,
         dayEndTime,
         lectureDuration,
-        labDuration
+        labDuration,
+        breakDurations = [],
+        breakSlots = [],
+        slotLabels = []
     } = req.body;
 
     try {
@@ -69,6 +72,7 @@ const lectureQueue = buildLectureQueue(
 const result = await solveUsingORTools({
     totalDays,
     totalSlotsPerDay,
+    breakSlots,
 
     divisions: divisions.map(d => ({
         name: d.divisionName
@@ -130,15 +134,19 @@ const allocatedDivisions = result.timetable.map(d => ({
             dayEndTime,
             lectureDuration,
             labDuration,
+            breakDurations,
+            timeSlots: slotLabels,
             divisions: allocatedDivisions
         });
 
         await timetable.save();
 
-        const generatedSlots = Array.from(
-            { length: totalSlotsPerDay },
-            (_, i) => `Slot ${i + 1}`
-        );
+        const generatedSlots = slotLabels.length
+            ? slotLabels
+            : Array.from(
+                { length: totalSlotsPerDay },
+                (_, i) => `Slot ${i + 1}`
+            );
 
         return res.json({
             timetable,

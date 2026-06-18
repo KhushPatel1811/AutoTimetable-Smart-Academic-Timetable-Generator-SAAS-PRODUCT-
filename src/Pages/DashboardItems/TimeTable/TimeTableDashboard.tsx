@@ -16,6 +16,8 @@ function TimetableDashboard() {
   const [dayEndTime, setDayEndTime] = useState('16:00');
   const [lectureDuration, setLectureDuration] = useState('60');
   const [labDuration, setLabDuration] = useState('120');
+  const [breakCount, setBreakCount] = useState('0');
+  const [breakDurations, setBreakDurations] = useState<string[]>([]);
 
   // Data from API
   const [departments, setDepartments] = useState([]);
@@ -30,35 +32,63 @@ function TimetableDashboard() {
 
 
 
-  const generateTimeSlots = (startTime: string, endTime: string, duration: number) => {
-    const slots: string[] = [];
-    console.log(startTime)
-    console.log(endTime)
+  const minutesToTime = (minutes: number) => {
+    const h = Math.floor(minutes / 60);
+    const m = minutes % 60;
 
-    const [startHour, startMinute] = startTime.split(":").map(Number);
-    const [endHour, endMinute] = endTime.split(":").map(Number);
-
-    let current = startHour * 60 + startMinute;
-    const end = endHour * 60 + endMinute;
-
-    while (current + duration <= end) {
-      const next = current + duration;
-
-      const format = (minutes: number) => {
-        const h = Math.floor(minutes / 60);
-        const m = minutes % 60;
-
-        return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
-      };
-
-      slots.push(`${format(current)} - ${format(next)}`);
-
-      current = next;
-    }
-    return slots;
+    return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
   };
 
+  const buildTimetableSlots = (
+    startTime: string,
+    endTime: string,
+    lectureMinutes: number,
+    breaks: number[]) => {
+    const [startHour, startMinute] = startTime.split(":").map(Number);
+    const [endHour, endMinute] = endTime.split(":").map(Number);
+    const start = startHour * 60 + startMinute;
+    const end = endHour * 60 + endMinute;
+    const safeLectureMinutes = Math.max(1, lectureMinutes || 1);
+    const safeBreaks = breaks.map((duration) => Math.max(1, Number(duration) || 0));
+    const teachingMinutes = Math.max(0, end - start - safeBreaks.reduce((sum, duration) => sum + duration, 0));
+    const teachingSlots = Math.floor(teachingMinutes / safeLectureMinutes);
+    const partCount = safeBreaks.length + 1;
+    const basePartSize = partCount > 0 ? Math.floor(teachingSlots / partCount) : teachingSlots;
+    const largerParts = partCount > 0 ? teachingSlots % partCount : 0;
+    const slotLabels: string[] = [];
+    const breakSlots: { slotIndex: number; label: string; duration: number }[] = [];
+    let current = start;
 
+    for (let partIndex = 0; partIndex < partCount; partIndex++) {
+      const slotsInPart = basePartSize + (partIndex < largerParts ? 1 : 0);
+
+      for (let slotIndex = 0; slotIndex < slotsInPart; slotIndex++) {
+        const next = current + safeLectureMinutes;
+        slotLabels.push(`${minutesToTime(current)} - ${minutesToTime(next)}`);
+        current = next;
+      }
+
+      if (partIndex < safeBreaks.length) {
+        const breakDuration = safeBreaks[partIndex];
+        const next = current + breakDuration;
+        const label = `Break ${partIndex + 1} (${minutesToTime(current)} - ${minutesToTime(next)})`;
+        breakSlots.push({
+          slotIndex: slotLabels.length,
+          label,
+          duration: breakDuration
+        });
+        slotLabels.push(label);
+        current = next;
+      }
+    }
+
+    return { slotLabels, breakSlots, teachingSlots };
+  };
+
+  const parsedBreakDurations = () =>
+    breakDurations
+      .map((duration) => Number(duration))
+      .filter((duration) => Number.isFinite(duration) && duration > 0);
 
 
   // Get user details from localStorage safely
@@ -80,7 +110,6 @@ function TimetableDashboard() {
 
       // Safely extract the message
       const errorMessage = err.response?.data?.message || err.message || "Unknown error occurred";
-
       toast.error(`Generation failed: ${errorMessage}`);
 
       // Log the "Required vs Available" details if they exist in the response
@@ -105,7 +134,15 @@ function TimetableDashboard() {
         const timetable = res.data.timetable;
         setTimetable(timetable);
 
-        setDynamicSlots(generateTimeSlots(timetable.dayStartTime, timetable.dayEndTime, timetable.lectureDuration));
+        const savedBreakDurations = timetable.breakDurations || [];
+        const rebuiltSlots = buildTimetableSlots(
+          timetable.dayStartTime,
+          timetable.dayEndTime,
+          timetable.lectureDuration,
+          savedBreakDurations
+        );
+
+        setDynamicSlots(timetable.timeSlots?.length ? timetable.timeSlots : rebuiltSlots.slotLabels);
       } else {
         setTimetable(null);
         setDynamicSlots([]);
@@ -137,6 +174,19 @@ function TimetableDashboard() {
     fetchHistoryLedger();
   }, [fetchHistoryLedger]);
 
+
+  useEffect(() => {
+    const count = Math.max(0, Number(breakCount) || 0);
+    setBreakDurations((current) => {
+      const next = current.slice(0, count);
+
+      while (next.length < count) {
+        next.push('15');
+      }
+      return next;
+    });
+  }, [breakCount]);
+
   // Fetch Active Semesters when Department changes
   useEffect(() => {
     if (!departmentName) return;
@@ -166,32 +216,40 @@ function TimetableDashboard() {
 
 
 
-
   // Generate Timetable Button Action
   const triggerGenerationPipeline = async () => {
-    const generatedSlots = generateTimeSlots(dayStartTime, dayEndTime, Number(lectureDuration)); // Fix Bug 6: uncommented so it's defined
+    const breakDurationValues = parsedBreakDurations();
+    const generatedSlotData = buildTimetableSlots(
+      dayStartTime,
+      dayEndTime,
+      Number(lectureDuration),
+      breakDurationValues
+    );
     setLoading(true);
 
     try {
       const payload = {
         instituteId: getInstituteId(),
-        departmentName,
-        semester: Number(semester),
-        totalDivisions: Number(totalDivisions),
-        totalDays: Number(totalDays),
-        totalSlotsPerDay: generatedSlots.length,
-        dayStartTime,
-        dayEndTime,
-        lectureDuration: Number(lectureDuration),
-        labDuration: Number(labDuration)
-      };
+          departmentName,
+          semester: Number(semester),
+          totalDivisions: Number(totalDivisions),
+          totalDays: Number(totalDays),
+          totalSlotsPerDay: generatedSlotData.slotLabels.length,
+          dayStartTime,
+          dayEndTime,
+          lectureDuration: Number(lectureDuration),
+          labDuration: Number(labDuration),
+          breakDurations: breakDurationValues,
+          breakSlots: generatedSlotData.breakSlots,
+          slotLabels: generatedSlotData.slotLabels
+        };
 
       const res = await axios.post('http://localhost:1000/timetable/generate', payload, {
         headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
       });
 
       setTimetable(res.data.timetable);
-      setDynamicSlots(generatedSlots); // Use backend slots if available
+      setDynamicSlots(res.data.generatedSlots || generatedSlotData.slotLabels);
       fetchHistoryLedger(); // Refresh history after successful generation
       toast.success('Timetable generated successfully!');
     } catch (err) {
@@ -352,6 +410,24 @@ function TimetableDashboard() {
                 <input type="number" value={labDuration} onChange={(e) => setLabDuration(e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
                 />
               </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-slate-500 mb-1">Number of Breaks</label>
+                <input type="number" min="0" max="3" value={breakCount} onChange={(e) => setBreakCount(e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+              </div>
+
+              {breakDurations.map((duration, index) => (
+                <div key={index}>
+                  <label className="block text-xs font-semibold text-slate-500 mb-1">Break {index + 1} Duration (Mins)</label>
+                  <input type="number" min="1" value={duration} onChange={(e) => {
+                      const next = [...breakDurations];
+                      next[index] = e.target.value;
+                      setBreakDurations(next);
+                    }}
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  />
+                </div>
+              ))}
             </div>
           </div>
         </div>
@@ -378,81 +454,86 @@ function TimetableDashboard() {
                     <table className="w-full border-collapse text-left">
                       <thead>
                         <tr className="border-b border-slate-100 bg-slate-50/40">
-                          <th className="p-6 text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 border-r border-slate-100 w-32">
-                            Day
+                          <th className="p-6 text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 border-r border-slate-100 w-48">
+                            Time
                           </th>
 
-                          {dynamicSlots.map((slot) => (
-                            <th key={slot} className="p-6 text-center text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 min-w-[170px]">
-                              {slot}
+                          {divData.schedule.map((daySlots) => (
+                            <th key={daySlots.day} className="p-6 text-center text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 min-w-[190px]">
+                              {daySlots.day}
                             </th>
                           ))}
                         </tr>
                       </thead>
 
                       <tbody>
-                        {divData.schedule.map((daySlots, dayIdx) => {
-                          const slotArray = Array.isArray(daySlots.slots)
-                            ? daySlots.slots
-                            : Object.values(daySlots.slots || {});
+                        {dynamicSlots.map((slot, slotIdx) => (
+                          <tr key={slotIdx} className="border-b border-slate-100 hover:bg-slate-50/40 transition-colors">
+                            <td className="p-6 bg-slate-50 border-r border-slate-100 align-top">
+                              <div className="font-black text-slate-800 uppercase tracking-wide text-xs">
+                                {slot}
+                              </div>
+                            </td>
 
-                          return (
-                            <tr key={dayIdx} className="border-b border-slate-100 hover:bg-slate-50/40 transition-colors">
-                              
-                              {/* Day */}
-                              <td className="p-6 bg-slate-50 border-r border-slate-100">
-                                <div className="font-black text-slate-800 uppercase tracking-wide">
-                                  {daySlots.day}
-                                </div>
+                            {divData.schedule.map((daySlots, dayIdx) => {
+                              const slotArray = Array.isArray(daySlots.slots)
+                                ? daySlots.slots
+                                : Object.values(daySlots.slots || {});
+                              const cell = slotArray[slotIdx];
+                              const isBreak = cell?.subjectType === "Break";
+                              const isLab = cell?.subjectType === "Lab";
 
-                              </td>
-                              {dynamicSlots.map((_, slotIdx) => {
-                                const cell = slotArray[slotIdx];
-                                
-                                return (
-                                  <td key={slotIdx} className="p-3 border-r border-slate-100 align-top h-32">
-                                    {cell && !cell.free ? (
-                                      <div className={`h-full rounded-2xl border transition-all duration-300 hover:-translate-y-1 hover:shadow-lg p-4 flex flex-col justify-between
-                                          ${cell.subjectType === "Lab"
+                              return (
+                                <td key={`${dayIdx}-${slotIdx}`} className="p-3 border-r border-slate-100 align-top h-32">
+                                  {cell && !cell.free ? (
+                                    <div className={`h-full rounded-2xl border transition-all duration-300 hover:-translate-y-1 hover:shadow-lg p-4 flex flex-col justify-between
+                                        ${isBreak
+                                          ? "bg-red-100 border-red-800"
+                                          : isLab
                                             ? "bg-amber-50 border-amber-200"
                                             : "bg-indigo-50 border-indigo-200"
-                                          }`}>
-                                        <div>
-                                          <div className="font-black text-slate-900 text-sm leading-tight">
-                                            {cell.subjectName}
-                                          </div>
-
-                                          <div className="text-xs text-slate-500 mt-2">
-                                            {cell.teacherName}
-                                          </div>
-
-                                          <div className="text-xs text-slate-400">
-                                            {cell.roomNumber}
-                                          </div>
-
+                                        }`}>
+                                      <div>
+                                        <div className="font-black text-slate-900 text-sm leading-tight">
+                                          {cell.subjectName}
                                         </div>
-                                        <div className="flex items-center justify-between mt-4">
-                                          <span
-                                            className={`text-[10px] font-black uppercase tracking-widest px-3 py-1 rounded-lg
-                                              ${cell.subjectType === "Lab"
+
+                                        {!isBreak && (
+                                          <>
+                                            <div className="text-xs text-slate-500 mt-2">
+                                              {cell.teacherName}
+                                            </div>
+
+                                            <div className="text-xs text-slate-400">
+                                              {cell.roomNumber}
+                                            </div>
+                                          </>
+                                        )}
+
+                                      </div>
+                                      <div className="flex items-center justify-between mt-4">
+                                        <span
+                                          className={`text-[10px] font-black uppercase tracking-widest px-3 py-1 rounded-lg
+                                            ${isBreak
+                                              ? "bg-white text-red-600"
+                                              : isLab
                                                 ? "bg-amber-100 text-amber-700"
                                                 : "bg-indigo-100 text-indigo-700"
-                                              }`}>
-                                            {cell.subjectType}
-                                          </span>
-                                        </div>
+                                            }`}>
+                                          {cell.subjectType}
+                                        </span>
                                       </div>
-                                    ) : (
-                                      <div className="h-full rounded-2xl border-2 border-dashed border-slate-200 flex items-center justify-center text-slate-300 font-black uppercase tracking-widest text-[10px] bg-slate-50 transition-colors hover:bg-slate-100">
-                                        Free
-                                      </div>
-                                    )}
-                                  </td>
-                                );
-                              })}
-                            </tr>
-                          );
-                        })}
+                                    </div>
+                                  ) : (
+                                    <div className="h-full rounded-2xl border-2 border-dashed border-slate-200 flex items-center justify-center text-slate-300 font-black uppercase tracking-widest text-[10px] bg-slate-50 transition-colors hover:bg-slate-100">
+                                      Free
+                                    </div>
+                                  )}
+                                </td>
+                              );
+                            })}
+                          </tr>
+                        ))}
                       </tbody>
                     </table>
                   </div>

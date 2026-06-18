@@ -12,6 +12,12 @@ divisions = data.get("divisions", [])
 teachers = data.get("teachers", [])
 rooms = data.get("rooms", [])
 lectures = data.get("lectures", [])
+break_slots = data.get("breakSlots", [])
+break_slot_indexes = {
+    int(break_slot.get("slotIndex"))
+    for break_slot in break_slots
+    if str(break_slot.get("slotIndex", "")).isdigit()
+}
 
 
 def normalized_type(lecture):
@@ -47,10 +53,11 @@ default_lab_duration = max(
     [lecture_duration(lecture) for lecture in lectures if is_lab(lecture)] or [2]
 )
 daily_lab_slot_limit = 0
+teaching_slots_per_day = max(0, slots - len(break_slot_indexes))
 
-if slots >= default_lab_duration:
-    lab_blocks_per_day = max(1, round((slots / 3) / default_lab_duration))
-    daily_lab_slot_limit = min(slots, lab_blocks_per_day * default_lab_duration)
+if teaching_slots_per_day >= default_lab_duration:
+    lab_blocks_per_day = max(1, round((teaching_slots_per_day / 3) / default_lab_duration))
+    daily_lab_slot_limit = min(teaching_slots_per_day, lab_blocks_per_day * default_lab_duration)
 
 daily_lecture_target = max(0, slots - daily_lab_slot_limit)
 lab_subjects = {
@@ -81,9 +88,24 @@ for division in divisions:
     schedule = []
 
     for day_index in range(days):
+        day_slots = [None for _ in range(slots)]
+
+        for break_slot in break_slots:
+            slot_index = int(break_slot.get("slotIndex", -1))
+
+            if 0 <= slot_index < slots:
+                day_slots[slot_index] = {
+                    "subject": break_slot.get("label", "Break"),
+                    "subjectCode": "-",
+                    "teacher": "-",
+                    "roomType": "",
+                    "room": "-",
+                    "type": "Break"
+                }
+
         schedule.append({
             "day": DAYS[day_index],
-            "slots": [None for _ in range(slots)]
+            "slots": day_slots
         })
 
     timetable.append({
