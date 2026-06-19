@@ -4,6 +4,8 @@ import {body, validationResult} from 'express-validator'
 import User from '../Models/LoginModel.js'
 import jwt from 'jsonwebtoken'
 import RegistrationMiddleware from '../Middleware/Registration_Middleware.js'
+import authMiddleware from '../Middleware/AuthMiddleware.js'
+import Password_Change_Validator from '../Middleware/Password_Change_Middleware.js'
 
 
 const router = express.Router()
@@ -37,7 +39,7 @@ router.post("/login",async (req, resp)=>{
             user: {
                 _id: user._id,
                 instituteId:user._id,
-                adminName: user.adminName,
+                userName: user.userName,
                 instituteName: user.instituteName,
                 email: user.email,
                 phoneNumber: user.phoneNumber,
@@ -65,7 +67,7 @@ router.post('/register', RegistrationMiddleware() ,async(req, resp, next)=> {
     
     
     try {
-        const {adminName, instituteName, email, phoneNumber, role, password} = req.body
+        const { userName, instituteName, email, phoneNumber, role, password} = req.body
         // Checking if user exist or not
         const existingUser = await User.findOne({email});
         if(existingUser){
@@ -90,7 +92,7 @@ router.post('/register', RegistrationMiddleware() ,async(req, resp, next)=> {
         const lastInstituteId = lastUser?.instituteId
         let nextId = 1
 
-        if(typeof lastInstituteId === 'string' && lastInstituteId.startsWith('INST')) {
+        if(typeof lastInstituteId === 'string' && lastInstituteId.startsWith('INST') && role == 'Admin') {
             const num = Number(lastInstituteId.replace('INST', ''))
             if(!isNaN(num)) {
                 nextId = num + 1
@@ -99,7 +101,7 @@ router.post('/register', RegistrationMiddleware() ,async(req, resp, next)=> {
 
         const instituteId = `INST${String(nextId).padStart(4, '0')}`
 
-        const user = new User({instituteId, adminName, instituteName, email, phoneNumber, role, password:req.body.password})
+        const user = new User({instituteId, userName, instituteName, email, phoneNumber, role, password:req.body.password})
         
         await user.save()
         
@@ -109,6 +111,40 @@ router.post('/register', RegistrationMiddleware() ,async(req, resp, next)=> {
     catch(err) {
         console.error('Error creating user', err);
         resp.status(500).json({message: err.message || 'Error Occurred While Registering User'})
+    }
+})
+
+
+
+router.put('/changePassword', authMiddleware, Password_Change_Validator(), async(req, resp, next)=>{
+    try {
+        const errors = validationResult(req)
+        if(!errors.isEmpty()) {
+            return resp.status(400).json({message: errors.array()})
+        }
+
+        const user = await User.findOne({email: req.body.email})
+        if(!user) {
+            return resp.status(404).json({message: 'User Not Found'})
+        }
+
+        const isMatch = await bcrypt.compare(req.body.currentPassword, user.password)
+
+        if(!isMatch) {
+            return resp.status(400).json({message: 'Current Password Is Incorrect'})
+        }
+        const hashedPassword = await bcrypt.hash(req.body.newPassword, 10)
+
+
+        const response = await User.findOneAndUpdate(
+            {_id: user._id},
+            {$set: {password:hashedPassword}},
+            {new: true, runValidators:true}
+        )
+        return resp.status(200).json({response})
+    }
+    catch(err) {
+        return resp.status(500).json({message: err.message})
     }
 })
 

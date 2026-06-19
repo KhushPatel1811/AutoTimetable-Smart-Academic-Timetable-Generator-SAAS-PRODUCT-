@@ -81,7 +81,7 @@ function Navbar() {
                 <div className="mt-5 space-y-2">
                     <div className="flex items-center gap-2 flex-wrap">
                         <h1 className="text-2xl md:text-3xl font-black text-white tracking-tight">
-                            Hello, {userData?.adminName || 'Academic Lead'}
+                            Hello, {userData?.userName || 'Academic Lead'}
                         </h1>
                         <span className="text-2xl md:text-3xl animate-bounce duration-1000">👋</span>
                     </div>

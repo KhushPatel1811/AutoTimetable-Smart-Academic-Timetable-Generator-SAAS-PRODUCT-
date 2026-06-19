@@ -1,7 +1,8 @@
-import React from "react";
-import { CalendarPlus, UserPlus, BookPlus, DoorClosed, Eye, Zap } from "lucide-react";
+import { CalendarPlus, UserPlus, BookPlus, DoorClosed, Eye, Layers, Zap } from "lucide-react";
+import { useNavigate } from "react-router";
 
 function QuickActions() {
+    const navigate = useNavigate()
     const actions = [
         {
             icon: CalendarPlus,
@@ -9,7 +10,8 @@ function QuickActions() {
             description: 'Create optimized schedules instantly.',
             color: 'from-indigo-500 to-purple-500',
             glow: 'group-hover:shadow-indigo-500/20',
-            border: 'hover:border-indigo-500/30'
+            border: 'hover:border-indigo-500/30',
+            href:'/generate'
         },
         {
             icon: UserPlus,
@@ -17,7 +19,8 @@ function QuickActions() {
             description: 'Register new faculty profiles.',
             color: 'from-blue-500 to-cyan-500',
             glow: 'group-hover:shadow-blue-500/20',
-            border: 'hover:border-blue-500/30'
+            border: 'hover:border-blue-500/30',
+            href:'/teachers/add'
         },
         {
             icon: BookPlus,
@@ -25,7 +28,8 @@ function QuickActions() {
             description: 'Create new course curricula.',
             color: 'from-purple-500 to-pink-500',
             glow: 'group-hover:shadow-purple-500/20',
-            border: 'hover:border-purple-500/30'
+            border: 'hover:border-purple-500/30',
+            href: '/subjects/add'
         },
         {
             icon: DoorClosed,
@@ -33,16 +37,27 @@ function QuickActions() {
             description: 'Manage classroom constraints.',
             color: 'from-green-500 to-emerald-500',
             glow: 'group-hover:shadow-green-500/20',
-            border: 'hover:border-green-500/30'
+            border: 'hover:border-green-500/30',
+            href: '/rooms/add'
         },
         {
-            icon: Eye,
-            title: 'View Timetable',
-            description: 'Browse all active coordinates.',
+            icon: Layers,
+            title: 'Register New Department',
+            description: 'Manage Departments In Your Institute.',
             color: 'from-orange-500 to-amber-500',
             glow: 'group-hover:shadow-orange-500/20',
-            border: 'hover:border-orange-500/30'
+            border: 'hover:border-orange-500/30',
+            href: '/departments/add'
         }
+        // {
+        //     icon: Eye,
+        //     title: 'View Timetable',
+        //     description: 'Browse all active coordinates.',
+        //     color: 'from-orange-500 to-amber-500',
+        //     glow: 'group-hover:shadow-orange-500/20',
+        //     border: 'hover:border-orange-500/30',
+        //     href: '/timetables'
+        // }
     ];
 
     return (
@@ -60,10 +75,7 @@ function QuickActions() {
                     const Icon = item.icon;
 
                     return (
-                        <div 
-                            key={index} 
-                            className={`group relative bg-white/5 border border-white/10 rounded-2xl p-6 transition-all duration-300 hover:bg-white/10 hover:-translate-y-1 hover:shadow-2xl ${item.glow} ${item.border} cursor-pointer flex flex-col justify-between`}
-                        >
+                        <div key={index} className={`group relative bg-white/5 border border-white/10 rounded-2xl p-6 transition-all duration-300 hover:bg-white/10 hover:-translate-y-1 hover:shadow-2xl ${item.glow} ${item.border} cursor-pointer flex flex-col justify-between`} onClick={()=>navigate(item.href)}>
                             {/* Icon Background Frame Wrapper */}
                             <div className="mb-5">
                                 <div className={`bg-linear-to-br ${item.color} w-fit rounded-xl p-3 shadow-lg group-hover:scale-110 transition-transform duration-500`}>

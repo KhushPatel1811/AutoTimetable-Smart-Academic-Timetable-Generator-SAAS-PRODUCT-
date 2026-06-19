@@ -13,9 +13,10 @@ function ProfileEdit() {
     const navigate = useNavigate()
     interface UserProfileData {
         _id: string;
-        adminName: string;
+        userName: string;
         instituteName: string;
         email: string;
+        phoneNumber: string,
         createdAt: string;
         updatedAt: string;
     }
@@ -26,9 +27,10 @@ function ProfileEdit() {
     const { register, handleSubmit, reset, formState: { errors, isSubmitting } } = useForm<UserProfileData>({
         defaultValues: {
             _id: '',
-            adminName: '',
+            userName: '',
             instituteName: '',
             email: '',
+            phoneNumber:'',
             createdAt: '',
             updatedAt: ''
         }
@@ -54,8 +56,8 @@ function ProfileEdit() {
             
             if (response.data.updatedUser) {
                 localStorage.setItem('user', JSON.stringify(response.data.updatedUser));
-                reset(response.data.updatedUser);
-                setUser(response.data.updatedUser);
+                reset(response.data?.updatedUser);
+                setUser(response.data?.updatedUser);
                 toast.success('Your profile has been updated successfully.');
 
                 setTimeout(()=>{
@@ -69,10 +71,7 @@ function ProfileEdit() {
 
     return (
         <div className="flex h-screen w-screen bg-slate-950 text-slate-100 overflow-hidden">
-            <Sidebar 
-                isOpen={isSidebarOpen} 
-                onClose={() => setIsSidebarOpen(false)} 
-            />
+            <Sidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
             <ToastContainer theme="dark" position="top-right" autoClose={2500} />
 
             <div className="flex-1 flex flex-col h-full overflow-y-auto custom-scrollbar">
@@ -114,23 +113,17 @@ function ProfileEdit() {
                                 
                                 {/* Full Name Field */}
                                 <div className="space-y-2">
-                                    <label htmlFor="adminName" className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1 flex items-center gap-2">
+                                    <label htmlFor="userName" className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1 flex items-center gap-2">
                                         <UserCircle2 className="w-3 h-3 text-indigo-400" /> Your Full Name
                                     </label>
-                                    <input 
-                                        type="text" 
-                                        id="adminName" 
-                                        className="w-full px-4 py-3 bg-slate-900 border border-white/10 rounded-xl text-slate-200 font-medium text-sm focus:outline-none focus:border-indigo-500 transition-colors"
-                                        placeholder="Enter your full name"
-                                        {...register('adminName', {
+                                    <input type="text" id="userName" className="w-full px-4 py-3 bg-slate-900 border border-white/10 rounded-xl text-slate-200 font-medium text-sm focus:outline-none focus:border-indigo-500 transition-colors"placeholder="Enter your full name"{...register('userName', {
                                             required: 'Please enter your name.',
                                             minLength: { value: 3, message: 'Name must be at least 3 characters long.' },
                                             maxLength: { value: 50, message: 'Name cannot be longer than 50 characters.' },
                                             pattern: { value: /^[A-Za-z ]+$/, message: 'Please use only letters and spaces.' }
-                                        })}
-                                    />
-                                    {errors.adminName && (
-                                        <p className="text-xs text-red-400 font-semibold mt-1 ml-1">{errors.adminName.message}</p>
+                                        })}/>
+                                    {errors.userName && (
+                                        <p className="text-xs text-red-400 font-semibold mt-1 ml-1">{errors.userName.message}</p>
                                     )}
                                 </div>
 
@@ -139,17 +132,11 @@ function ProfileEdit() {
                                     <label htmlFor="instituteName" className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1 flex items-center gap-2">
                                         <Building2 className="w-3 h-3 text-indigo-400" /> Institution Name (School / College)
                                     </label>
-                                    <input 
-                                        type="text" 
-                                        id="instituteName" 
-                                        className="w-full px-4 py-3 bg-slate-900 border border-white/10 rounded-xl text-slate-200 font-medium text-sm focus:outline-none focus:border-indigo-500 transition-colors"
-                                        placeholder="Enter your school or college name"
-                                        {...register('instituteName', {
+                                    <input type="text" id="instituteName" className="w-full px-4 py-3 bg-slate-900 border border-white/10 rounded-xl text-slate-200 font-medium text-sm focus:outline-none focus:border-indigo-500 transition-colors"placeholder="Enter your school or college name"{...register('instituteName', {
                                             required: 'Please enter your institution name.',
                                             minLength: { value: 3, message: 'Institution name must be at least 3 characters long.' },
                                             maxLength: { value: 50, message: 'Institution name cannot be longer than 50 characters.' }
-                                        })}
-                                    />
+                                        })}/>
                                     {errors.instituteName && (
                                         <p className="text-xs text-red-400 font-semibold mt-1 ml-1">{errors.instituteName.message}</p>
                                     )}
@@ -160,28 +147,32 @@ function ProfileEdit() {
                                     <label htmlFor="email" className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1 flex items-center gap-2">
                                         <Mail className="w-3 h-3 text-indigo-400" /> Email Address
                                     </label>
-                                    <input 
-                                        type="text" 
-                                        id="email" 
-                                        className="w-full px-4 py-3 bg-slate-900 border border-white/10 rounded-xl text-slate-200 font-medium text-sm focus:outline-none focus:border-indigo-500 transition-colors"
-                                        placeholder="Enter your email address"
-                                        {...register('email', {
+                                    <input type="text" id="email" className="w-full px-4 py-3 bg-slate-900 border border-white/10 rounded-xl text-slate-200 font-medium text-sm focus:outline-none focus:border-indigo-500 transition-colors"placeholder="Enter your email address"{...register('email', {
                                             required: 'Please enter your email address.',
                                             pattern: { value: /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/, message: 'Please enter a valid email address.' }
-                                        })}
-                                    />
+                                        })}/>
                                     {errors.email && (
                                         <p className="text-xs text-red-400 font-semibold mt-1 ml-1">{errors.email.message}</p>
                                     )}
                                 </div>
 
+                                {/* Phone Number */}
+                                <div className="space-y-2">
+                                    <label htmlFor="phoneNumber" className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1 flex items-center gap-2">
+                                        <Mail className="w-3 h-3 text-indigo-400" /> Phone Number
+                                    </label>
+                                    <input type="text" id="phoneNumber" className="w-full px-4 py-3 bg-slate-900 border border-white/10 rounded-xl text-slate-200 font-medium text-sm focus:outline-none focus:border-indigo-500 transition-colors"placeholder="Enter your email address"{...register('phoneNumber', {
+                                            required: 'Please enter your mobile number.',
+                                            pattern: { value: /^[0-9]{10}$/, message: 'Please enter a valid phoneNumber number.' }
+                                        })}/>
+                                    {errors.phoneNumber && (
+                                        <p className="text-xs text-red-400 font-semibold mt-1 ml-1">{errors.phoneNumber.message}</p>
+                                    )}
+                                </div>
+
                                 {/* Submit Trigger */}
                                 <div className="pt-4 border-t border-white/5 flex justify-end">
-                                    <button 
-                                        type="submit" 
-                                        disabled={isSubmitting}
-                                        className="w-full sm:w-auto px-6 py-3 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-black uppercase tracking-wider transition-colors shadow-lg shadow-indigo-600/10 disabled:opacity-50 cursor-pointer"
-                                    >
+                                    <button type="submit" disabled={isSubmitting}className="w-full sm:w-auto px-6 py-3 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-black uppercase tracking-wider transition-colors shadow-lg shadow-indigo-600/10 disabled:opacity-50 cursor-pointer">
                                         {isSubmitting ? 'Saving changes...' : 'Save Changes'}
                                     </button>
                                 </div>

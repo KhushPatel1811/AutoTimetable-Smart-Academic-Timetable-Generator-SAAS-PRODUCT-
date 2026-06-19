@@ -2,7 +2,7 @@ import mongoose, { mongo }  from 'mongoose'
 import bcrypt  from 'bcrypt'
 
 const userSchema = new mongoose.Schema({
-    adminName: {
+    userName: {
         type:String,
         required: [true, 'Name Is Required']
     },

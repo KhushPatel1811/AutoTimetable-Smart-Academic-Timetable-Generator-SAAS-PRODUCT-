@@ -8,7 +8,7 @@ import { ShieldCheck, User, Building2, Mail, Phone, LockKeyhole, Sparkles, Arrow
 
 function Register() {
     interface RegistrationFormData {
-        adminName: string;
+        userName: string;
         instituteName: string;
         email: string;
         phoneNumber: string;
@@ -21,7 +21,7 @@ function Register() {
 
     const { register, handleSubmit, watch, formState: { errors, isValid, isSubmitting } } = useForm<RegistrationFormData>({
         defaultValues: {
-            adminName: "",
+            userName: "",
             instituteName: "",
             email: "",
             phoneNumber: "",
@@ -93,8 +93,8 @@ function Register() {
                                 <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1 flex items-center gap-2">
                                     <User className="w-3 h-3 text-indigo-400" /> Full Name
                                 </label>
-                                <input type="text" placeholder="John Doe" className="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-4 text-white placeholder:text-slate-600 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 transition-all text-sm font-bold" {...register("adminName", { required: "Name is required" })} />
-                                {errors.adminName && <p className="text-xs text-rose-400 font-bold pl-1">{errors.adminName.message}</p>}
+                                <input type="text" placeholder="John Doe" className="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-4 text-white placeholder:text-slate-600 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 transition-all text-sm font-bold" {...register("userName", { required: "Name is required" })} />
+                                {errors.userName && <p className="text-xs text-rose-400 font-bold pl-1">{errors.userName.message}</p>}
                             </div>
 
                             <div className="space-y-2">
@@ -148,7 +148,8 @@ function Register() {
                                 <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1 flex items-center gap-2">
                                     <LockKeyhole className="w-3 h-3 text-indigo-400" /> Password
                                 </label>
-                                <input type="password" placeholder="••••••••" className="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-4 text-white placeholder:text-slate-600 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 transition-all text-sm font-bold" {...register("password", { required: "Password is required" })} />
+                                <input type="password" placeholder="••••••••" className="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-4 text-white placeholder:text-slate-600 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 transition-all text-sm font-bold" {...register("password", { 
+                                    required: "Password is required" })} />
                                 {errors.password && <p className="text-xs text-rose-400 font-bold pl-1">{errors.password.message}</p>}
                             </div>
 
@@ -156,18 +157,17 @@ function Register() {
                                 <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1 flex items-center gap-2">
                                     <LockKeyhole className="w-3 h-3 text-indigo-400" /> Confirm Password
                                 </label>
-                                <input type="password" placeholder="••••••••" className="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-4 text-white placeholder:text-slate-600 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 transition-all text-sm font-bold" {...register("confirmPassword", { required: "Please confirm your password", validate: (value) => value === watch('password') || "Passwords do not match" })} />
+                                <input type="password" placeholder="••••••••" className="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-4 text-white placeholder:text-slate-600 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 transition-all text-sm font-bold" {...register("confirmPassword", { 
+                                    required: "Please confirm your password", 
+                                    validate: (value) => value === watch('password') || "Passwords do not match" })} />
                                 {errors.confirmPassword && <p className="text-xs text-rose-400 font-bold pl-1">{errors.confirmPassword.message}</p>}
                             </div>
                         </div>
 
                         {/* Submit Button */}
-                        <button 
-                            type="submit" 
-                            disabled={isButtonDisabled} 
+                        <button type="submit" disabled={isButtonDisabled} 
                             className={`w-full group py-4 md:py-5 mt-2 rounded-2xl font-black text-xs md:text-sm uppercase tracking-[0.2em] transition-all duration-500 flex items-center justify-center gap-3
-                            ${isButtonDisabled ? 'bg-slate-800 text-slate-500 cursor-not-allowed opacity-50' : 'bg-indigo-600 text-white shadow-xl shadow-indigo-500/20 hover:bg-indigo-500 hover:scale-[1.01]'}`}
-                        >
+                            ${isButtonDisabled ? 'bg-slate-800 text-slate-500 cursor-not-allowed opacity-50' : 'bg-indigo-600 text-white shadow-xl shadow-indigo-500/20 hover:bg-indigo-500 hover:cursor-pointer hover:scale-[1.01]'}`}>
                             {isSubmitting ? <Sparkles className="w-5 h-5 animate-spin" /> : (
                                 <>
                                     Complete Registration <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />

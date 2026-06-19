@@ -2,7 +2,7 @@ import {body, validationResult} from 'express-validator'
 
 function EditProfileMiddleware() {
     return [
-        body('adminName')
+        body('userName')
         .trim()
         .notEmpty().withMessage('Name Cannot Be Empty')
         .matches(/^[A-Za-z ]+$/).withMessage('Name Should Contain Only Characters'),
@@ -18,6 +18,11 @@ function EditProfileMiddleware() {
         .notEmpty().withMessage('Email Is Required')
         .isEmail().withMessage("Please enter a valid email address")
         .matches(/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-z]{2,}$/).withMessage('Invalid Email Address'),
+
+        body('phoneNumber')
+        .trim()
+        .notEmpty().withMessage('Phone Number Is Required')
+        .matches(/^[0-9]{10}/).withMessage('Invalid Mobile Number')
     ]
 }
 

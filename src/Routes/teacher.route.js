@@ -8,6 +8,24 @@ import TeacherUpdateMiddleware from '../Middleware/Teacher_Update_Middleware.js'
 const router = express.Router()
 
 
+router.get('/id', async(req, resp, next)=>{
+    const {email} = req.query
+
+    try {
+
+        const response = await Teacher.findOne({email})
+        
+        if(!response) {
+            return resp.status(404).json({message: 'Teacher Not Found'})
+        }
+        return resp.status(200).json({response})
+    }
+    catch(err) {
+        return resp.status(500).json({message: err.message})
+    }
+})
+
+
 router.get('/', async(req,resp,next) => {
     const {search, departmentFilter, availabilityFilter} = req.query
 

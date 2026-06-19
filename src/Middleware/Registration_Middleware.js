@@ -2,7 +2,7 @@ import {body, validationResult} from 'express-validator'
 
 function registrationMiddleware() {
     return [
-        body('adminName')
+        body('userName')
         .trim()
         .notEmpty().withMessage('Name Cannot Be Empty')
         .matches(/^[A-Za-z ]+$/).withMessage('Name Should Contain Only Characters'),

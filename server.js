@@ -34,7 +34,7 @@ mongoose.connect(MONGODB_URI).then(() => {
 
 
 
-// Login And Register
+// Login, Register And ChangePassword
 app.use('/auth', authRoutes)
 
 //Dashboard

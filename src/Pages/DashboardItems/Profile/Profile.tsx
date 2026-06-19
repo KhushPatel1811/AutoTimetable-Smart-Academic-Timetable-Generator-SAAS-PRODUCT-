@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { Pencil, KeyRound, ShieldCheck, Mail, Building2, UserCircle2, LayoutDashboard } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import Sidebar from "../../../Components/Dashboard/Sidebar";
@@ -25,15 +25,13 @@ function Profile() {
         if (storedUser) {
             setUser(JSON.parse(storedUser));
         }
+        console.log(user)
     }, []);
 
     return (
         <div className="flex h-screen w-screen bg-slate-950 text-slate-100 overflow-hidden">
             {/* Control Sidebar Element Navigation Node */}
-            <Sidebar
-                isOpen={isSidebarOpen}
-                onClose={() => setIsSidebarOpen(false)}
-            />
+            <Sidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)}/>
 
             {/* Dashboard Workspace Main Frame */}
             <div className="flex-1 flex flex-col h-full overflow-y-auto custom-scrollbar">
@@ -81,10 +79,7 @@ function Profile() {
                                         <h3 className="text-xs font-black text-slate-200 uppercase tracking-widest">Profile Details</h3>
                                     </div>
                                     
-                                    <button 
-                                        className="flex items-center gap-2 px-4 py-2 text-xs font-bold text-white bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl transition-all group cursor-pointer"
-                                        onClick={() => navigate('/profile/edit')}
-                                    >
+                                    <button className="flex items-center gap-2 px-4 py-2 text-xs font-bold text-white bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl transition-all group cursor-pointer"onClick={() => navigate('/profile/edit')}>
                                         <Pencil size={12} className="group-hover:rotate-12 transition-transform text-indigo-400" />
                                         Update Profile
                                     </button>
@@ -97,7 +92,7 @@ function Profile() {
                                             <UserCircle2 className="w-3 h-3 text-indigo-400" /> Full Name
                                         </label>
                                         <div className="w-full px-4 py-3 bg-white/[0.02] border border-white/5 rounded-xl font-bold text-slate-200 text-sm">
-                                            {user?.adminName || "Not Configured"}
+                                            {user?.userName || "Not Configured"}
                                         </div>
                                     </div>
 
@@ -121,17 +116,26 @@ function Profile() {
 
                                     <div className="space-y-2">
                                         <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1 flex items-center gap-2">
-                                            <KeyRound className="w-3 h-3 text-indigo-400" /> Institute ID
+                                            <KeyRound className="w-3 h-3 text-indigo-400" /> Phone Number
                                         </label>
                                         <div className="w-full px-4 py-3 bg-white/[0.02] border border-white/5 rounded-xl font-mono text-xs text-slate-400">
-                                            {user?.instituteId || "Null Pointer Node"}
+                                            {user?.phoneNumber || "Null Pointer Node"}
+                                        </div>
+                                    </div>
+
+                                    <div className="space-y-2">
+                                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1 flex items-center gap-2">
+                                            <KeyRound className="w-3 h-3 text-indigo-400" /> User Role
+                                        </label>
+                                        <div className="w-full px-4 py-3 bg-white/[0.02] border border-white/5 rounded-xl font-mono text-xs text-slate-400">
+                                            {user?.role || "Null Pointer Node"}
                                         </div>
                                     </div>
                                 </div>
 
                                 {/* Security Action Operations Area Footer */}
                                 <div className="p-6 bg-white/[0.02] border-t border-white/5">
-                                    <button className="flex items-center gap-2 px-5 py-3 text-xs font-black text-white bg-indigo-600 hover:bg-indigo-500 rounded-xl shadow-lg shadow-indigo-600/10 transition-colors cursor-pointer">
+                                    <button className="flex items-center gap-2 px-5 py-3 text-xs font-black text-white bg-indigo-600 hover:bg-indigo-500 rounded-xl shadow-lg shadow-indigo-600/10 transition-colors cursor-pointer" onClick={()=>navigate('/auth/changePassword')}>
                                         <KeyRound size={14} />
                                         Change Password
                                     </button>

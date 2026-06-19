@@ -3,6 +3,8 @@ import User from '../Models/LoginModel.js'
 import authMiddleware from "../Middleware/AuthMiddleware.js";
 import EditProfileMiddleware from "../Middleware/Edit_Profile_Middleware.js";
 import {validationResult} from 'express-validator'
+import Password_Change_Validator from "../Middleware/Password_Change_Middleware.js";
+import axios from "axios";
 
 const router = express.Router()
 
@@ -29,7 +31,7 @@ router.post('/edit', authMiddleware, EditProfileMiddleware(), async(req,resp,nex
             return resp.status(400).json({message: 'Validation Failed', errors: errors.array()})
         }
 
-        const {adminName, instituteName, email} = req.body
+        const {userName, instituteName, email, phoneNumber} = req.body
 
         const user = await User.findById(req.user.id)
 
@@ -39,11 +41,11 @@ router.post('/edit', authMiddleware, EditProfileMiddleware(), async(req,resp,nex
 
         console.log('--- Profile Update Attempt ---');
         console.log('ID:', req.user.id);
-        console.log('New Data:', { adminName, instituteName, email });
+        console.log('New Data:', { userName, instituteName, email });
 
         const updatedUser = await User.findOneAndUpdate(
             { _id: req.user.id },
-            { $set: { adminName, instituteName, email } },
+            { $set: { userName, instituteName, email, phoneNumber } },
             { new: true, runValidators: true }
         ).select('-password');
 

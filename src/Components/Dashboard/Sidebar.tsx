@@ -14,33 +14,33 @@ function Sidebar({ isOpen, onClose }: SidebarProps) {
     // Safety check parsing local storage profile elements
     const storedUser = JSON.parse(localStorage.getItem("user") || "{}");
     const role = storedUser?.role || "Admin"; 
-    const userName = storedUser?.adminName || storedUser?.name || "User";
+    const userName = storedUser?.userName || "User";
 
     // Cleaned up navigation mapping categories using clean, premium user-friendly naming protocols
     const menuItemsByRole = {
         Admin: [
-            { icon: LayoutDashboard, label: "Overview", href: "/dashboard" },
-            { icon: Calendar, label: "Generate Timetable", href: "/generate" },
-            { icon: Users, label: "Faculty Members", href: "/teachers" },
-            { icon: BookOpen, label: "Courses & Subjects", href: "/subjects" },
-            { icon: DoorOpen, label: "Classrooms & Rooms", href: "/rooms" },
-            { icon: Layers, label: "Departments", href: "/departments" },
-            { icon: FileText, label: "All Timetables", href: "/timetables" },
-            { icon: User, label: "Admin Profile", href: "/profile" },
-            { icon: BarChart3, label: "Analytics & Reports", href: "/reports" },
-            { icon: Settings, label: "System Settings", href: "/settings" }
+            { icon: LayoutDashboard, label: "Overview", href: "/dashboard", role: "Admin" },
+            { icon: Calendar, label: "Generate Timetable", href: "/generate", role: "Admin" },
+            { icon: Users, label: "Faculty Members", href: "/teachers", role: "Admin" },
+            { icon: BookOpen, label: "Courses & Subjects", href: "/subjects", role: "Admin" },
+            { icon: DoorOpen, label: "Classrooms & Rooms", href: "/rooms", role: "Admin" },
+            { icon: Layers, label: "Departments", href: "/departments", role: "Admin" },
+            // { icon: FileText, label: "All Timetables", href: "/timetables" },
+            { icon: User, label: "Admin Profile", href: "/profile", role: "Admin" },
+            // { icon: BarChart3, label: "Analytics & Reports", href: "/reports" },
+            // { icon: Settings, label: "System Settings", href: "/s, role: "Admin"ettings" }
         ],
         Teacher: [
-            { icon: LayoutDashboard, label: "Overview", href: "/dashboard" },
-            { icon: Calendar, label: "My Availability", href: "/availability" },
-            { icon: FileText, label: "My Timetable", href: "/my-timetable" },
-            { icon: User, label: "Teacher Profile", href: "/profile" },
+            { icon: LayoutDashboard, label: "Overview", href: "/dashboard", role: 'Teacher' },
+            { icon: Calendar, label: "My Availability", href: "/availability", role: 'Teacher' },
+            { icon: FileText, label: "Faculty Members", href: "/colleague/teachers", role: 'Teacher' },
+            { icon: User, label: "Teacher Profile", href: "/profile", role: 'Teacher' },
         ],
         Student: [
-            { icon: LayoutDashboard, label: "Overview", href: "/dashboard" },
-            { icon: Users, label: "Faculty Directory", href: "/teacher-availability" },
-            { icon: FileText, label: "Class Timetable", href: "/my-timetable" },
-            { icon: User, label: "Student Profile", href: "/profile" },
+            { icon: LayoutDashboard, label: "Overview", href: "/dashboard", role: 'Student' },
+            { icon: Users, label: "Faculty Directory", href: "/teacher/availability", role: 'Student' },
+            { icon: FileText, label: "Class Timetable", href: "/my-timetable", role: 'Student' },
+            { icon: User, label: "Student Profile", href: "/profile", role: 'Student' },
         ]
     };
 
@@ -55,9 +55,7 @@ function Sidebar({ isOpen, onClose }: SidebarProps) {
         <>
             {/* Mobile Overlay Background Panel */}
             {isOpen && (
-                <div 
-                    className="fixed inset-0 bg-slate-900/60 backdrop-blur-md z-40 md:hidden transition-opacity duration-500" 
-                    onClick={onClose}
+                <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-md z-40 md:hidden transition-opacity duration-500" onClick={onClose}
                 />
             )}
 
@@ -92,17 +90,17 @@ function Sidebar({ isOpen, onClose }: SidebarProps) {
                         const Icon = item.icon;
                         const isActive = location.pathname === item.href || (item.href !== '/dashboard' && location.pathname.startsWith(item.href));
                         
+                        if(role != item.role) {
+                            navigate('/dashboard')
+                        }
+
                         return (
-                            <Link 
-                                to={item.href} 
-                                key={item.label} 
-                                onClick={onClose}
+                            <Link to={item.href} key={item.label} onClick={onClose}
                                 className={`flex items-center gap-4 px-5 py-3.5 rounded-2xl transition-all duration-300 group
                                     ${isActive 
                                         ? 'bg-indigo-600 text-white shadow-xl shadow-indigo-600/20' 
                                         : 'text-slate-400 hover:text-white hover:bg-white/5'
-                                    }`}
-                            >
+                                    }`}>
                                 <Icon size={18} className={`${isActive ? 'text-white' : 'text-slate-500 group-hover:text-indigo-400'} transition-colors`} />
                                 <span className="text-[11px] font-black uppercase tracking-widest">{item.label}</span>
                                 {isActive && <div className="ml-auto w-1.5 h-1.5 bg-white rounded-full shadow-[0_0_8px_rgba(255,255,255,0.8)]" />}
@@ -125,10 +123,7 @@ function Sidebar({ isOpen, onClose }: SidebarProps) {
                         </div>
 
                         {/* Standardized Sign-out Action element */}
-                        <button 
-                            onClick={handleLogout}
-                            className="w-full flex items-center justify-center gap-2.5 py-3.5 rounded-xl bg-white/5 hover:bg-rose-500/10 text-slate-400 hover:text-rose-500 border border-transparent hover:border-rose-500/20 transition-all duration-300 group cursor-pointer"
-                        >
+                        <button onClick={handleLogout}className="w-full flex items-center justify-center gap-2.5 py-3.5 rounded-xl bg-white/5 hover:bg-rose-500/10 text-slate-400 hover:text-rose-500 border border-transparent hover:border-rose-500/20 transition-all duration-300 group cursor-pointer">
                             <LogOut size={14} className="group-hover:-translate-x-0.5 transition-transform" />
                             <span className="text-[10px] font-black uppercase tracking-widest">Sign Out</span>
                         </button>

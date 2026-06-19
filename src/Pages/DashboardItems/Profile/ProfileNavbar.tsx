@@ -87,17 +87,17 @@ function ProfileNavbar({ onMenuToggle, content }: ProfileNavbarProps) {
                     {/* Identity Metadata String Meta */}
                     <div className="text-right hidden md:block">
                         <p className="text-[11px] font-black text-slate-900 uppercase leading-none truncate max-w-[120px]">
-                            {user?.adminName || 'Authority'}
+                            {user?.userName || 'Authority'}
                         </p>
                         <p className="text-[9px] font-bold text-indigo-500 uppercase tracking-tighter mt-1">
-                            Institutional Admin
+                            {user?.role || 'Authorized'}
                         </p>
                     </div>
 
                     {/* Badge Initial Thumbnail */}
                     <div className="relative shrink-0">
                         <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg sm:rounded-xl bg-gradient-to-br from-indigo-500 via-purple-500 to-indigo-600 flex items-center justify-center font-black text-white text-xs sm:text-sm shadow-md shadow-indigo-100 group-hover:rotate-6 transition-transform">
-                            {user?.adminName ? user.adminName.charAt(0).toUpperCase() : 'A'}
+                            {user?.userName ? user.userName.charAt(0).toUpperCase() : 'A'}
                         </div>
                         <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-emerald-500 border-2 border-white rounded-full" />
                     </div>

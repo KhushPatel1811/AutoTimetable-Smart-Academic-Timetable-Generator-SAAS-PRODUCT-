@@ -36,7 +36,7 @@ function ProfileCard() {
     }, [user]);
 
     // Generate initials safely or fallback to placeholder
-    const userInitial = user?.adminName?.charAt(0)?.toUpperCase() || "?";
+    const userInitial = user?.userName?.charAt(0)?.toUpperCase()+ user?.userName?.charAt(1)?.toUpperCase() || "?";
 
     return (
         <div className="w-full max-w-sm mx-auto flex flex-col bg-white/[0.02] border border-white/10 rounded-3xl overflow-hidden shadow-2xl backdrop-blur-md">
@@ -57,14 +57,14 @@ function ProfileCard() {
                 {/* Admin Name details */}
                 <div className="space-y-1">
                     <h2 className="text-xl font-black text-white tracking-tight">
-                        {user?.adminName || "Loading profile..."}
+                        {user?.userName || "Loading profile..."}
                     </h2>
                 </div>
 
                 {/* Account Role Badge */}
                 <div className="flex items-center gap-1.5 px-3 py-1 bg-indigo-500/10 border border-indigo-500/20 rounded-full text-xs font-bold text-indigo-400">
                     <ShieldCheck size={14} />
-                    <span>Administrator</span>
+                    <span>{user?.role}</span>
                 </div>
 
                 {/* Subtext Registration Metadata Footer */}

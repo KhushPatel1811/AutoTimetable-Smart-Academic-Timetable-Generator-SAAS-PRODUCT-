@@ -206,7 +206,7 @@ function EditTeacher() {
                             <div className="space-y-6">
                                 <div className="flex items-center justify-between">
                                     <h3 className="text-[11px] font-black text-indigo-500 uppercase tracking-[0.3em]">Teaching Subjects</h3>
-                                    <button type="button" className="add-btn !py-2 !px-4 text-[10px] gap-2 flex items-center bg-indigo-50 text-indigo-700 rounded-xl hover:bg-indigo-100 transition-colors" onClick={() => append({ subjects: "" })}>
+                                    <button type="button" className="add-btn !py-2 !px-4 text-[10px] gap-2 flex items-center rounded-xl hover:bg-indigo-100 transition-colors" onClick={() => append({ subjects: "" })}>
                                         <Sparkles className="w-3 h-3" /> + Add Subject
                                     </button>
                                 </div>

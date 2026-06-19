@@ -6,6 +6,7 @@ import DashBoard from "./Pages/DashBoard"
 import ProtectedRoute from "./Components/ProtectedRoute"
 import Profile from "./Pages/DashboardItems/Profile/Profile"
 import ProfileEdit from "./Pages/DashboardItems/Profile/ProfileEdit"
+import ChangePassword from "./Components/ChangePassword"
 import Teachers from "./Pages/DashboardItems/Teacher/Teachers"
 import AddTeacher from "./Pages/DashboardItems/Teacher/AddTeacher"
 import EditTeacher from "./Pages/DashboardItems/Teacher/EditTeacher"
@@ -19,6 +20,11 @@ import Subjects from "./Pages/DashboardItems/Subjects/Subjects"
 import AddSubject from "./Pages/DashboardItems/Subjects/AddSubjects"
 import EditSubject from "./Pages/DashboardItems/Subjects/EditSubjects"
 import TimetableDashboard from "./Pages/DashboardItems/TimeTable/TimeTableDashboard"
+import ReportsModule from "./Pages/DashboardItems/Reports/ReportsModule"
+import SettingsModule from "./Pages/DashboardItems/Settings/SettingsModule"
+import TimetablesModule from "./Pages/DashboardItems/Timetables/TimetablesModule"
+import PageNotFound from "./Components/PageNotFound"
+import ColleagueTeacher from "./Pages/DashboardItems/Teacher/ColleagueTeacher"
 
 function App() {
   return (
@@ -27,6 +33,7 @@ function App() {
         <Route path="/" element={<HomePage />} />
         <Route path="/auth/login" element={<Login />} />
         <Route path="/auth/register" element={<Register />} />
+        <Route path="/auth/changePassword" element={<ChangePassword />}/>
         <Route path="/dashboard" element={<ProtectedRoute><DashBoard /></ProtectedRoute>} />
         <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>}/>
         <Route path="/profile/edit" element={<ProtectedRoute><ProfileEdit /></ProtectedRoute>}/>
@@ -43,6 +50,17 @@ function App() {
         <Route path="/subjects/add" element={<ProtectedRoute> <AddSubject /> </ProtectedRoute>} />
         <Route path="/subjects/edit/:subjectId" element={<ProtectedRoute> <EditSubject /> </ProtectedRoute>} />
         <Route path="/generate" element={<ProtectedRoute> <TimetableDashboard /> </ProtectedRoute>} />
+        <Route path="/timetables" element={<ProtectedRoute> <TimetablesModule /> </ProtectedRoute>} />
+        <Route path="/reports" element={<ProtectedRoute> <ReportsModule /> </ProtectedRoute>} />
+        <Route path="/settings" element={<ProtectedRoute> <SettingsModule /> </ProtectedRoute>} />
+        <Route path="/*" element={<PageNotFound />} />
+        
+        
+        
+        <Route path="/colleague/teachers" element={<ProtectedRoute> <ColleagueTeacher /> </ProtectedRoute>} />
+
+
+        <Route path="/teacher/availability" element={<ProtectedRoute> <ColleagueTeacher /> </ProtectedRoute>} />
       </Routes>
     </div>
   )

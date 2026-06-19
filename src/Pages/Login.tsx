@@ -84,7 +84,7 @@ function Login() {
                                     <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
                                         <LockKeyhole className="w-3 h-3 text-indigo-400" /> Password
                                     </label>
-                                    <button type="button" className="text-[10px] font-black text-indigo-400 hover:text-indigo-300 uppercase tracking-widest transition-colors">
+                                    <button type="button" className="text-[10px] font-black text-indigo-400 hover:text-indigo-300 hover:cursor-pointer uppercase tracking-widest transition-colors" onClick={()=>navigate('/auth/ChangePassword')}>
                                         Forgot Password?
                                     </button>
                                 </div>
