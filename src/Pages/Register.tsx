@@ -36,13 +36,16 @@ function Register() {
 
     async function submitData(data: RegistrationFormData) {
         try {
-            const response = await axios.post("http://localhost:1000/auth/register", data);
+            const { confirmPassword, ...payload } = data;
+
+            const response = await axios.post("http://localhost:1000/auth/register",payload);
+
             if (response.data) {
-                toast.success('Account created successfully!');
+                toast.success("Account created successfully!");
                 setTimeout(() => navigate("/auth/login"), 2000);
             }
         } catch (err: any) {
-            toast.error(err.response?.data?.message || 'Registration failed. Please try again.');
+            toast.error(err.response?.data?.message || "Registration failed");
         }
     }
 
@@ -133,8 +136,8 @@ function Register() {
                             <div className="relative">
                                 <select className="w-full bg-slate-900 border border-white/10 rounded-2xl px-5 py-4 text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/50 transition-all text-sm font-bold appearance-none cursor-pointer" {...register("role", { required: true })}>
                                     <option value="Admin" className="bg-slate-950 text-white">Administrator (Admin)</option>
-                                    <option value="Teacher" className="bg-slate-950 text-white">Faculty Member (Teacher)</option>
-                                    <option value="Student" className="bg-slate-950 text-white">Enrolled Student (Student)</option>
+                                    {/* <option value="Teacher" className="bg-slate-950 text-white">Faculty Member (Teacher)</option>
+                                    <option value="Student" className="bg-slate-950 text-white">Enrolled Student (Student)</option> */}
                                 </select>
                                 <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-5 text-slate-400">
                                     <svg className="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/></svg>

@@ -24,99 +24,104 @@ const defaultSettings = (instituteId) => ({
 });
 
 router.get("/", authMiddleware, async (req, res) => {
-    const { instituteId } = req.query;
-
-    if (!instituteId) {
-        return res.status(400).json({ message: "instituteId is required." });
+    try {
+        const instituteId = req.user.instituteId;
+        const settings = await Settings.findOne({ instituteId }) || defaultSettings(instituteId);
+        res.json({ settings });
+    } catch (err) {
+        res.status(500).json({ message: err.message });
     }
-
-    const settings = await Settings.findOne({ instituteId }) || defaultSettings(instituteId);
-    res.json({ settings });
 });
 
 router.post("/", authMiddleware, async (req, res) => {
-    const { instituteId } = req.body;
+    try {
+        const instituteId = req.user.instituteId;
+        const userId = req.user.id;
 
-    if (!instituteId) {
-        return res.status(400).json({ message: "instituteId is required." });
+        const settings = await Settings.findOneAndUpdate(
+            { instituteId },
+            { $set: { ...req.body, instituteId, userId } },
+            { upsert: true, new: true, runValidators: true }
+        );
+
+        res.json({ message: "Settings saved.", settings });
+    } catch (err) {
+        res.status(500).json({ message: err.message });
     }
-
-    const settings = await Settings.findOneAndUpdate(
-        { instituteId },
-        { $set: req.body },
-        { upsert: true, new: true, runValidators: true }
-    );
-
-    res.json({ message: "Settings saved.", settings });
 });
 
 router.put("/", authMiddleware, async (req, res) => {
-    const { instituteId } = req.body;
+    try {
+        const instituteId = req.user.instituteId;
 
-    if (!instituteId) {
-        return res.status(400).json({ message: "instituteId is required." });
+        const settings = await Settings.findOneAndUpdate(
+            { instituteId },
+            { $set: req.body },
+            { new: true, runValidators: true }
+        );
+
+        if (!settings) {
+            return res.status(404).json({ message: "Settings not found." });
+        }
+
+        res.json({ message: "Settings updated.", settings });
+    } catch (err) {
+        res.status(500).json({ message: err.message });
     }
-
-    const settings = await Settings.findOneAndUpdate(
-        { instituteId },
-        { $set: req.body },
-        { new: true, runValidators: true }
-    );
-
-    if (!settings) {
-        return res.status(404).json({ message: "Settings not found." });
-    }
-
-    res.json({ message: "Settings updated.", settings });
 });
 
 router.post("/backup", authMiddleware, async (req, res) => {
-    const { instituteId } = req.body;
+    try {
+        const instituteId = req.user.instituteId;
 
-    if (!instituteId) {
-        return res.status(400).json({ message: "instituteId is required." });
+        const [settings, timetables, subjects, teachers, rooms, departments] = await Promise.all([
+            Settings.findOne({ instituteId }),
+            TimeTable.find({ instituteId }),
+            Subject.find({ instituteId }),
+            Teacher.find({ instituteId }),
+            Room.find({ instituteId }),
+            Department.find({ instituteId })
+        ]);
+
+        await Settings.findOneAndUpdate(
+            { instituteId },
+            { $set: { "backup.lastBackupAt": new Date() } },
+            { upsert: true }
+        );
+
+        res.json({
+            exportedAt: new Date(),
+            settings,
+            timetables,
+            subjects,
+            teachers,
+            rooms,
+            departments
+        });
+    } catch (err) {
+        res.status(500).json({ message: err.message });
     }
-
-    const [settings, timetables, subjects, teachers, rooms, departments] = await Promise.all([
-        Settings.findOne({ instituteId }),
-        TimeTable.find({ instituteId }),
-        Subject.find({ instituteId }),
-        Teacher.find({ instituteId }),
-        Room.find({ instituteId }),
-        Department.find({ instituteId })
-    ]);
-
-    await Settings.findOneAndUpdate(
-        { instituteId },
-        { $set: { "backup.lastBackupAt": new Date() } },
-        { upsert: true }
-    );
-
-    res.json({
-        exportedAt: new Date(),
-        settings,
-        timetables,
-        subjects,
-        teachers,
-        rooms,
-        departments
-    });
 });
 
 router.post("/restore", authMiddleware, async (req, res) => {
-    const { instituteId, settings } = req.body;
+    try {
+        const instituteId = req.user.instituteId;
+        const { settings } = req.body;
 
-    if (!instituteId || !settings) {
-        return res.status(400).json({ message: "instituteId and settings are required." });
+        if (!settings) {
+            return res.status(400).json({ message: "Settings data is required." });
+        }
+
+        const restored = await Settings.findOneAndUpdate(
+            { instituteId },
+            { $set: { ...settings, instituteId } },
+            { upsert: true, new: true, runValidators: true }
+        );
+
+        res.json({ message: "Settings restored.", settings: restored });
+    } catch (err) {
+        res.status(500).json({ message: err.message });
     }
-
-    const restored = await Settings.findOneAndUpdate(
-        { instituteId },
-        { $set: { ...settings, instituteId } },
-        { upsert: true, new: true, runValidators: true }
-    );
-
-    res.json({ message: "Settings restored.", settings: restored });
 });
 
 export default router;

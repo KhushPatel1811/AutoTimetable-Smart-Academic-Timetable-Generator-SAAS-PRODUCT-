@@ -1,83 +1,92 @@
-import mongoose, { mongo }  from "mongoose";
-import { match } from "node:assert";
+import mongoose from "mongoose";
 
-const SubjectSchema = new mongoose.Schema({
-    instituteId: {
-        type: String, 
-        required: [true, 'Institute Id Is Required']
-    },
-
-    userId: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'User',
-        required: [true, 'User Id Is Required']
-    },
-
+const SubjectSchema = new mongoose.Schema(
+  {
     subjectId: {
-        type: String,
-        trim: true,
-        unique: true,
-        required: [true, 'Subject Id Is Required'],
+      type: String,
+      required: [true, 'Subject Id Is Required'],
+      trim: true,
     },
 
     subjectName: {
-        type: String,
-        trim: true,
-        required: [true, 'Subject Name Is Required'],
+      type: String,
+      required: [true, 'Subject Name Is Required'],
+      trim: true,
     },
 
     subjectCode: {
-        type: String,
-        trim: true,
-        unique: true,
-        required: [true, 'Subject Code Is Required']
+      type: String,
+      unique: true,
+      required: [true, 'Subject Code Is required'],
+      trim: true,
     },
 
     semester: {
-        type: Number,
-        required: [true, 'Semester Is Required'],
-        match:(/^[0-9]+$/, 'Semester Should Contain Only Numbers')
+      type: Number,
+      required: [true, 'Semester Is Required'],
+      min: 1,
+      max: 10,
     },
 
     departmentName: {
-        type: String,
-        required: [true, 'Department Name Is Required']
+      type: String,
+      required: [true, 'Department Name Is Required'],
+      trim: true,
     },
 
     subjectType: {
-        type: String,
-        required: [true, 'Subject Type Is Required'],
-        enum:['Lecture', 'Lab', 'Lecture + Lab'], message:'Invalid Subject Type',
-        default: 'Lecture'
+      type: String,
+      enum: ["Lecture", "Lab", "Lecture + Lab"],
+      default: "Lecture",
+      required: [true, 'Subject Type Is Required'],
     },
 
     weekly_Lecture_Hour: {
-        type: Number,
-        required: [true, 'Weekly Lecture Hours Is Required'],
-        match:(/^[0-9]+$/, 'Weekly Lecture Per Hour Should Contain Numbers')
+      type: Number,
+      required: [true, 'Weekly Lecture Hour Is Required'],
+      min: [0, 'Min 0 lectures allowed'],
+      max:[10, 'Max 10 lectured allowed']
     },
 
     weekly_Lab_Hour: {
-        type: Number,
-        required: [true, 'Weekly Lab Hours Is Required'],
-        match:(/^[0-9]+$/, 'Weekly Lab Hours Should Contain Only Numbers')
-    },
-    preferred_Room_Type: {
-        type: String,
-        required: [true, 'Preferred room Type Is Required'],
-        enum:['Lecture', 'Lab', 'Seminar', 'Auditorium'], message:'Invalid Preferred Room Type',
-        default: 'Lecture'
+      type: Number,
+      required: [true, 'Weekly Lab Hour Is Required'],
+      min: [0, 'Min 0 lab hour allowed'],
+      max: [6, 'Max 6 lab hour required'],
     },
 
-    teacherName: {
-        type: [String],
-        required: [true, 'Teacher Name Is Required'],
-        default: []
+    preferredRoomType: {
+      type: String,
+      enum: ["Lecture", "Lab", "Seminar", "Auditorium"],
+      default: "Lecture",
+      required: [true, 'Preferred Room Type Is required'],
     },
-},{
-    timestamps: true
-})
 
-const Subject = mongoose.model('Subject', SubjectSchema)
+    // ✅ RBAC CORE FIELD (IMPORTANT)
+    instituteId: {
+      type: mongoose.Schema.Types.ObjectId,
+      required: [true, 'Institute Id Is Required'],
+      index: true,
+    },
+
+    // ✅ Proper relation instead of string names
+    teachers: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Teacher",
+      },
+    ],
+
+    createdBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+    },
+  },
+  {
+    timestamps: true,
+  }
+);
+
+const Subject = mongoose.model("Subject", SubjectSchema);
 
 export default Subject;

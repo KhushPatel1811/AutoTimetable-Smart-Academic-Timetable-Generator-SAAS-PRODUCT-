@@ -102,7 +102,7 @@ function Login() {
                                 type="submit" 
                                 disabled={isButtonDisabled} 
                                 className={`w-full group py-4 sm:py-5 rounded-2xl font-black text-xs sm:text-sm uppercase tracking-widest transition-all duration-500 flex items-center justify-center gap-3
-                                ${isButtonDisabled ? 'bg-slate-800 text-slate-500 cursor-not-allowed opacity-50' : 'bg-indigo-600 text-white shadow-xl shadow-indigo-500/20 hover:bg-indigo-500 hover:scale-[1.02] active:scale-[0.98]'}`}
+                                ${isButtonDisabled ? 'bg-slate-800 text-slate-500 cursor-not-allowed opacity-50' : 'bg-indigo-600 text-white shadow-xl shadow-indigo-500/20 hover:bg-indigo-500 hover:cursor-pointer hover:scale-[1.02] active:scale-[0.98]'}`}
                             >
                                 {isSubmitting ? <Sparkles className="w-5 h-5 animate-spin" /> : (
                                     <>

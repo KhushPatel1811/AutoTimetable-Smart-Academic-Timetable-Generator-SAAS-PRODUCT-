@@ -23,10 +23,12 @@ function EditDepartment() {
     useEffect(() => {
         async function fetchData() {
             try {
-                const response = await axios.get(`http://localhost:1000/departments/edit/${departmentId}`)
+                const response = await axios.get(`http://localhost:1000/departments/edit/${departmentId}`, {
+                    headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+                })
                 reset({ departmentName: response.data?.department?.departmentName })
-            } catch (err: any) {
-                console.log('Error Occurred: ', err)
+            } catch (err: unknown) {
+                console.error('Error fetching department details:', err)
             }
         }
         fetchData()
@@ -42,8 +44,9 @@ function EditDepartment() {
             })
             toast.success('Department cluster redefined')
             setTimeout(() => navigate('/departments'), 2000)
-        } catch (err: any) {
-            toast.error(err.response?.data?.message || 'Updation failed')
+        } catch (err: unknown) {
+            const error = err as { response?: { data?: { message?: string } } };
+            toast.error(error.response?.data?.message || 'Updation failed')
         }
     }
 
@@ -61,47 +64,47 @@ function EditDepartment() {
                         </button>
                         
                         {/* The Navbar component now safely gets full structural space */}
-                        <ProfileNavbar content="Modify Teacher Profile" />
+                        <ProfileNavbar content="Edit Department Profile" />
                     </div>
                     <ToastContainer position="top-right" autoClose={2000} />
                 </div>
 
                 <div className="p-8 max-w-2xl mx-auto w-full space-y-10">
                     <div className="flex items-center gap-6">
-                        <div className="p-4 bg-indigo-600 rounded-[1.5rem] shadow-xl shadow-indigo-100">
+                        <div className="p-4 bg-indigo-600 rounded-3xl shadow-xl shadow-indigo-100">
                             <Building2 className="w-8 h-8 text-white" />
                         </div>
                         <div>
-                            <h1 className="text-3xl font-black text-slate-900 tracking-tight">Refine Department</h1>
-                            <p className="text-slate-500 font-bold text-sm uppercase tracking-widest mt-1">Institutional Sub-unit Registry</p>
+                            <h1 className="text-3xl font-black text-slate-900 tracking-tight">Modify Department</h1>
+                            <p className="text-slate-500 font-bold text-sm uppercase tracking-widest mt-1">Institutional Department Profile Modification</p>
                         </div>
                     </div>
 
                     <form onSubmit={handleSubmit(updateData)} className="space-y-8">
                         <div className="premium-card space-y-6">
                             <div className="space-y-2">
-                                <label className="text-[11px] font-black text-slate-400 uppercase tracking-widest ml-1">Operational Unit Identity</label>
+                                <label className="text-[11px] font-black text-slate-400 uppercase tracking-widest ml-1">Department</label>
                                 <input 
                                     type="text" 
-                                    className="input-box !py-4 scale-105 origin-left transition-all" 
+                                    className="input-box py-4! scale-105 origin-left transition-all" 
                                     placeholder="Enter Department Name" 
                                     {...register(`departmentName`, { required: true })} 
                                 />
-                                {errors.departmentName && <p className="text-rose-500 text-[10px] font-black uppercase mt-1 ml-1">Identification Required</p>}
+                                {errors.departmentName && <p className="text-rose-500 text-[10px] font-black uppercase mt-1 ml-1">Department Name Required</p>}
                             </div>
                         </div>
 
                         <div className="flex items-center justify-end gap-4">
-                            <button type="button" onClick={() => navigate('/departments')} className="secondary-btn !py-4 !px-10">
-                                Abort
+                            <button type="button" onClick={() => navigate('/departments')} className="secondary-btn py-4! px-10!">
+                                Discard
                             </button>
                             <button 
                                 type="submit" 
                                 disabled={isSubmitting || !isValid} 
-                                className={`add-btn !py-4 !px-12 gap-3 shadow-xl shadow-indigo-100 hover:scale-105 ${isSubmitting || !isValid ? "opacity-50 grayscale" : ""}`}
+                                className={`add-btn py-4! px-12! gap-3 shadow-xl shadow-indigo-100 hover:scale-105 ${isSubmitting || !isValid ? "opacity-50 grayscale" : ""}`}
                             >
                                 {isSubmitting ? <Sparkles className="w-5 h-5 animate-spin" /> : <Save className="w-5 h-5" />}
-                                Commit Change
+                                Update
                             </button>
                         </div>
                     </form>

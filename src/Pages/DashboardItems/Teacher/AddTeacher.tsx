@@ -10,7 +10,6 @@ import { UserPlus, BookCopy, Sparkles, ChevronLeft, Save } from "lucide-react";
 function AddTeacher() {
     interface Teacher {
         teacherName: string,
-        instituteName: string,
         teacherEmail: string,
         teacherPhoneNumber: string,
         teacherDepartment: string,
@@ -25,7 +24,6 @@ function AddTeacher() {
     const { register, handleSubmit, control, formState: { errors, isValid, isSubmitting } } = useForm<Teacher>({
         defaultValues: {
             teacherName: '',
-            instituteName: '',
             teacherEmail: '',
             teacherPhoneNumber: '',
             teacherDepartment: '',
@@ -42,32 +40,32 @@ function AddTeacher() {
     useEffect(() => {
         async function fetchData() {
             try {
-                const response = await axios.get('http://localhost:1000/departments')
-                setDepartment(response.data.department)
-            } catch (err: any) {
-                console.log('Error Occurred:', err)
+                const response = await axios.get('http://localhost:1000/departments', {
+                    headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+                });
+                setDepartment(response.data.department);
+            } catch (err: unknown) {
+                console.error('Error fetching departments:', err);
             }
         }
-        fetchData()
-    }, [])
+        fetchData();
+    }, []);
 
     async function submitData(data: Teacher) {
-        const user = JSON.parse(localStorage.getItem('user') || '{}');
-        const userId = user._id || user.id;
-        const instituteId = user.instituteId || user.instituteID;
-
+        console.log(data)
         try {
-            const payload = { ...data, userId, instituteId };
-            await axios.post('http://localhost:1000/teachers/add', payload, {
+            const response = await axios.post('http://localhost:1000/teachers/add', data, {
                 headers: {
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${localStorage.getItem('token')}`
                 }
-            })
-            toast.success('Teacher added successfully')
-            setTimeout(() => navigate('/teachers'), 2000)
-        } catch (err: any) {
-            toast.error(err.response?.data?.message || 'Failed to add teacher')
+            });
+            toast.success('Teacher added successfully');
+            console.log('TEACHER DATA:', response.data)
+            setTimeout(() => navigate('/teachers'), 2000);
+        } catch (err: unknown) {
+            const error = err as { response?: { data?: { message?: string } } };
+            toast.error(error.response?.data?.message || 'Failed to add teacher');
         }
     }
 
@@ -77,7 +75,7 @@ function AddTeacher() {
 
             <div className="flex-1 flex flex-col h-full overflow-y-auto animate-page">
                 {/* Header Sticky Bar Container */}
-                <div className="sticky top-0 left-0 w-full z-50 bg-white/80 backdrop-blur-md border-b border-slate-200 px-4 sm:px-6 py-4 flex items-center justify-between">
+                <div className="sticky top-0 left-0 w-full z-50 bg-white border-b border-slate-200 px-4 sm:px-6 py-4 flex items-center justify-between">
                     <div className="flex items-center gap-4 w-full">
                         {/* Optional back button if used inside EditTeacher */}
                         <button type="button" onClick={() => navigate(-1)} className="p-2 hover:bg-slate-100 rounded-xl transition-colors text-slate-400 hover:text-slate-900">
@@ -93,7 +91,7 @@ function AddTeacher() {
                 <div className="p-8 max-w-4xl mx-auto w-full space-y-10">
                     {/* Header Branding */}
                     <div className="flex items-center gap-6">
-                        <div className="p-4 bg-indigo-600 rounded-[1.5rem] shadow-xl shadow-indigo-100">
+                        <div className="p-4 bg-indigo-600 rounded-3xl shadow-xl shadow-indigo-100">
                             <UserPlus className="w-8 h-8 text-white" />
                         </div>
                         <div>
@@ -113,12 +111,6 @@ function AddTeacher() {
                                         <label className="text-[11px] font-black text-slate-400 uppercase tracking-widest ml-1">Full Name</label>
                                         <input type="text" className="input-box" placeholder="e.g. Dr. Julian Casablancas" {...register("teacherName", { required: "Name is required" })} />
                                         {errors.teacherName && <p className="text-rose-500 text-[10px] font-black uppercase mt-1 ml-1">{errors.teacherName.message}</p>}
-                                    </div>
-
-                                    <div className="space-y-2">
-                                        <label className="text-[11px] font-black text-slate-400 uppercase tracking-widest ml-1">School / College Name</label>
-                                        <input type="text" className="input-box" placeholder="e.g. Stanford University" {...register("instituteName", { required: "School or college name is required" })} />
-                                        {errors.instituteName && <p className="text-rose-500 text-[10px] font-black uppercase mt-1 ml-1">{errors.instituteName.message}</p>}
                                     </div>
                                 </div>
 
@@ -169,7 +161,7 @@ function AddTeacher() {
                             <div className="space-y-6">
                                 <div className="flex items-center justify-between">
                                     <h3 className="text-[11px] font-black text-indigo-500 uppercase tracking-[0.3em]">Teaching Subjects</h3>
-                                    <button type="button" className="add-btn !py-2 !px-4 text-[10px] gap-2" onClick={() => append({ subjects: "" })}>
+                                    <button type="button" className="add-btn py-2! px-4! text-[10px] gap-2" onClick={() => append({ subjects: "" })}>
                                         <Sparkles className="w-3 h-3" /> + Add Subject
                                     </button>
                                 </div>
@@ -181,7 +173,7 @@ function AddTeacher() {
                                                 {index + 1}
                                             </div>
                                             <div className="flex-1">
-                                                <input type="text" className="input-box !bg-white !py-2.5 !text-xs" placeholder="e.g. Mathematics" {...register(`Subjects.${index}.subjects`, { required: true })}/>
+                                                <input type="text" className="input-box bg-white! py-2.5! text-xs!" placeholder="e.g. Mathematics" {...register(`Subjects.${index}.subjects`, { required: true })}/>
                                             </div>
                                             {fields.length > 1 && (
                                                 <button type="button" className="p-2 text-slate-300 hover:text-rose-500 transition-colors" onClick={() => remove(index)}>
@@ -195,10 +187,10 @@ function AddTeacher() {
                         </div>
 
                         <div className="flex items-center justify-end gap-4">
-                            <button type="button" onClick={() => navigate('/teachers')} className="secondary-btn !py-4 !px-10">
+                            <button type="button" onClick={() => navigate('/teachers')} className="secondary-btn py-4! px-10!">
                                 Cancel
                             </button>
-                            <button type="submit" disabled={isSubmitting || !isValid} className={`add-btn !py-4 !px-12 gap-3 shadow-xl shadow-indigo-100 hover:scale-105 ${isSubmitting || !isValid ? "opacity-50 grayscale" : ""}`}>
+                            <button type="submit" disabled={isSubmitting || !isValid} className={`add-btn py-4! px-12! gap-3 shadow-xl shadow-indigo-100 hover:scale-105 ${isSubmitting || !isValid ? "opacity-50 grayscale" : ""}`}>
                                 {isSubmitting ? <Sparkles className="w-5 h-5 animate-spin" /> : <Save className="w-5 h-5" />}
                                 Add Teacher
                             </button>

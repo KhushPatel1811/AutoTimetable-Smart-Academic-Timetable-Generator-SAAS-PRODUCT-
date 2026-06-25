@@ -9,10 +9,6 @@ function TeacherUpdateMiddleware() {
     .notEmpty().withMessage('Teacher Name Cannot Be Empty')
     .matches(/^[A-Za-z ]+$/).withMessage('Teacher Name Should Contain Only Characters'),
 
-    body('instituteName')
-    .notEmpty().withMessage('Institute Name Is Required')
-    .matches(/^[A-Za-z ]+$/).withMessage('Teacher Name Should Contain Only Characters'),
-
     body('instituteId')
     .notEmpty().withMessage('Institute Id Is Required'),
 

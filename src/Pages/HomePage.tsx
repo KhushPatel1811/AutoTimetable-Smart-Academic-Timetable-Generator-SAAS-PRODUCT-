@@ -27,7 +27,7 @@ function HomePage() {
           <section id="home" className="grid lg:grid-cols-2 gap-12 lg:gap-20 items-center animate-page">
             <div className="space-y-6 md:space-y-10 text-center lg:text-left">
               <div className="inline-flex items-center gap-3 rounded-full border border-white/10 bg-white/5 px-4 py-1.5 md:px-5 md:py-2 text-[10px] md:text-xs font-black uppercase tracking-[0.3em] text-indigo-400 shadow-2xl backdrop-blur-3xl mx-auto lg:mx-0">
-                <Sparkles className="w-3.5 h-3.5 md:w-4 md:h-4" /> Timetable Generator v4.0
+                <Sparkles className="w-3.5 h-3.5 md:w-4 md:h-4" /> Timetable Generator v1.0
               </div>
 
               <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-black leading-[1.15] lg:leading-[1.1] tracking-tight">
@@ -61,9 +61,9 @@ function HomePage() {
                         <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse" />
                     </div>
                     <div className="h-2 w-full bg-white/5 rounded-full overflow-hidden">
-                        <div className="h-full w-2/3 bg-indigo-500 shadow-[0_0_20px_rgba(99,102,241,0.5)]" />
+                        <div className="h-full w-3/3 bg-indigo-500 shadow-[0_0_20px_rgba(99,102,241,0.5)]" />
                     </div>
-                    <p className="text-[9px] md:text-[10px] font-bold text-slate-400 uppercase tracking-tighter">Timetable Generation: 67% Complete</p>
+                    <p className="text-[9px] md:text-[10px] font-bold text-slate-400 uppercase tracking-tighter">Timetable Generation: 100% Complete</p>
                  </div>
               </div>
             </div>

@@ -15,7 +15,7 @@ function AddDepartment() {
         }[]
     }
 
-    const { register, handleSubmit, control, formState: { errors, isSubmitting, isValid } } = useForm<Department>({
+    const { register, handleSubmit, control, formState: {errors, isSubmitting, isValid } } = useForm<Department>({
         defaultValues: {
             DepartmentName: [{ departmentName: '' }]
         },
@@ -28,21 +28,18 @@ function AddDepartment() {
     })
 
     async function submitData(data: Department): Promise<void> {
-        const user = JSON.parse(localStorage.getItem('user') || '{}');
-        const userId = user._id || user.id;
-        const instituteId = user.instituteId || user.instituteID;
-
         try {
-            await axios.post('http://localhost:1000/departments/add', { ...data, instituteId, userId }, {
+            await axios.post('http://localhost:1000/departments/add', data, {
                 headers: {
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${localStorage.getItem('token')}`
                 }
             })
-            toast.success('Department cluster established')
+            toast.success('Department Registered Successfully')
             setTimeout(() => navigate('/departments'), 2000)
-        } catch (err: any) {
-            toast.error(err.response?.data?.message || 'Cluster initialization failed')
+        } catch (err: unknown) {
+            const error = err as { response?: { data?: { message?: string } } };
+            toast.error(error.response?.data?.message || 'Department Registration Failed')
         }
     }
 
@@ -52,7 +49,7 @@ function AddDepartment() {
 
             <div className="flex-1 flex flex-col h-full overflow-y-auto animate-page">
                 {/* Header Sticky Bar Container */}
-                <div className="sticky top-0 left-0 w-full z-50 bg-white/80 backdrop-blur-md border-b border-slate-200 px-4 sm:px-6 py-4 flex items-center justify-between">
+                <div className="sticky top-0 left-0 w-full z-50 bg-white border-b border-slate-200 px-4 sm:px-6 py-4 flex items-center justify-between">
                     <div className="flex items-center gap-4 w-full">
                         {/* Optional back button if used inside EditTeacher */}
                         <button type="button" onClick={() => navigate(-1)} className="p-2 hover:bg-slate-100 rounded-xl transition-colors text-slate-400 hover:text-slate-900">
@@ -60,27 +57,27 @@ function AddDepartment() {
                         </button>
                         
                         {/* The Navbar component now safely gets full structural space */}
-                        <ProfileNavbar content="Modify Teacher Profile" />
+                        <ProfileNavbar content="Add New Department" />
                     </div>
                     <ToastContainer position="top-right" autoClose={2000} />
                 </div>
 
-                <div className="p-8 max-w-4xl mx-auto w-full space-y-10">
+                <div className="p-8 max-w-4xl mx-auto w-full space-y-10 -z-10">
                     {/* Header Branding */}
                     <div className="flex items-center gap-6">
                         <div className="p-4 bg-indigo-600 rounded-[1.5rem] shadow-xl shadow-indigo-100">
                             <Building2 className="w-8 h-8 text-white" />
                         </div>
                         <div>
-                            <h1 className="text-3xl font-black text-slate-900 tracking-tight">Provision Department Cluster</h1>
-                            <p className="text-slate-500 font-bold text-sm uppercase tracking-widest mt-1">Institutional Sub-unit Registry</p>
+                            <h1 className="text-3xl font-black text-slate-900 tracking-tight">Manage Department Registery</h1>
+                            <p className="text-slate-500 font-bold text-sm uppercase tracking-widest mt-1">Institutional Department Registry</p>
                         </div>
                     </div>
 
                     <form onSubmit={handleSubmit(submitData)} className="space-y-8">
                         <div className="premium-card space-y-8">
                             <div className="flex items-center justify-between mb-2">
-                                <h3 className="text-[10px] font-black text-indigo-500 uppercase tracking-[0.3em]">Operational Units</h3>
+                                <h3 className="text-[10px] font-black text-indigo-500 uppercase tracking-[0.3em]">Department</h3>
                                 <button type="button" className="secondary-btn !py-2 !px-4 text-[10px] flex items-center gap-2 group" onClick={() => append({ departmentName: '' })}>
                                     <Plus className="w-3 h-3 group-hover:rotate-90 transition-transform" /> Add Unit
                                 </button>
@@ -98,10 +95,11 @@ function AddDepartment() {
                                                 <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Department Identity</label>
                                                 <input 
                                                     type="text" 
-                                                    placeholder="e.g. Faculty of Neural Networks" 
+                                                    placeholder="e.g. Computer Science" 
                                                     className="input-box !py-3 !bg-white border-none group-hover:ring-1 group-hover:ring-indigo-200"
                                                     {...register(`DepartmentName.${index}.departmentName`, { required: true })}
                                                 />
+                                            {errors.departmentName && <p className="text-rose-500 text-[10px] font-black uppercase mt-1 ml-1">Department Name Required</p>}
                                             </div>
 
                                             {fields.length > 1 && (
@@ -129,7 +127,7 @@ function AddDepartment() {
                                 className={`add-btn !py-4 !px-12 gap-3 shadow-xl shadow-indigo-100 hover:scale-105 active:scale-95 ${isSubmitting || !isValid ? "opacity-50 grayscale" : ""}`}
                             >
                                 {isSubmitting ? <Sparkles className="w-5 h-5 animate-spin" /> : <Save className="w-5 h-5" />}
-                                Commit Cluster to Registry
+                                Register
                             </button>
                         </div>
                     </form>

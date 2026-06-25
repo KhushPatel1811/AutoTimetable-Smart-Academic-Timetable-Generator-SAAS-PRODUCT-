@@ -15,13 +15,13 @@ interface Subject {
     weekly_Lecture_Hour: number;
     weekly_Lab_Hour: number;
     preferred_Room_Type: string;
-    teacherName: string[]; // Holds array of teacher IDs
+    teachers: string[]; // Holds array of teacher IDs
 }
 
 type FormData = Subject;
 
 interface Teacher {
-    teacherName: string;
+    teachers: string;
     teacherId: string;
 }
 
@@ -40,13 +40,14 @@ function EditSubject() {
             weekly_Lecture_Hour: 1,
             weekly_Lab_Hour: 1,
             preferred_Room_Type: "Lecture",
-            teacherName: []
+            teachers: []
         },
         mode: "onChange",
         reValidateMode: "onChange"
     });
 
     const [teacherData, setTeacherData] = useState<Teacher[]>([]);
+    const [allTeacherData, setAllTeacherData] = useState<Teacher[]>([]);
     const [departmentData, setDepartmentData] = useState<Department[]>([]);
     const [subjectData, setSubjectData] = useState<Subject | null>(null);
     const { subjectId } = useParams();
@@ -55,24 +56,42 @@ function EditSubject() {
     // Watch values to dynamically update teachers list and multi-select states
     const watchedSubjectName = watch("subjectName");
     const watchedDepartmentName = watch("departmentName");
-    const selectedTeacherIds = watch("teacherName") || [];
+    const selectedTeacherIds = watch("teachers") || [];
 
     // 1. Fetch Subject and Department Base Data
     useEffect(() => {
         const controller = new AbortController();
         async function fetchData() {
             try {
-                const responseSubject = await axios.get(`http://localhost:1000/subjects/edit/${subjectId}`, { signal: controller.signal });
-                const responseDepartment = await axios.get('http://localhost:1000/departments', { signal: controller.signal });
+                const config = {
+                    signal: controller.signal,
+                    headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+                }
+                const [responseSubject, responseDepartment] = await Promise.all([
+                    axios.get(`http://localhost:1000/subjects/edit/${subjectId}`, config),
+                    axios.get('http://localhost:1000/departments', config)
+                ]);
                 
                 setDepartmentData(responseDepartment.data?.department || []);
+                setAllTeacherData(responseSubject.data?.teacher); 
 
-                const subject = responseSubject.data?.subject;
-                if (subject) {
-                    setSubjectData(subject);
-                    reset(subject);
-                }
-            } catch (err: any) {
+                const subject = responseSubject.data.subject;
+                const formattedSubject = {
+                    ...subject,
+                    teachers: subject.teachers.map(
+                        (teacher: any) => teacher._id
+                    )
+                };
+            setSubjectData(formattedSubject);
+            console.log("Formatted Subjects",formattedSubject)
+            reset(formattedSubject);  
+
+            setValue("teachers",
+                formattedSubject.teachers,
+                { shouldValidate: true }
+            );
+
+            } catch (err: unknown) {
                 if (axios.isCancel(err)) return;
                 console.error('Initialization Error:', err);
             }
@@ -97,11 +116,12 @@ function EditSubject() {
                         department: watchedDepartmentName, 
                         subject: watchedSubjectName 
                     },
+                    headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` },
                     signal: controller.signal
                 });
                 const teachers = response.data?.teachers || [];
                 setTeacherData(teachers);
-            } catch (err) {
+            } catch (err: unknown) {
                 if (axios.isCancel(err)) return;
                 console.error("Error fetching teachers data:", err);
                 setTeacherData([]);
@@ -112,29 +132,19 @@ function EditSubject() {
         return () => controller.abort();
     }, [watchedSubjectName, watchedDepartmentName]);
 
-    // 3. Sync and validate selected teacher elements
-    useEffect(() => {
-        if (teacherData.length > 0 && subjectData) {
-            const validTeacherIds = subjectData.teacherName.filter(id => 
-                teacherData.some(t => t.teacherId === id)
-            );
-            setValue('teacherName', validTeacherIds, { shouldValidate: true });
-        }
-    }, [teacherData, subjectData, setValue]);
-
     // Teacher selection toggle handler for custom checkbox UI
     const handleTeacherToggle = (id: string) => {
         if (selectedTeacherIds.includes(id)) {
-            setValue('teacherName', selectedTeacherIds.filter(tId => tId !== id), { shouldValidate: true, shouldDirty: true });
+            setValue('teachers', selectedTeacherIds.filter(tId => tId !== id), { shouldValidate: true, shouldDirty: true });
         } else {
-            setValue('teacherName', [...selectedTeacherIds, id], { shouldValidate: true, shouldDirty: true });
+            setValue('teachers', [...selectedTeacherIds, id], { shouldValidate: true, shouldDirty: true });
         }
     };
 
     // 4. PUT Request Form Submission handler
     async function updateData(data: FormData) {
         try {
-            const response = await axios.put('http://localhost:1000/subjects/edit', { ...data, subjectId }, {
+            const response = await axios.put(`http://localhost:1000/subjects/edit/${subjectId}`, data, {
                 headers: {
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${localStorage.getItem('token')}`
@@ -147,8 +157,9 @@ function EditSubject() {
                     navigate('/subjects');
                 }, 3000);
             }
-        } catch (err: any) {
-            toast.error(err.response?.data?.message || 'Subject Update Request Failed');
+        } catch (err: unknown) {
+            const error = err as { response?: { data?: { message?: string } } };
+            toast.error(error.response?.data?.message || 'Subject Update Request Failed');
         }
     }
 
@@ -160,7 +171,7 @@ function EditSubject() {
                 </div>
 
                 <div className="flex-1 flex flex-col min-w-0">
-                    <div className="bg-white/80 backdrop-blur-md border-b border-gray-200 sticky top-0 z-40">
+                    <div className="bg-white/80 px-5 backdrop-blur-md border-b border-gray-200 sticky top-0 z-40">
                         <ProfileNavbar content="Edit Subject Page" />
                     </div>
                     <ToastContainer position="top-right" autoClose={2000} />
@@ -364,12 +375,14 @@ function EditSubject() {
                                         </div>
                                     ) : (
                                         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 p-4 border border-gray-200 rounded-xl max-h-56 overflow-y-auto bg-gray-50/30">
-                                            {teacherData.map((teacher) => {
-                                                const isChecked = selectedTeacherIds.includes(teacher.teacherId);
+                                            {allTeacherData.map((teacher) => {
+                                                  console.log("teacher._id:", teacher._id);
+                                                    console.log("comparison:",selectedTeacherIds.includes(String(teacher._id)));
+                                                const isChecked = selectedTeacherIds.includes(teacher._id);
                                                 return (
                                                     <div 
-                                                        key={teacher.teacherId}
-                                                        onClick={() => handleTeacherToggle(teacher.teacherId)}
+                                                        key={teacher._id}
+                                                        onClick={() => handleTeacherToggle(teacher._id)}
                                                         className={`flex items-center gap-3 px-3.5 py-2.5 rounded-xl border text-sm font-medium cursor-pointer select-none transition-all ${isChecked ? "bg-blue-50/70 border-blue-200 text-blue-700 shadow-xs" : "bg-white border-gray-200 text-gray-600 hover:bg-gray-50 hover:border-gray-300"}`}
                                                     >
                                                         <div className={`w-4 h-4 rounded-md border flex items-center justify-center transition-all ${isChecked ? "bg-blue-600 border-blue-600 text-white" : "border-gray-300 bg-white"}`}>

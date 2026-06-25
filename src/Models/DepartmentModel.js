@@ -1,38 +1,44 @@
-import mongoose from 'mongoose'
+import mongoose from "mongoose";
 
-const departmentSchema = new mongoose.Schema({
-    userId: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'User',
-        required: true,
-    },
-
+const departmentSchema = new mongoose.Schema(
+  {
     departmentName: {
-        type: String,
-        required: [true, 'Department Name Is Required'],
-        trim: true,
-        match:[/^[A-Za-z0-9 ]+$/, 'Department Name Should Not Contain Special Characters']
+      type: String,
+      required: [true, "Department Name Is Required"],
+      trim: true,
+      match: [/^[A-Za-z0-9 ]+$/, "Invalid Department Name"],
     },
 
     departmentId: {
-        type: String,
-        trim: true,
-        unique: true,
-        required: [true, 'Department Id Is Required']
+      type: String,
+      required: true,
+      trim: true,
     },
 
+    // IMPORTANT: tenant isolation
     instituteId: {
-    type: String,
-    required: true
-    }
-}, {
-    timestamps: true
-})
+      type: mongoose.Schema.Types.ObjectId,
+      required: true,
+      index: true,
+      ref: "User",
+    },
 
-departmentSchema.index({instituteId: 1, departmentName: 1},
-    {unique: true}
-)
+    // OPTIONAL (only if you want audit tracking)
+    createdBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+    },
+  },
+  {
+    timestamps: true,
+  }
+);
 
-const Department = mongoose.model('Department', departmentSchema)
+departmentSchema.index(
+  { instituteId: 1, departmentName: 1 },
+  { unique: true }
+);
+
+const Department = mongoose.model("Department", departmentSchema);
 
 export default Department;

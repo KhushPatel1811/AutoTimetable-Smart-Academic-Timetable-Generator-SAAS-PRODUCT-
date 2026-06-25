@@ -21,7 +21,7 @@ function AddSubject() {
         weekly_Lecture_Hour: number;
         weekly_Lab_Hour: number;
         preferred_Room_Type: string;
-        teacherName: string[];
+        teachers: string[];
     }
 
     interface FormData {
@@ -44,7 +44,7 @@ function AddSubject() {
                 weekly_Lecture_Hour: 1,
                 weekly_Lab_Hour: 1,
                 preferred_Room_Type: 'Lecture',
-                teacherName: []
+                teachers: []
             }]
         },
         mode: 'onChange',
@@ -64,10 +64,12 @@ function AddSubject() {
     useEffect(() => {
         async function fetchData() {
             try {
-                const response = await axios.get('http://localhost:1000/departments');
+                const response = await axios.get('http://localhost:1000/departments', {
+                    headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+                });
                 setDepartmentData(response.data?.department || []);
-            } catch (err: any) {
-                toast.error(err.response?.data?.message || 'Error fetching department details');
+            } catch (err: unknown) {
+                console.error('Error fetching departments:', err);
             }
         }
         fetchData();
@@ -80,16 +82,17 @@ function AddSubject() {
         if (!department || !subject) return;
 
         try {
-            const response = await axios.get(
-                "http://localhost:1000/teachers/fetchDetails",
-                { params: { department, subject } }
+            const response = await axios.get("http://localhost:1000/teachers/fetchDetails",{ 
+                    params: { department, subject },
+                    headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+                }
             );
 
             setTeacherData((prev) => ({
                 ...prev,
                 [index]: response.data?.teachers || []
             }));
-        } catch (err) {
+        } catch {
             setTeacherData((prev) => ({
                 ...prev,
                 [index]: []
@@ -99,13 +102,9 @@ function AddSubject() {
 
     // Submit form data
     async function submitData(data: FormData) {
-        const userItem = localStorage.getItem('user');
-        const user = userItem ? JSON.parse(userItem) : null;
-        const userId = user ? (user._id || user.id) : '';
-        const instituteId = user ? (user.instituteId || user.instituteID) : '';
-
+        console.log(data)
         try {
-            const response = await axios.post('http://localhost:1000/subjects/add', { ...data, userId, instituteId }, {
+            const response = await axios.post('http://localhost:1000/subjects/add', data, {
                 headers: {
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${localStorage.getItem('token')}`
@@ -118,8 +117,9 @@ function AddSubject() {
                     navigate('/subjects');
                 }, 2000);
             }
-        } catch (err: any) {
-            toast.error(err.response?.data?.message || 'Error occurred while saving data');
+        } catch (err: unknown) {
+            const error = err as { response?: { data?: { message?: string } } };
+            toast.error(error.response?.data?.message || 'Error occurred while saving data');
         }
     }
 
@@ -132,7 +132,7 @@ function AddSubject() {
             <div className="flex-1 flex flex-col pb-12">
                 {/* Navbar Header */}
                 <div className="sticky top-0 z-50 bg-white border-b border-slate-200 px-6 py-4 shadow-xs">
-                    <ProfileNavbar content="Manage Curriculum" />
+                    <ProfileNavbar content="Add New Subject" />
                     <ToastContainer position="top-right" autoClose={2000} />
                 </div>
 
@@ -299,9 +299,9 @@ function AddSubject() {
                                             <label className="text-xs font-semibold text-slate-500">
                                                 Assign Faculty <span className="text-xs text-slate-400 font-normal">(Hold Ctrl/Cmd to select multiple)</span>
                                             </label>
-                                            <select multiple className="border border-slate-300 rounded-lg p-2 w-full bg-white h-24 text-sm cursor-pointer" {...register(`Subjects.${index}.teacherName`)}>
+                                            <select multiple className="border border-slate-300 rounded-lg p-2 w-full bg-white h-24 text-sm cursor-pointer" {...register(`Subjects.${index}.teachers`)}>
                                                 {(teacherData[index] ?? []).map((teacher) => (
-                                                    <option key={teacher.teacherId} value={teacher.teacherName} className="p-1 rounded-md text-sm">
+                                                    <option key={teacher.teacherId} value={teacher._id} className="p-1 rounded-md text-sm">
                                                         {teacher.teacherName}
                                                     </option>
                                                 ))}

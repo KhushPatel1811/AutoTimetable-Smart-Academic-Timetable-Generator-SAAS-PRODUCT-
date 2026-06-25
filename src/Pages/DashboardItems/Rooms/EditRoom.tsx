@@ -39,18 +39,19 @@ function EditRoom() {
     useEffect(() => {
         async function fetchData() {
             try {
-                const responseRoom = await axios.get(`http://localhost:1000/rooms/edit/${roomId}`, {
-                    headers: {
-                        'Authorization': `Bearer ${localStorage.getItem('token')}`
-                    }
-                })
+                const config = {
+                    headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+                }
+                const [responseRoom, responseDepartment] = await Promise.all([
+                    axios.get(`http://localhost:1000/rooms/edit/${roomId}`, config),
+                    axios.get('http://localhost:1000/departments', config)
+                ]);
                 
-                const responseDepartment = await axios.get('http://localhost:1000/departments')
                 setDepartmentData(responseDepartment.data?.department || [])
                 reset(responseRoom?.data?.room)
             }
-            catch (err: any) {
-                console.log('Error Occurred', err)
+            catch (err: unknown) {
+                console.error('Error fetching room/department details:', err)
             }
         }
         fetchData()
@@ -72,8 +73,9 @@ function EditRoom() {
                 }, 2000)
             }
         }
-        catch (err: any) {
-            toast.error(err.response?.data?.message || 'Failed to update room')
+        catch (err: unknown) {
+            const error = err as { response?: { data?: { message?: string } } };
+            toast.error(error.response?.data?.message || 'Failed to update room')
         }
     }
 
@@ -86,7 +88,7 @@ function EditRoom() {
                     <ToastContainer position="top-right" autoClose={2000} />
                 </div>
 
-                <div className="p-8 max-w-[1400px] w-full mx-auto space-y-8">
+                <div className="p-8 max-w-350 w-full mx-auto space-y-8">
                     {/* Navigation Top Bar */}
                     <div className="flex items-center justify-between">
                         <button 
@@ -99,7 +101,7 @@ function EditRoom() {
                     </div>
 
                     <form onSubmit={handleSubmit(submitData)} className="space-y-6">
-                        <div className="premium-card !p-8 border border-slate-100 hover:border-indigo-100 transition-all">
+                        <div className="premium-card p-8! border border-slate-100 hover:border-indigo-100 transition-all">
                             
                             {/* Card Header */}
                             <div className="flex items-center gap-3 mb-6 pb-4 border-b border-slate-100">
@@ -120,7 +122,7 @@ function EditRoom() {
                                         <input
                                             type="text"
                                             id="roomName"
-                                            className={`input-box !py-3 !bg-white ${errors.roomName ? 'border-rose-300 focus:border-rose-500 focus:ring-rose-200' : ''}`}
+                                            className={`input-box py-3! bg-white! ${errors.roomName ? 'border-rose-300 focus:border-rose-500 focus:ring-rose-200' : ''}`}
                                             placeholder="e.g. B-102, Lab-3"
                                             {...register(`roomName`, {
                                                 required: "Room name is required",
@@ -144,7 +146,7 @@ function EditRoom() {
                                         <LayoutGrid className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
                                         <select
                                             id="roomType"
-                                            className={`input-box !py-3 !pl-11 !bg-white cursor-pointer appearance-none ${errors.roomType ? 'border-rose-300' : ''}`}
+                                            className={`input-box py-3! pl-11! bg-white! cursor-pointer appearance-none ${errors.roomType ? 'border-rose-300' : ''}`}
                                             {...register("roomType", { required: "Room type is required" })}
                                         >
                                             <option value="">Select Type</option>
@@ -168,7 +170,7 @@ function EditRoom() {
                                         <CheckCircle className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
                                         <select
                                             id="roomStatus"
-                                            className={`input-box !py-3 !pl-11 !bg-white cursor-pointer appearance-none ${errors.roomStatus ? 'border-rose-300' : ''}`}
+                                            className={`input-box py-3! pl-11! bg-white! cursor-pointer appearance-none ${errors.roomStatus ? 'border-rose-300' : ''}`}
                                             {...register("roomStatus", { required: "Status is required" })}
                                         >
                                             <option value="">Select Status</option>
@@ -191,7 +193,7 @@ function EditRoom() {
                                         <Building2 className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
                                         <select
                                             id="departmentName"
-                                            className={`input-box !py-3 !pl-11 !bg-white cursor-pointer appearance-none ${errors.departmentName ? 'border-rose-300' : ''}`}
+                                            className={`input-box py-3! pl-11! bg-white! cursor-pointer appearance-none ${errors.departmentName ? 'border-rose-300' : ''}`}
                                             {...register("departmentName", { required: "Department is required" })}
                                         >
                                             <option value="">Select Department</option>

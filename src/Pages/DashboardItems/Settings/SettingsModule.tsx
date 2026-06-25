@@ -1,16 +1,10 @@
-import React, { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import axios from "axios";
 import { ArchiveRestore, Building2, CalendarDays, Clock, Database, Palette, Save, Shield, Users } from "lucide-react";
 import { toast, ToastContainer } from "react-toastify";
 
 const API = "http://localhost:1000/settings-module";
 const DAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
-
-const getInstituteId = () => {
-  const userItem = localStorage.getItem("user");
-  const user = userItem ? JSON.parse(userItem) : null;
-  return user ? (user.instituteId || user.instituteID) : "";
-};
 
 const authHeaders = () => ({
   Authorization: `Bearer ${localStorage.getItem("token")}`
@@ -53,47 +47,53 @@ function SettingsModule() {
     setLoading(true);
     try {
       const res = await axios.get(API, {
-        params: { instituteId: getInstituteId() },
         headers: authHeaders()
       });
       setSettings({ ...emptySettings, ...res.data.settings });
-    } catch (err: any) {
-      toast.error(err.response?.data?.message || "Unable to load settings");
+    } catch (err: unknown) {
+      const error = err as { response?: { data?: { message?: string } } };
+      toast.error(error.response?.data?.message || "Unable to load settings");
     } finally {
       setLoading(false);
     }
   }, []);
 
   useEffect(() => {
-    loadSettings();
+    const init = async () => {
+        await loadSettings();
+    };
+    init();
   }, [loadSettings]);
 
   const saveSettings = async () => {
     setLoading(true);
     try {
-      const res = await axios.post(API, {
-        ...settings,
-        instituteId: getInstituteId()
-      }, { headers: authHeaders() });
+      const res = await axios.post(API, settings, { headers: authHeaders() });
       setSettings(res.data.settings);
       toast.success("Settings saved");
-    } catch (err: any) {
-      toast.error(err.response?.data?.message || "Unable to save settings");
+    } catch (err: unknown) {
+      const error = err as { response?: { data?: { message?: string } } };
+      toast.error(error.response?.data?.message || "Unable to save settings");
     } finally {
       setLoading(false);
     }
   };
 
   const backupSettings = async () => {
-    const res = await axios.post(`${API}/backup`, { instituteId: getInstituteId() }, { headers: authHeaders() });
-    const blob = new Blob([JSON.stringify(res.data, null, 2)], { type: "application/json" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `settings-backup-${Date.now()}.json`;
-    a.click();
-    URL.revokeObjectURL(url);
-    toast.success("Backup downloaded");
+    try {
+        const res = await axios.post(`${API}/backup`, {}, { headers: authHeaders() });
+        const blob = new Blob([JSON.stringify(res.data, null, 2)], { type: "application/json" });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = `settings-backup-${Date.now()}.json`;
+        a.click();
+        URL.revokeObjectURL(url);
+        toast.success("Backup downloaded");
+    } catch (err: unknown) {
+        const error = err as { response?: { data?: { message?: string } } };
+        toast.error(error.response?.data?.message || "Backup failed");
+    }
   };
 
   const toggleDay = (day: string) => {
@@ -107,7 +107,7 @@ function SettingsModule() {
     <div className="p-6 min-h-screen bg-slate-50 text-slate-800 font-sans">
       <ToastContainer position="top-right" autoClose={2000} />
       <div className="max-w-7xl mx-auto space-y-6">
-        <header className="bg-linear-to-r from-indigo-600 to-indigo-500 rounded-[2rem] p-7 shadow-2xl shadow-indigo-100">
+        <header className="bg-linear-to-r from-indigo-600 to-indigo-500 rounded-4xl p-7 shadow-2xl shadow-indigo-100">
           <div className="flex flex-col lg:flex-row justify-between gap-5">
             <div className="flex items-center gap-4">
               <div className="p-4 bg-white/20 rounded-2xl border border-white/30">
@@ -160,7 +160,7 @@ function SettingsModule() {
 
           <section className="bg-white border border-slate-200 rounded-2xl p-5 space-y-4">
             <h2 className="flex items-center gap-2 font-black text-slate-900"><Clock className="w-5 h-5 text-indigo-600" /> Break Settings</h2>
-            {(settings.breaks || []).map((item: any, index: number) => (
+            {(settings.breaks as {label: string, duration: number}[] || []).map((item, index) => (
               <div key={index} className="grid grid-cols-2 gap-3">
                 <input value={item.label || ""} onChange={(e) => {
                   const breaks = [...settings.breaks];

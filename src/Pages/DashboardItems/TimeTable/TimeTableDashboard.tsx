@@ -1,153 +1,135 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import axios from 'axios';
 import { useReactToPrint } from 'react-to-print';
-import { Calendar, Printer, History, Sparkles, Clock, AlertCircle, CheckCircle2, GraduationCap, Grid3X3 } from 'lucide-react';
+import { Calendar, Printer, Sparkles, GraduationCap, Grid3X3 } from 'lucide-react';
 import { toast, ToastContainer } from 'react-toastify';
 
 function TimetableDashboard() {
-  // Form states
+  // ---------------- STATES ----------------
   const [departmentName, setDepartmentName] = useState('');
   const [semester, setSemester] = useState('');
-  const [targetMode, setTargetMode] = useState('School'); // 'School' or 'College'
-  const [academicYear, setAcademicYear] = useState('2024-25');
+  const [targetMode, setTargetMode] = useState('School');
+  const [generatedBreaks, setGeneratedBreaks] = useState([]);
+
   const [totalDivisions, setTotalDivisions] = useState('2');
   const [totalDays, setTotalDays] = useState('5');
+
   const [dayStartTime, setDayStartTime] = useState('09:00');
   const [dayEndTime, setDayEndTime] = useState('16:00');
+
   const [lectureDuration, setLectureDuration] = useState('60');
   const [labDuration, setLabDuration] = useState('120');
-  const [breakCount, setBreakCount] = useState('0');
-  const [breakDurations, setBreakDurations] = useState<string[]>([]);
 
-  // Data from API
+  const [breakCount, setBreakCount] = useState('0');
+  const [breakDurations, setBreakDurations] = useState([]);
+
   const [departments, setDepartments] = useState([]);
   const [activeSemesters, setActiveSemesters] = useState([]);
   const [timetable, setTimetable] = useState(null);
   const [dynamicSlots, setDynamicSlots] = useState([]);
   const [historyList, setHistoryList] = useState([]);
-  const [conflicts, setConflicts] = useState(null);
   const [loading, setLoading] = useState(false);
 
   const printRef = useRef(null);
 
-
-
-  const minutesToTime = (minutes: number) => {
+  // ---------------- TIME HELPERS ----------------
+  const minutesToTime = (minutes) => {
     const h = Math.floor(minutes / 60);
     const m = minutes % 60;
-
     return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
   };
 
-  const buildTimetableSlots = (
-    startTime: string,
-    endTime: string,
-    lectureMinutes: number,
-    breaks: number[]) => {
-    const [startHour, startMinute] = startTime.split(":").map(Number);
-    const [endHour, endMinute] = endTime.split(":").map(Number);
-    const start = startHour * 60 + startMinute;
-    const end = endHour * 60 + endMinute;
-    const safeLectureMinutes = Math.max(1, lectureMinutes || 1);
-    const safeBreaks = breaks.map((duration) => Math.max(1, Number(duration) || 0));
-    const teachingMinutes = Math.max(0, end - start - safeBreaks.reduce((sum, duration) => sum + duration, 0));
-    const teachingSlots = Math.floor(teachingMinutes / safeLectureMinutes);
-    const partCount = safeBreaks.length + 1;
-    const basePartSize = partCount > 0 ? Math.floor(teachingSlots / partCount) : teachingSlots;
-    const largerParts = partCount > 0 ? teachingSlots % partCount : 0;
+  const buildTimetableSlots = (startTime, endTime, lectureMinutes, breaks) => {
+    const [sh, sm] = startTime.split(":").map(Number);
+    const [eh, em] = endTime.split(":").map(Number);
+
+    let current = sh * 60 + sm;
+    const end = eh * 60 + em;
+
+    const safeLecture = Math.max(1, Number(lectureMinutes) || 60);
+    const safeBreaks = breaks.map(b => Math.max(0, Number(b) || 0)).filter(b => b > 0);
+
+    // Simulate the timeline to compute exact break-after-slot positions
+    // by evenly distributing breaks across the available lecture slots
+    const totalBreakTime = safeBreaks.reduce((a, b) => a + b, 0);
+    const availableTime = (end - current) - totalBreakTime;
+    const totalLectureSlots = Math.floor(availableTime / safeLecture);
+
+    const breakAfterSlot: number[] = safeBreaks.map((_, i) =>
+      Math.floor((i + 1) * totalLectureSlots / (safeBreaks.length + 1))
+    );
+
     const slotLabels: string[] = [];
-    const breakSlots: { slotIndex: number; label: string; duration: number }[] = [];
-    let current = start;
+    const breakSlots: { slotIndex: number; duration: number; label: string }[] = [];
+    let breakIndex = 0;
 
-    for (let partIndex = 0; partIndex < partCount; partIndex++) {
-      const slotsInPart = basePartSize + (partIndex < largerParts ? 1 : 0);
+    // Simulate actual clock to generate time-accurate labels
+    let clock = sh * 60 + sm;
 
-      for (let slotIndex = 0; slotIndex < slotsInPart; slotIndex++) {
-        const next = current + safeLectureMinutes;
-        slotLabels.push(`${minutesToTime(current)} - ${minutesToTime(next)}`);
-        current = next;
-      }
+    for (let n = 0; n < totalLectureSlots; n++) {
+      slotLabels.push(`${minutesToTime(clock)} - ${minutesToTime(clock + safeLecture)}`);
+      clock += safeLecture;
 
-      if (partIndex < safeBreaks.length) {
-        const breakDuration = safeBreaks[partIndex];
-        const next = current + breakDuration;
-        const label = `Break ${partIndex + 1} (${minutesToTime(current)} - ${minutesToTime(next)})`;
+      if (breakIndex < safeBreaks.length && slotLabels.length === breakAfterSlot[breakIndex]) {
         breakSlots.push({
           slotIndex: slotLabels.length,
-          label,
-          duration: breakDuration
+          duration: safeBreaks[breakIndex],
+          label: `${minutesToTime(clock)} - ${minutesToTime(clock + safeBreaks[breakIndex])}`
         });
-        slotLabels.push(label);
-        current = next;
+        clock += safeBreaks[breakIndex];
+        breakIndex++;
       }
     }
 
-    return { slotLabels, breakSlots, teachingSlots };
+    return { slotLabels, breakSlots };
   };
 
   const parsedBreakDurations = () =>
-    breakDurations
-      .map((duration) => Number(duration))
-      .filter((duration) => Number.isFinite(duration) && duration > 0);
+    breakDurations.map(Number).filter(n => Number.isFinite(n) && n > 0);
 
-
-  // Get user details from localStorage safely
+  // ---------------- INSTITUTE ----------------
   const getInstituteId = () => {
-    const userItem = localStorage.getItem('user');
-    const user = userItem ? JSON.parse(userItem) : null;
-    return user ? (user.instituteId || user.instituteID) : '';
+    const user = JSON.parse(localStorage.getItem('user') || '{}');
+    return user?.instituteId || user?.instituteID || '';
   };
 
-  // Fetch History
+  // ---------------- HISTORY ----------------
   const fetchHistoryLedger = useCallback(async () => {
     try {
       const res = await axios.get('http://localhost:1000/timetable/history', {
-        headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
       });
-      setHistoryList(res.data);
+      setHistoryList(res.data || []);
     } catch (err) {
-      console.error("Full Error Object:", err); // Log the whole thing to see why it failed
-
-      // Safely extract the message
-      const errorMessage = err.response?.data?.message || err.message || "Unknown error occurred";
-      toast.error(`Generation failed: ${errorMessage}`);
-
-      // Log the "Required vs Available" details if they exist in the response
-      if (err.response?.data?.details) {
-        console.warn("Constraint Failure Details:", err.response.data.details);
-      }
+      toast.error(err?.response?.data?.message || "History fetch failed");
     }
   }, []);
 
-  // Fetch Current Timetable
+  // ---------------- SYNC ----------------
   const syncLatestTimetable = useCallback(async () => {
     if (!departmentName || !semester) return;
 
     setLoading(true);
     try {
-      const res = await axios.get(`http://localhost:1000/timetable/latest`, {
-        params: { department: departmentName, semester: Number(semester), instituteId: getInstituteId() },
-        headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+      const res = await axios.get('http://localhost:1000/timetable/latest', {
+        params: {
+          department: departmentName,
+          semester: Number(semester),
+          instituteId: getInstituteId()
+        },
+        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
       });
-      if (res.data) {
-        console.log("Response", res.data)
-        const timetable = res.data.timetable;
-        setTimetable(timetable);
 
-        const savedBreakDurations = timetable.breakDurations || [];
-        const rebuiltSlots = buildTimetableSlots(
-          timetable.dayStartTime,
-          timetable.dayEndTime,
-          timetable.lectureDuration,
-          savedBreakDurations
-        );
+      const data = res.data?.timetable;
 
-        setDynamicSlots(timetable.timeSlots?.length ? timetable.timeSlots : rebuiltSlots.slotLabels);
+      if (data) {
+        setTimetable(data);
+        setDynamicSlots(data.timeSlots || []);
       } else {
         setTimetable(null);
         setDynamicSlots([]);
       }
-    } catch (err) {
+    } catch {
       setTimetable(null);
       setDynamicSlots([]);
     } finally {
@@ -155,458 +137,499 @@ function TimetableDashboard() {
     }
   }, [departmentName, semester]);
 
-  // Initial Fetch: Departments & History
+  // ---------------- EFFECTS ----------------
   useEffect(() => {
     const fetchDepts = async () => {
       try {
         const res = await axios.get('http://localhost:1000/departments', {
           params: { instituteId: getInstituteId() },
-          headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+          headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
         });
-        const depts = res.data.department || [];
+
+        const depts = res.data?.department || [];
         setDepartments(depts);
-        if (depts.length > 0) setDepartmentName(depts[0].departmentName);
-      } catch (err) {
-        console.error("Failed to fetch departments:", err);
+        if (depts.length) setDepartmentName(depts[0].departmentName);
+      } catch (e) {
+        console.error(e);
       }
     };
-    fetchDepts();
+
+  fetchDepts();
     fetchHistoryLedger();
   }, [fetchHistoryLedger]);
 
-
   useEffect(() => {
-    const count = Math.max(0, Number(breakCount) || 0);
-    setBreakDurations((current) => {
-      const next = current.slice(0, count);
-
-      while (next.length < count) {
-        next.push('15');
-      }
-      return next;
+    const count = Number(breakCount) || 0;
+    setBreakDurations(prev => {
+      const arr = [...prev].slice(0, count);
+      while (arr.length < count) arr.push("15");
+      return arr;
     });
   }, [breakCount]);
 
-  // Fetch Active Semesters when Department changes
   useEffect(() => {
     if (!departmentName) return;
-    const fetchActiveSems = async () => {
+
+    (async () => {
       try {
-        console.log("Institute ID:", getInstituteId())
-        const res = await axios.get(`http://localhost:1000/subjects`, {
-          params: { departmentFilter: departmentName, instituteId: getInstituteId() },
-          headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+        const res = await axios.get('http://localhost:1000/subjects', {
+          params: {
+            departmentFilter: departmentName,
+            instituteId: getInstituteId()
+          },
+          headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
         });
-        const subs = res.data.subjects || [];
-        console.log(res.data)
-        const uniqueSems = [...new Set(subs.map(s => s.semester))];
-        setActiveSemesters(uniqueSems);
-        console.log('SEMESTER: ', activeSemesters)
-      } catch (err) {
-        console.error("Failed to fetch active semesters:", err);
+
+        const subs = res.data?.subjects || [];
+        const sems = [...new Set(subs.map(s => s.semester))];
+        setActiveSemesters(sems);
+      } catch (e) {
+        console.error(e);
       }
-    };
-    fetchActiveSems();
+    })();
   }, [departmentName]);
 
-  // Sync timetable when selection changes
   useEffect(() => {
-    syncLatestTimetable();
-  }, [syncLatestTimetable]);
+  syncLatestTimetable();
+}, [departmentName, semester]);
 
-
-
-  // Generate Timetable Button Action
+  // ---------------- GENERATE ----------------
   const triggerGenerationPipeline = async () => {
-    const breakDurationValues = parsedBreakDurations();
-    const generatedSlotData = buildTimetableSlots(
-      dayStartTime,
-      dayEndTime,
-      Number(lectureDuration),
-      breakDurationValues
-    );
     setLoading(true);
 
     try {
+      const breaks = parsedBreakDurations();
+      const slots = buildTimetableSlots(
+        dayStartTime,
+        dayEndTime,
+        lectureDuration,
+        breaks
+      );
+      const breaksData = slots.breakSlots;
+
       const payload = {
         instituteId: getInstituteId(),
-          departmentName,
-          semester: Number(semester),
-          totalDivisions: Number(totalDivisions),
-          totalDays: Number(totalDays),
-          totalSlotsPerDay: generatedSlotData.slotLabels.length,
-          dayStartTime,
-          dayEndTime,
-          lectureDuration: Number(lectureDuration),
-          labDuration: Number(labDuration),
-          breakDurations: breakDurationValues,
-          breakSlots: generatedSlotData.breakSlots,
-          slotLabels: generatedSlotData.slotLabels
-        };
+        departmentName,
+        semester: semester ? Number(semester) : null,
+        totalDivisions: Number(totalDivisions),
+        totalDays: Number(totalDays),
+        totalSlotsPerDay: slots.slotLabels.length,
+        dayStartTime,
+        dayEndTime,
+        lectureDuration: Number(lectureDuration),
+        labDuration: Number(labDuration),
+        breakDurations: breaks,
+        breakSlots: slots.breakSlots,
+        slotLabels: slots.slotLabels
+      };
 
-      const res = await axios.post('http://localhost:1000/timetable/generate', payload, {
-        headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
-      });
+      const res = await axios.post('http://localhost:1000/timetable/generate',payload,{
+          headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+        }
+      );
 
-      setTimetable(res.data.timetable);
-      setDynamicSlots(res.data.generatedSlots || generatedSlotData.slotLabels);
-      fetchHistoryLedger(); // Refresh history after successful generation
-      toast.success('Timetable generated successfully!');
+      setTimetable(res.data?.timetable || null);
+      setDynamicSlots(slots.slotLabels);
+      setGeneratedBreaks(slots.breakSlots);
+      fetchHistoryLedger();
+      toast.success("Timetable generated!");
     } catch (err) {
-      toast.error("Generation failed: " + (err.response?.data?.message || "Unknown error"));
+      toast.error(err?.response?.data?.message || "Generation failed");
     } finally {
       setLoading(false);
     }
   };
 
-
-  // Print Settings
+  // ---------------- PRINT ----------------
   const handlePrint = useReactToPrint({
-    contentRef: printRef,
-    documentTitle: `Timetable_${departmentName}_${targetMode}_${semester}`,
+  contentRef: printRef,
+  documentTitle: `Timetable_${departmentName}_${semester}`,
+});
+
+const schoolClasses = Array.from({ length: 12 }, (_, i) => i + 1);
+const collegeSemesters = Array.from({ length: 8 }, (_, i) => i + 1);
+
+// displaySlots: tagged array so the table render can distinguish break rows reliably
+// lectureIndex = actual index into day.slots (which has breaks embedded by solver)
+const displaySlots = React.useMemo(() => {
+  const sorted = [...generatedBreaks].sort((a, b) => a.slotIndex - b.slotIndex);
+  const result: { label: string; isBreak: boolean; lectureIndex: number }[] = [];
+  let combinedIdx = 0;
+
+  for (let i = 0; i < dynamicSlots.length; i++) {
+    // Insert any breaks whose slotIndex == i (i.e. after i lecture slots)
+    sorted.forEach(b => {
+      if (b.slotIndex === i) {
+        result.push({ label: b.label, isBreak: true, lectureIndex: combinedIdx });
+        combinedIdx++;
+      }
+    });
+    result.push({ label: dynamicSlots[i], isBreak: false, lectureIndex: combinedIdx });
+    combinedIdx++;
+  }
+  // trailing breaks (slotIndex == dynamicSlots.length)
+  sorted.forEach(b => {
+    if (b.slotIndex === dynamicSlots.length) {
+      result.push({ label: b.label, isBreak: true, lectureIndex: combinedIdx });
+      combinedIdx++;
+    }
   });
-
-  const schoolClasses = Array.from({ length: 12 }, (_, i) => i + 1);
-  const collegeSemesters = Array.from({ length: 8 }, (_, i) => i + 1);
-
+  return result;
+}, [dynamicSlots, generatedBreaks]);
   return (
-    <div className="p-6 min-h-screen bg-slate-50 text-slate-800 font-sans">
-      <ToastContainer position="top-right" autoClose={2000} />
+  <div className="p-6 min-h-screen bg-slate-50 text-slate-800 font-sans">
+    <ToastContainer position="top-right" autoClose={2000} />
 
-      <div className="max-w-7xl mx-auto space-y-6">
+    <div className="max-w-7xl mx-auto space-y-6">
 
-        {/* Top Header Row */}
-        <header className="bg-linear-to-r from-indigo-600 to-indigo-500 rounded-[2.5rem] p-8 shadow-2xl shadow-indigo-100 border border-white/10 relative overflow-hidden group">
-          {/* Background Decoration */}
-          <div className="absolute top-0 right-0 w-80 h-80 bg-white/5 rounded-full -mr-24 -mt-24 group-hover:scale-110 transition-transform duration-700" />
+      {/* Top Header Row */}
+      <header className="bg-gradient-to-r from-indigo-600 to-indigo-500 rounded-[2.5rem] p-8 shadow-2xl shadow-indigo-100 border border-white/10 relative overflow-hidden group">
+        <div className="absolute top-0 right-0 w-80 h-80 bg-white/5 rounded-full -mr-24 -mt-24 group-hover:scale-110 transition-transform duration-700" />
 
-          <div className="relative z-10 flex flex-col lg:flex-row items-start lg:items-center justify-between gap-8">
-            {/* Left */}
-            <div className="flex items-center gap-6">
-              <div className="p-5 bg-white/20 backdrop-blur-2xl rounded-[1.8rem] border border-white/30 shadow-inner">
-                <Calendar className="w-9 h-9 text-white" />
-              </div>
+        <div className="relative z-10 flex flex-col lg:flex-row items-start lg:items-center justify-between gap-8">
 
-              <div>
-                <h1 className="text-4xl font-black text-white tracking-tight">
-                  Infinite Scheduler
-                </h1>
-
-                <p className="text-indigo-100 font-bold text-sm uppercase tracking-[0.25em] mt-1 opacity-90">
-                  Create and manage institutional timetables
-                </p>
-              </div>
+          <div className="flex items-center gap-6">
+            <div className="p-5 bg-white/20 backdrop-blur-2xl rounded-[1.8rem] border border-white/30 shadow-inner">
+              <Calendar className="w-9 h-9 text-white" />
             </div>
 
-            {/* Right */}
-            <div className="flex flex-col sm:flex-row gap-4 w-full lg:w-auto">
-              <button onClick={handlePrint} disabled={!timetable} className="bg-white/15 backdrop-blur-xl border border-white/25 text-white px-8 py-4 rounded-2xl font-black uppercase tracking-widest text-xs hover:bg-white/25 hover:cursor-pointer hover:scale-105 active:scale-95 transition-all duration-300 disabled:opacity-40 disabled:hover:scale-100 flex items-center justify-center gap-3">
-                <Printer className="w-5 h-5" />
-                Print
-              </button>
-
-              <button onClick={triggerGenerationPipeline} disabled={loading} className="bg-white text-indigo-600 px-8 py-4 rounded-2xl font-black uppercase tracking-widest text-xs shadow-2xl hover:shadow-indigo-300 hover:scale-105 hover:cursor-pointer active:scale-95 transition-all duration-300 disabled:opacity-50 disabled:hover:scale-100 flex items-center justify-center gap-3">
-                <Sparkles className={`w-5 h-5 ${loading ? "animate-spin" : ""
-                  }`} />
-                {loading ? "Generating..." : "Generate Timetable"}
-              </button>
-            </div>
-          </div>
-        </header>
-
-        {/* Configuration Forms */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-
-          {/* Step 1: Mode and Targets */}
-          <div className="bg-white p-5 rounded-2xl border border-slate-200 space-y-4">
-            <div className="flex items-center gap-2 font-bold text-slate-900 border-b border-slate-100 pb-2">
-              <GraduationCap className="w-4 h-4 text-indigo-600" />
-              <h2>1. Select School or College</h2>
-            </div>
-
-            <div className="space-y-3">
-              <div>
-                <label className="block text-xs font-semibold text-slate-500 mb-1">Department / Wing</label>
-                <select value={departmentName} onChange={(e) => setDepartmentName(e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
-                  {departments.map(d => <option key={d._id} value={d.departmentName}>{d.departmentName}</option>)}
-                  {departments.length === 0 && <option value="">No wings found</option>}
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-xs font-semibold text-slate-500 mb-1">Target Mode</label>
-                <div className="grid grid-cols-2 gap-2 bg-slate-100 p-1 rounded-xl">
-                  <button onClick={() => { setTargetMode('School'); setSemester(''); }} className={`py-1.5 text-xs font-bold rounded-lg transition-colors ${targetMode === 'School' ? "bg-white text-indigo-600 shadow-xs" : "text-slate-500 hover:text-slate-800"}`}>
-                    School
-                  </button>
-                  <button onClick={() => { setTargetMode('College'); setSemester(''); }} className={`py-1.5 text-xs font-bold rounded-lg transition-colors ${targetMode === 'College' ? "bg-white text-indigo-600 shadow-xs" : "text-slate-500 hover:text-slate-800"}`}>
-                    College
-                  </button>
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-xs font-semibold text-slate-500 mb-1">
-                  {targetMode === 'School' ? 'Class / Grade' : 'Semester'}
-                </label>
-                <select value={semester} onChange={(e) => setSemester(e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
-                  <option value="">Choose options...</option>
-                  {targetMode === 'School'
-                    ? schoolClasses.map(num => (
-                      <option key={num} value={num}>Class {num} {activeSemesters.includes(num) ? '✓' : ''}</option>
-                    ))
-                    : collegeSemesters.map(num => (
-                      <option key={num} value={num}>Semester {num} {activeSemesters.includes(num) ? '✓' : ''}</option>
-                    ))
-                  }
-                </select>
-              </div>
+            <div>
+              <h1 className="text-4xl font-black text-white tracking-tight">
+                Infinite Scheduler
+              </h1>
+              <p className="text-indigo-100 font-bold text-sm uppercase tracking-[0.25em] mt-1 opacity-90">
+                Create and manage institutional timetables
+              </p>
             </div>
           </div>
 
-          {/* Step 2: Operational Timing Parameters */}
-          <div className="bg-white p-5 rounded-2xl border border-slate-200 lg:col-span-2 space-y-4">
-            <div className="flex items-center gap-2 font-bold text-slate-900 border-b border-slate-100 pb-2">
-              <Grid3X3 className="w-4 h-4 text-indigo-600" />
-              <h2>2. Operational Settings</h2>
+          <div className="flex flex-col sm:flex-row gap-4 w-full lg:w-auto">
+            <button onClick={handlePrint} disabled={!timetable} className={`bg-white/15 backdrop-blur-xl border border-white/25 text-white px-8 py-4 rounded-2xl font-black uppercase tracking-widest text-xs hover:bg-white/25 transition-all disabled:opacity-40 flex items-center justify-center gap-3 ${!timetable ? 'cursor-not-allowed' : 'cursor-pointer'}`}>
+              <Printer className="w-5 h-5" />
+              Print
+            </button>
+
+            <button onClick={triggerGenerationPipeline} disabled={loading} className="bg-white text-indigo-600 px-8 py-4 rounded-2xl font-black uppercase tracking-widest text-xs shadow-2xl hover:scale-105 hover:cursor-pointer transition-all disabled:opacity-50 flex items-center justify-center gap-3">
+              <Sparkles className={`w-5 h-5 ${loading ? "animate-spin" : ""}`} />
+              {loading ? "Generating..." : "Generate Timetable"}
+            </button>
+          </div>
+        </div>
+      </header>
+
+      {/* Configuration */}
+      <div className="flex flex-col md:flex-row gap-6 items-stretch">
+
+        {/* Step 1 */}
+        <div className="bg-white p-5 rounded-2xl border border-slate-200 space-y-4 flex-1">
+          <div className="flex items-center gap-2 font-bold text-slate-900 border-b pb-2">
+            <GraduationCap className="w-4 h-4 text-indigo-600" />
+            <h2>1. Select School or College</h2>
+          </div>
+
+          <div className="space-y-3">
+            <div>
+              <label className="text-xs font-semibold text-slate-500">Department / Wing</label>
+              <select value={departmentName} onChange={(e) => setDepartmentName(e.target.value)} className="w-full bg-slate-50 border rounded-xl p-2.5 text-sm">
+                {departments.map((d) => (
+                  <option key={d._id} value={d.departmentName}>
+                    {d.departmentName}
+                  </option>
+                ))}
+              </select>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-              <div>
-                <label className="block text-xs font-semibold text-slate-500 mb-1">Total Divisions</label>
-                <input type="number" value={totalDivisions} onChange={(e) => setTotalDivisions(e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
-              </div>
+            <div>
+              <label className="text-xs font-semibold text-slate-500">Target Mode</label>
+              <div className="grid grid-cols-2 gap-2 bg-slate-100 p-1 rounded-xl">
+                <button onClick={() => { setTargetMode("School"); setSemester(""); }} className={`py-1.5 text-xs font-bold rounded-lg ${targetMode === "School" ? "bg-white text-indigo-600" : "text-slate-500"}`}>
+                  School
+                </button>
 
-              <div>
-                <label className="block text-xs font-semibold text-slate-500 mb-1">Working Days / Week</label>
-                <select value={totalDays} onChange={(e) => setTotalDays(e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
-                  {[1, 2, 3, 4, 5, 6, 7].map(d => <option key={d} value={d}>{d} Days</option>)}
-                </select>
+                <button onClick={() => { setTargetMode("College"); setSemester(""); }} className={`py-1.5 text-xs font-bold rounded-lg ${targetMode === "College" ? "bg-white text-indigo-600" : "text-slate-500"}`}>
+                  College
+                </button>
               </div>
+            </div>
 
-              <div>
-                <label className="block text-xs font-semibold text-slate-500 mb-1">Day Starts At</label>
-                <div className="relative">
-                  <Clock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-                  <input type="time" value={dayStartTime} onChange={(e) => setDayStartTime(e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 pl-9 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
-                </div>
-              </div>
+            <div>
+              <label className="text-xs font-semibold text-slate-500">
+                {targetMode === "School" ? "Class / Grade" : "Semester"}
+              </label>
 
-              <div>
-                <label className="block text-xs font-semibold text-slate-500 mb-1">Day Ends At</label>
-                <div className="relative">
-                  <Clock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-                  <input type="time" value={dayEndTime} onChange={(e) => setDayEndTime(e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 pl-9 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
-                </div>
-              </div>
+              <select value={semester} onChange={(e) => setSemester(e.target.value)} className="w-full bg-slate-50 border rounded-xl p-2.5 text-sm">
+                <option value="">Choose...</option>
 
-              <div>
-                <label className="block text-xs font-semibold text-slate-500 mb-1">Lecture Duration (Mins)</label>
-                <input type="number" value={lectureDuration} onChange={(e) => setLectureDuration(e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
-              </div>
-
-              <div>
-                <label className="block text-xs font-semibold text-slate-500 mb-1">Lab Duration (Mins)</label>
-                <input type="number" value={labDuration} onChange={(e) => setLabDuration(e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-semibold text-slate-500 mb-1">Number of Breaks</label>
-                <input type="number" min="0" max="3" value={breakCount} onChange={(e) => setBreakCount(e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
-              </div>
-
-              {breakDurations.map((duration, index) => (
-                <div key={index}>
-                  <label className="block text-xs font-semibold text-slate-500 mb-1">Break {index + 1} Duration (Mins)</label>
-                  <input type="number" min="1" value={duration} onChange={(e) => {
-                      const next = [...breakDurations];
-                      next[index] = e.target.value;
-                      setBreakDurations(next);
-                    }}
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                  />
-                </div>
-              ))}
+                {(targetMode === "School" ? schoolClasses : collegeSemesters).map((num) => (
+                  <option key={num} value={num}>
+                    {targetMode === "School" ? `Class ${num}` : `Semester ${num}`}
+                  </option>
+                ))}
+              </select>
             </div>
           </div>
         </div>
 
-        {/* Timetable Output Table Block */}
-        <div className="grid grid-cols-1 xl:grid-cols-4 gap-6 items-start">
+        {/* Step 2 */}
+        <div className="bg-white p-5 rounded-2xl border border-slate-200 space-y-4 flex-[2]">
+          <div className="flex items-center gap-2 font-bold text-slate-900 border-b pb-2">
+            <Grid3X3 className="w-4 h-4 text-indigo-600" />
+            <h2>2. Operational Settings</h2>
+          </div>
 
-          {/* Main Matrix Board */}
-          <div ref={printRef} className="xl:col-span-3 space-y-6">
-            {loading ? (
-              <div className="bg-white border border-slate-200 rounded-2xl p-20 flex flex-col items-center justify-center space-y-3">
-                <Sparkles className="w-8 h-8 text-indigo-500 animate-spin" />
-                <p className="text-sm text-slate-500 font-medium">Computing optimal combinations...</p>
-              </div>
-            ) : timetable?.divisions ? (
-              timetable.divisions.map((divData) => (
-                <div key={divData.divisionName} className="bg-white border border-slate-200 rounded-2xl shadow-xs overflow-hidden">
-                  <div className="p-4 bg-slate-50 border-b border-slate-200 flex items-center justify-between">
-                    <span className="bg-indigo-600 text-white px-3 py-1 rounded-lg text-xs font-bold">{divData.divisionName}</span>
-                    <span className="text-xs text-slate-400 font-medium">Schedule Grid</span>
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+          <div>
+            <label className="block text-xs font-semibold text-slate-500 mb-1">
+              Total Divisions
+            </label>
+            <input
+              type="number"
+              value={totalDivisions}
+              onChange={(e) => setTotalDivisions(e.target.value)}
+              className="p-2.5 bg-slate-50 border rounded-xl text-sm w-full"
+              placeholder="e.g. 2"
+            />
+          </div>
+
+          <div>
+            <label className="block text-xs font-semibold text-slate-500 mb-1">
+              Working Days per Week
+            </label>
+            <select
+              value={totalDays}
+              onChange={(e) => setTotalDays(e.target.value)}
+              className="p-2.5 bg-slate-50 border rounded-xl text-sm w-full"
+            >
+              {[1, 2, 3, 4, 5, 6, 7].map((d) => (
+                <option key={d} value={d}>
+                  {d} Days
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div>
+            <label className="block text-xs font-semibold text-slate-500 mb-1">
+              Day Start Time
+            </label>
+            <input
+              type="time"
+              value={dayStartTime}
+              onChange={(e) => setDayStartTime(e.target.value)}
+              className="p-2.5 bg-slate-50 border rounded-xl text-sm w-full"
+            />
+          </div>
+
+          <div>
+            <label className="block text-xs font-semibold text-slate-500 mb-1">
+              Day End Time
+            </label>
+            <input
+              type="time"
+              value={dayEndTime}
+              onChange={(e) => setDayEndTime(e.target.value)}
+              className="p-2.5 bg-slate-50 border rounded-xl text-sm w-full"
+            />
+          </div>
+
+          <div>
+            <label className="block text-xs font-semibold text-slate-500 mb-1">
+              Lecture Duration (minutes)
+            </label>
+            <input
+              type="number"
+              value={lectureDuration}
+              onChange={(e) => setLectureDuration(e.target.value)}
+              className="p-2.5 bg-slate-50 border rounded-xl text-sm w-full"
+              placeholder="e.g. 60"
+            />
+          </div>
+
+          <div>
+            <label className="block text-xs font-semibold text-slate-500 mb-1">
+              Lab Duration (minutes)
+            </label>
+            <input
+              type="number"
+              value={labDuration}
+              onChange={(e) => setLabDuration(e.target.value)}
+              className="p-2.5 bg-slate-50 border rounded-xl text-sm w-full"
+              placeholder="e.g. 120"
+            />
+          </div>
+
+          <div>
+            <label className="block text-xs font-semibold text-slate-500 mb-1">
+              Number of Breaks
+            </label>
+            <input
+              type="number"
+              value={breakCount}
+              onChange={(e) => setBreakCount(e.target.value)}
+              className="p-2.5 bg-slate-50 border rounded-xl text-sm w-full"
+              placeholder="e.g. 1"
+              min="0"
+              max="3"
+            />
+          </div>
+
+          {breakDurations.map((d, i) => (
+            <div key={i}>
+              <label className="block text-xs font-semibold text-slate-500 mb-1">
+                Break {i + 1} Duration (minutes)
+              </label>
+              <input
+                type="number"
+                value={d}
+                onChange={(e) => {
+                  const next = [...breakDurations];
+                  next[i] = e.target.value;
+                  setBreakDurations(next);
+                }}
+                className="p-2.5 bg-slate-50 border rounded-xl text-sm w-full"
+                placeholder="e.g. 15"
+              />
+            </div>
+          ))}
+        </div>
+        </div>
+      </div>
+
+      {/* TIMETABLE */}
+      <div className="grid grid-cols-1 xl:grid-cols-4 gap-6">
+        <div ref={printRef} className="xl:col-span-4 w-full min-w-0 space-y-8">
+
+          {loading ? (
+            <div className="bg-white rounded-3xl p-20 text-center text-slate-400 font-semibold border border-slate-100 shadow-sm animate-pulse">
+              Generating timetable...
+            </div>
+          ) : timetable?.divisions ? (
+            timetable.divisions.map((divData, divIdx) => (
+              <div key={divData.divisionName} className="rounded-3xl overflow-hidden shadow-lg border border-slate-100">
+
+                {/* Division Header */}
+                <div className={`px-6 py-4 flex items-center justify-between bg-gradient-to-r ${
+                  divIdx % 3 === 0 ? "from-indigo-600 to-violet-600" :
+                  divIdx % 3 === 1 ? "from-emerald-500 to-teal-600" :
+                  "from-orange-500 to-pink-500"
+                }`}>
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-xl bg-white/20 flex items-center justify-center text-white font-black text-sm">
+                      {divData.divisionName?.replace(/\D/g, '') || divIdx + 1}
+                    </div>
+                    <span className="font-black text-white text-lg tracking-tight">{divData.divisionName}</span>
                   </div>
+                  <span className="text-white/70 text-xs font-semibold uppercase tracking-widest">{divData.schedule?.length} Days</span>
+                </div>
 
-                  <div className="overflow-x-auto">
-                    <table className="w-full border-collapse text-left">
-                      <thead>
-                        <tr className="border-b border-slate-100 bg-slate-50/40">
-                          <th className="p-6 text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 border-r border-slate-100 w-48">
-                            Time
+                <div className="overflow-x-auto bg-white">
+                  <table className="w-full text-sm border-collapse">
+                    <thead>
+                      <tr className="bg-slate-50">
+                        <th className="p-4 text-left text-xs font-black text-slate-400 uppercase tracking-widest w-32 border-b border-slate-100">
+                          Time
+                        </th>
+                        {divData.schedule.map((d) => (
+                          <th key={d.day} className="p-4 text-center text-xs font-black text-slate-600 uppercase tracking-widest border-b border-slate-100">
+                            {d.day.slice(0, 3)}
                           </th>
+                        ))}
+                      </tr>
+                    </thead>
 
-                          {divData.schedule.map((daySlots) => (
-                            <th key={daySlots.day} className="p-6 text-center text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 min-w-[190px]">
-                              {daySlots.day}
-                            </th>
-                          ))}
-                        </tr>
-                      </thead>
+                    <tbody>
+                      {displaySlots.map((slot, slotIdx) => (
+                        <tr key={slotIdx} className={`${slotIdx % 2 === 0 ? "bg-white" : "bg-slate-50/40"} hover:bg-indigo-50/30 transition-colors`}>
 
-                      <tbody>
-                        {dynamicSlots.map((slot, slotIdx) => (
-                          <tr key={slotIdx} className="border-b border-slate-100 hover:bg-slate-50/40 transition-colors">
-                            <td className="p-6 bg-slate-50 border-r border-slate-100 align-top">
-                              <div className="font-black text-slate-800 uppercase tracking-wide text-xs">
-                                {slot}
-                              </div>
-                            </td>
+                          {/* Time column */}
+                          <td className="px-4 py-3 border-b border-slate-100 border-r border-r-slate-100">
+                            <div className="flex flex-col gap-0.5">
+                              <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                                {slot.isBreak ? "Break" : `Slot ${slot.lectureIndex + 1}`}
+                              </span>
+                              <span className="text-xs font-bold text-slate-600 whitespace-nowrap">{slot.label}</span>
+                            </div>
+                          </td>
 
-                            {divData.schedule.map((daySlots, dayIdx) => {
-                              const slotArray = Array.isArray(daySlots.slots)
-                                ? daySlots.slots
-                                : Object.values(daySlots.slots || {});
-                              const cell = slotArray[slotIdx];
-                              const isBreak = cell?.subjectType === "Break";
-                              const isLab = cell?.subjectType === "Lab";
-
+                          {divData.schedule.map((day, dayIdx) => {
+                            if (slot.isBreak) {
                               return (
-                                <td key={`${dayIdx}-${slotIdx}`} className="p-3 border-r border-slate-100 align-top h-32">
-                                  {cell && !cell.free ? (
-                                    <div className={`h-full rounded-2xl border transition-all duration-300 hover:-translate-y-1 hover:shadow-lg p-4 flex flex-col justify-between
-                                        ${isBreak
-                                          ? "bg-red-100 border-red-800"
-                                          : isLab
-                                            ? "bg-amber-50 border-amber-200"
-                                            : "bg-indigo-50 border-indigo-200"
-                                        }`}>
-                                      <div>
-                                        <div className="font-black text-slate-900 text-sm leading-tight">
-                                          {cell.subjectName}
-                                        </div>
-
-                                        {!isBreak && (
-                                          <>
-                                            <div className="text-xs text-slate-500 mt-2">
-                                              {cell.teacherName}
-                                            </div>
-
-                                            <div className="text-xs text-slate-400">
-                                              {cell.roomNumber}
-                                            </div>
-                                          </>
-                                        )}
-
-                                      </div>
-                                      <div className="flex items-center justify-between mt-4">
-                                        <span
-                                          className={`text-[10px] font-black uppercase tracking-widest px-3 py-1 rounded-lg
-                                            ${isBreak
-                                              ? "bg-white text-red-600"
-                                              : isLab
-                                                ? "bg-amber-100 text-amber-700"
-                                                : "bg-indigo-100 text-indigo-700"
-                                            }`}>
-                                          {cell.subjectType}
-                                        </span>
-                                      </div>
+                                <td key={dayIdx} className="px-2 py-2 border-b border-slate-100">
+                                  <div className="flex items-center justify-center gap-2 py-3 px-3 rounded-2xl bg-amber-50 border border-amber-200">
+                                    <span className="text-lg">☕</span>
+                                    <div>
+                                      <div className="text-xs font-black text-amber-700">Break</div>
+                                      <div className="text-[10px] text-amber-500">{slot.label}</div>
                                     </div>
-                                  ) : (
-                                    <div className="h-full rounded-2xl border-2 border-dashed border-slate-200 flex items-center justify-center text-slate-300 font-black uppercase tracking-widest text-[10px] bg-slate-50 transition-colors hover:bg-slate-100">
-                                      Free
-                                    </div>
-                                  )}
+                                  </div>
                                 </td>
                               );
-                            })}
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                </div>
-              ))
-            ) : (
-              <div className="bg-white border border-slate-200 rounded-2xl p-16 text-center space-y-3">
-                <Calendar className="w-10 h-10 text-slate-300 mx-auto" />
-                <div>
-                  <h3 className="font-bold text-slate-700">No Timetable Selected</h3>
-                  <p className="text-xs text-slate-400 mt-1">Please configure configurations above to start generating dashboards.</p>
-                </div>
-              </div>
-            )}
-          </div>
+                            }
 
-          {/* Right Sidebar Logs info and conflicts list */}
-          <div className="space-y-6">
-            {/* Optimization Status Tracker */}
-            {conflicts ? (
-              <div className="bg-red-50 border border-red-200 rounded-2xl p-4 space-y-3">
-                <div className="flex items-center space-x-2 text-red-700 font-bold text-sm">
-                  <AlertCircle className="w-4 h-4" />
-                  <h3>Conflicts Detected</h3>
-                </div>
-                <div className="space-y-2 text-xs text-red-900/80">
-                  {conflicts.map((c, i) => (
-                    <div key={i} className="bg-white/60 p-2 rounded-lg border border-red-100">{c}</div>
-                  ))}
-                </div>
-              </div>
-            ) : timetable && (
-              <div className="bg-emerald-50 border border-emerald-200 rounded-2xl p-4 text-center space-y-2">
-                <CheckCircle2 className="w-5 h-5 text-emerald-600 mx-auto" />
-                <h3 className="font-bold text-emerald-800 text-sm">No Conflicts</h3>
-                <p className="text-xs text-emerald-600/80">All resource limits successfully verified.</p>
-              </div>
-            )}
+                            const cell = day.slots?.[slot.lectureIndex];
 
-            {/* Timetable Versions History Tracker */}
-            <div className="bg-white border border-slate-200 rounded-2xl p-4 space-y-4">
-              <div className="flex items-center gap-2 text-slate-700 font-bold text-sm border-b border-slate-100 pb-2">
-                <History className="w-4 h-4 text-indigo-600" />
-                <h3>Revision Ledger</h3>
+                            if (!cell || cell.free || cell.subjectName === "Free") {
+                              return (
+                                <td key={dayIdx} className="px-2 py-2 border-b border-slate-100">
+                                  <div className="flex items-center justify-center h-full min-h-[72px] rounded-2xl border border-dashed border-slate-200">
+                                    <span className="text-xs text-slate-300 font-semibold">Free</span>
+                                  </div>
+                                </td>
+                              );
+                            }
+
+                            const isLab = cell.subjectType === "Lab";
+                            const colorClass = isLab
+                              ? "bg-emerald-50 border-emerald-200 hover:bg-emerald-100"
+                              : "bg-indigo-50 border-indigo-200 hover:bg-indigo-100";
+                            const badgeClass = isLab
+                              ? "bg-emerald-500 text-white"
+                              : "bg-indigo-500 text-white";
+
+                            return (
+                              <td key={dayIdx} className="px-2 py-2 border-b border-slate-100">
+                                <div className={`p-3 rounded-2xl border min-h-[72px] flex flex-col gap-1 transition-colors ${colorClass}`}>
+                                  <div className="flex items-start justify-between gap-1">
+                                    <span className="font-black text-xs text-slate-800 leading-tight">{cell.subjectName}</span>
+                                    <span className={`text-[9px] font-black px-1.5 py-0.5 rounded-lg shrink-0 ${badgeClass}`}>
+                                      {isLab ? "LAB" : "LEC"}
+                                    </span>
+                                  </div>
+                                  <span className="text-[10px] font-bold text-slate-400">{cell.subjectCode}</span>
+                                  <div className="flex items-center gap-1 mt-auto">
+                                    <span className="text-[10px] text-slate-500 truncate">👤 {cell.teacherName}</span>
+                                  </div>
+                                  <div className="flex items-center gap-1">
+                                    <span className="text-[10px] text-slate-500 truncate">🚪 {cell.roomNumber}</span>
+                                  </div>
+                                </div>
+                              </td>
+                            );
+                          })}
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
               </div>
-              <div className="space-y-2 max-h-[300px] overflow-y-auto custom-scrollbar">
-                {historyList.length > 0 ? historyList.map((h) => (
-                  <div key={h._id} className="p-3 bg-slate-50 border border-slate-100 hover:border-indigo-200 hover:bg-white rounded-xl transition-all cursor-pointer text-xs">
-                    <div className="flex justify-between font-bold text-slate-800 mb-1">
-                      <span className="truncate max-w-[120px]">{h.departmentName}</span>
-                      <span className="bg-indigo-100 text-indigo-700 px-1.5 py-0.5 rounded text-[10px]">V{h.version}.0</span>
-                    </div>
-                    <p className="text-slate-400">Class {h.semester} • {h.totalDivisions} Divisions</p>
-                  </div>
-                )) : (
-                  <p className="text-xs text-slate-400 text-center py-6">No previous versions save data logs available.</p>
-                )}
-              </div>
+            ))
+          ) : (
+            <div className="bg-white rounded-3xl p-16 text-center border border-slate-100 shadow-sm">
+              <div className="text-5xl mb-4">📅</div>
+              <div className="text-slate-500 font-semibold">No timetable generated yet</div>
+              <div className="text-slate-400 text-sm mt-1">Configure settings and click Generate</div>
             </div>
-
-          </div>
+          )}
 
         </div>
       </div>
 
-      {/* Basic Inline Minimal Styles for clean custom Scrollbars integration */}
       <style dangerouslySetInnerHTML={{
-        __html: `
-        .custom-scrollbar::-webkit-scrollbar { width: 4px; }
-        .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
-      `}} />
+        __html: `.custom-scrollbar::-webkit-scrollbar{width:4px}.custom-scrollbar::-webkit-scrollbar-thumb{background:#cbd5e1;border-radius:4px}`
+      }} />
     </div>
-  );
+  </div>
+);
 }
 
 export default TimetableDashboard;

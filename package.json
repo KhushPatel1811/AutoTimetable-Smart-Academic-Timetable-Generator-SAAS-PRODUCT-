@@ -1,13 +1,26 @@
 {
   "name": "institute-time-table-generator",
-  "private": true,
   "version": "0.0.0",
+  "private": true,
+  "description": "This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.",
+  "homepage": "https://github.com/KhushPatel1811/AutoTimetable-Smart-Academic-Timetable-Generator-SAAS-PRODUCT-#readme",
+  "bugs": {
+    "url": "https://github.com/KhushPatel1811/AutoTimetable-Smart-Academic-Timetable-Generator-SAAS-PRODUCT-/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/KhushPatel1811/AutoTimetable-Smart-Academic-Timetable-Generator-SAAS-PRODUCT-.git"
+  },
+  "license": "ISC",
+  "author": "",
   "type": "module",
+  "main": "eslint.config.js",
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "start": "node server.js"
   },
   "dependencies": {
     "@tailwindcss/vite": "^4.3.0",
@@ -20,6 +33,7 @@
     "express-validator": "^7.3.2",
     "jsonwebtoken": "^9.0.3",
     "lucide-react": "^1.18.0",
+    "mongodb": "^7.3.0",
     "mongoose": "^9.6.2",
     "python-shell": "^5.0.0",
     "react": "^19.2.6",

@@ -4,150 +4,139 @@ import Subject from '../Models/SubjectModel.js'
 import { validationResult } from 'express-validator'
 import { Regex } from 'lucide-react'
 import authMiddleware from '../Middleware/AuthMiddleware.js'
+import Teacher from '../Models/TeacherModel.js'
 const router = express.Router()
 
-router.get('/', async(req, resp, next)=>{
-    const {search, departmentFilter, semesterFilter, type} = req.query
-    const filter = {}
+router.get('/', authMiddleware, async (req, resp, next) => {
+    const { search, departmentFilter, semesterFilter, type } = req.query
+    const instituteId = req.user.instituteId
+    const filter = { instituteId }
 
     try {
-        const instId = req.query.instituteId || req.user?.instituteId;
-        if (instId) {
-            filter.instituteId = instId;
-        }
-
-        if(search) {
+        if (search) {
             filter.$or = [
-            {subjectName: {$regex: search, $options: 'i'}},
-            {subjectCode: {$regex: search, $options: 'i'}}
+                { subjectName: { $regex: search, $options: 'i' } },
+                { subjectCode: { $regex: search, $options: 'i' } }
             ]
         }
-        
-        if(departmentFilter) {
+
+        if (departmentFilter) {
             filter.departmentName = { $regex: `^${departmentFilter}$`, $options: 'i' };
         }
 
-
-        if(semesterFilter) {
+        if (semesterFilter) {
             filter.semester = Number(semesterFilter)
         }
-        
-        if(type) {
+
+        if (type) {
             filter.subjectType = type
         }
-        
+
         const subjects = await Subject.find(filter)
-        return resp.status(200).json({subjects})
+        return resp.status(200).json({ subjects })
     }
-    catch(err) {
-        return resp.status(500).json({message: err.message})
-    }
-})
-
-
-
-router.post('/add', authMiddleware, Subject_Registration_Middleware, async(req, resp, next)=>{
-    console.log('SUBJECT REGISTRATION DATA RECEIVED IN BACKEND', req.body)
-
-    const {subjectName, subjectCode, semester, departmentName, subjectType, weekly_Lecture_Hour, weekly_Lab_Hour, preferred_Room_Types} = req.body
-
-    const errors = validationResult(req)
-
-    if(!errors.isEmpty()) {
-        return resp.status(400).json({success: false, message: errors.array()})
-    }
-
-    try {
-        const subjects = []
-
-        const lastUser = await Subject.findOne().sort({subjectId: -1}).select('subjectId')
-        const lastSubjectId = lastUser?.subjectId
-        let nextId = 1
-
-        if(typeof lastSubjectId === 'string' && lastSubjectId.startsWith('SUB')) {
-            const num = Number(lastSubjectId.replace('SUB', ''))
-
-            if(!isNaN(num)) {
-                nextId = num + 1;
-            }
-        }
-
-        const instituteId = req.user.instituteId || req.body.instituteId || req.user.id
-
-        for(const subject of req.body.Subjects) {
-            subjects.push({
-                subjectId: `SUB${String(nextId).padStart(4, '0')}`,
-                userId: req.user.id || req.body.userId,
-                instituteId: instituteId,
-                ...subject
-            })
-            nextId++
-        }
-
-        const savedSubjects = await Subject.insertMany(subjects)
-
-        return resp.status(200).json({savedSubjects})
-    }
-    catch(err) {
-        return resp.status(500).json({message: err.message})
+    catch (err) {
+        return resp.status(500).json({ message: err.message })
     }
 })
 
+router.post("/add", authMiddleware, async (req, res) => {
+  try {
+    const instituteId = req.user.instituteId;
+    const subjects = [];
 
-router.get('/edit/:subjectId', async(req,resp,next)=>{
+    const last = await Subject.findOne({ instituteId }).sort({ subjectId: -1 });
+    let nextId = 1;
+
+    if (last?.subjectId?.startsWith("SUB")) {
+      nextId = Number(last.subjectId.replace("SUB", "")) + 1;
+    }
+
+    for (const sub of req.body.Subjects) {
+      subjects.push({
+        subjectId: `SUB${String(nextId).padStart(4, "0")}`,
+        subjectName: sub.subjectName,
+        subjectCode: sub.subjectCode,
+        semester: sub.semester,
+        departmentName: sub.departmentName,
+        subjectType: sub.subjectType,
+        weekly_Lecture_Hour: sub.weekly_Lecture_Hour,
+        weekly_Lab_Hour: sub.weekly_Lab_Hour,
+        preferred_Room_Type: sub.preferredRoomType,
+        instituteId,
+        // ✅ MUST BE ARRAY OF OBJECT IDS
+        teachers: sub.teachers,
+      });
+
+      nextId++;
+    }
+
+    const result = await Subject.insertMany(subjects);
+    res.status(200).json({success: true,data: result,});
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+
+
+router.get('/edit/:subjectId', authMiddleware, async (req, resp) => {
     try {
-        const subject = await Subject.findOne({subjectId: req.params.subjectId})
+        const instituteId = req.user.instituteId;
+        const subject = await Subject.findOne({ subjectId: req.params.subjectId, instituteId}).populate("teachers", "teacherName teacherId");
 
-        if(!subject) {
-            return resp.status(404).json({message: 'Subject Not Found'})
+        if (!subject) {
+            return resp.status(404).json({message: "Subject Not Found"});
         }
-        
-        return resp.status(200).json({subject})
+        console.log(JSON.stringify(subject, null, 2));
+
+        const teacher = await Teacher.find({instituteId, teacherDepartment: subject.departmentName})
+        console.log('TEACHER:', teacher)
+        return resp.status(200).json({ subject, teacher });
     }
-    catch(err) {
-        return resp.status(500).json({message: err.message})
+    catch (err) {
+        return resp.status(500).json({message: err.message});
     }
-})
+});
 
 
 
-router.put('/edit', Subject_Registration_Middleware, async(req,resp,next)=>{
-    const {subjectId, subjectName, subjectCode, semester, departmentName, subjectType, weekly_Lecture_Hour, weekly_Lab_Hour, preferred_Room_Type, teacherName} = req.body
+router.put('/edit/:subjectId', authMiddleware, Subject_Registration_Middleware, async (req, resp, next) => {
+    const { subjectName, subjectCode, semester, departmentName, subjectType, weekly_Lecture_Hour, weekly_Lab_Hour, preferred_Room_Type, teachers } = req.body
+    const { subjectId } = req.params
+    const instituteId = req.user.instituteId
 
     try {
-        const subject  = await Subject.findOneAndUpdate(
-            {subjectId},
-            {subjectName, subjectCode, semester, departmentName, subjectType, weekly_Lecture_Hour, weekly_Lab_Hour, preferred_Room_Type, teacherName},
-            {new: true, runValidators: true}
+        const subject = await Subject.findOneAndUpdate(
+            { subjectId, instituteId },
+            { subjectName, subjectCode, semester, departmentName, subjectType, weekly_Lecture_Hour, weekly_Lab_Hour, preferred_Room_Type, teachers },
+            { new: true, runValidators: true }
         )
 
-        if(!subject) {
-            return resp.status(404).json({message: 'Subject Not Found'})
+        if (!subject) {
+            return resp.status(404).json({ message: 'Subject Not Found' })
         }
-        return resp.status(200).json({subject})
+        return resp.status(200).json({ subject })
     }
-    catch(err) {
-        return resp.status(500).json({message: err.message})
+    catch (err) {
+        return resp.status(500).json({ message: err.message })
     }
 })
 
-
-
-router.delete('/delete/:id', async(req,resp, next)=>{
-    
+router.delete('/delete/:id', authMiddleware, async (req, resp, next) => {
     try {
-        const subject = await Subject.findOne({subjectId: req.params.id})
+        const instituteId = req.user.instituteId
+        const subject = await Subject.findOne({ subjectId: req.params.id, instituteId })
 
-        if(!subject) {
-            return resp.status(404).json({message: 'Subject Not Found'})
+        if (!subject) {
+            return resp.status(404).json({ message: 'Subject Not Found' })
         }
 
-        const response = await Subject.deleteOne({subjectId: req.params.id})
-
-        return resp.status(200).json({response})
+        const response = await Subject.deleteOne({ subjectId: req.params.id, instituteId })
+        return resp.status(200).json({ response })
     }
-    catch(err) {
-        return resp.status(500).json({message: err.message})
+    catch (err) {
+        return resp.status(500).json({ message: err.message })
     }
 })
 

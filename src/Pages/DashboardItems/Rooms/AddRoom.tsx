@@ -45,24 +45,21 @@ function AddRooms() {
     useEffect(() => {
         async function fetchData() {
             try {
-                const response = await axios.get('http://localhost:1000/departments')
-                setDepartmentData(response.data?.department || [])
+                const response = await axios.get('http://localhost:1000/departments', {
+                    headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+                });
+                setDepartmentData(response.data?.department || []);
             }
-            catch (err: any) {
-                console.log('Error Occurred: ', err.response?.data)
+            catch (err: unknown) {
+                console.error('Error fetching departments:', err);
             }
         }
-        fetchData()
-    }, [])
+        fetchData();
+    }, []);
 
     async function submitData(data: Rooms): Promise<void> {
-        const userItem = localStorage.getItem('user');
-        const user = userItem ? JSON.parse(userItem) : null;
-        const userId = user ? (user._id || user.id) : '';
-        const instituteId = user ? (user.instituteId || user.instituteID) : '';
-
         try {
-            const response = await axios.post('http://localhost:1000/rooms/add', { ...data, instituteId, userId }, {
+            const response = await axios.post('http://localhost:1000/rooms/add', data, {
                 headers: {
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${localStorage.getItem('token')}`
@@ -76,8 +73,9 @@ function AddRooms() {
                 }, 2000)
             }
         }
-        catch (err: any) {
-            toast.error(err.response?.data?.message || 'Failed to add rooms')
+        catch (err: unknown) {
+            const error = err as { response?: { data?: { message?: string } } };
+            toast.error(error.response?.data?.message || 'Failed to add rooms')
         }
     }
 
@@ -85,12 +83,12 @@ function AddRooms() {
         <div className="flex h-screen w-screen bg-slate-50 overflow-hidden">
             <div className="flex-1 flex flex-col h-full overflow-y-auto animate-page">
                 {/* Header Navbar */}
-                <div className="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b border-slate-200 px-6 py-4 flex items-center justify-between">
+                <div className="sticky top-0 z-50 bg-white border-b border-slate-200 px-6 py-4 flex items-center justify-between">
                     <ProfileNavbar content="Add New Rooms" />
                     <ToastContainer position="top-right" autoClose={2000} />
                 </div>
 
-                <div className="p-8 max-w-[1400px] w-full mx-auto space-y-8">
+                <div className="p-8 max-w-350 w-full mx-auto space-y-8">
                     {/* Navigation Top Bar */}
                     <div className="flex items-center justify-between">
                         <button 
@@ -104,7 +102,7 @@ function AddRooms() {
 
                     <form onSubmit={handleSubmit(submitData)} className="space-y-6">
                         {fields.map((field, index) => (
-                            <div key={field.id} className="premium-card !p-8 relative group border border-slate-100 hover:border-indigo-100 transition-all">
+                            <div key={field.id} className="premium-card p-8! relative group border border-slate-100 hover:border-indigo-100 transition-all">
                                 
                                 {/* Row Header Badge */}
                                 <div className="flex justify-between items-center mb-6 pb-4 border-b border-slate-100">
@@ -138,7 +136,7 @@ function AddRooms() {
                                             <input
                                                 type="text"
                                                 id={`roomName_${index}`}
-                                                className={`input-box !py-3 !bg-white ${errors.Rooms?.[index]?.roomName ? 'border-rose-300 focus:border-rose-500 focus:ring-rose-200' : ''}`}
+                                                className={`input-box py-3! bg-white! ${errors.Rooms?.[index]?.roomName ? 'border-rose-300 focus:border-rose-500 focus:ring-rose-200' : ''}`}
                                                 placeholder="e.g. B-102, Lab-3"
                                                 {...register(`Rooms.${index}.roomName`, {
                                                     required: 'Room name is required',
@@ -162,7 +160,7 @@ function AddRooms() {
                                             <LayoutGrid className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
                                             <select
                                                 id={`roomType_${index}`}
-                                                className={`input-box !py-3 !pl-11 !bg-white cursor-pointer appearance-none ${errors.Rooms?.[index]?.roomType ? 'border-rose-300' : ''}`}
+                                                className={`input-box py-3! pl-11! bg-white! cursor-pointer appearance-none ${errors.Rooms?.[index]?.roomType ? 'border-rose-300' : ''}`}
                                                 {...register(`Rooms.${index}.roomType`, { required: 'Room type is required' })}
                                             >
                                                 <option value="">Select Type</option>
@@ -186,7 +184,7 @@ function AddRooms() {
                                             <CheckCircle className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
                                             <select
                                                 id={`roomStatus_${index}`}
-                                                className={`input-box !py-3 !pl-11 !bg-white cursor-pointer appearance-none ${errors.Rooms?.[index]?.roomStatus ? 'border-rose-300' : ''}`}
+                                                className={`input-box py-3! pl-11! bg-white! cursor-pointer appearance-none ${errors.Rooms?.[index]?.roomStatus ? 'border-rose-300' : ''}`}
                                                 {...register(`Rooms.${index}.roomStatus`, { required: 'Status is required' })}
                                             >
                                                 <option value="">Select Status</option>
@@ -209,7 +207,7 @@ function AddRooms() {
                                             <Building2 className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
                                             <select
                                                 id={`departmentName_${index}`}
-                                                className={`input-box !py-3 !pl-11 !bg-white cursor-pointer appearance-none ${errors.Rooms?.[index]?.departmentName ? 'border-rose-300' : ''}`}
+                                                className={`input-box py-3! pl-11! bg-white! cursor-pointer appearance-none ${errors.Rooms?.[index]?.departmentName ? 'border-rose-300' : ''}`}
                                                 {...register(`Rooms.${index}.departmentName`, { required: 'Department is required' })}
                                             >
                                                 <option value="">Select Department</option>
@@ -231,7 +229,7 @@ function AddRooms() {
                             <button
                                 type="button"
                                 onClick={() => append({ roomName: '', roomType: '', roomStatus: '', departmentName: '' })}
-                                className="w-full sm:w-auto secondary-btn !py-4.5 !px-8 flex items-center justify-center gap-2 group text-xs font-black uppercase tracking-widest cursor-pointer"
+                                className="w-full sm:w-auto secondary-btn py-4.5! px-8! flex items-center justify-center gap-2 group text-xs font-black uppercase tracking-widest cursor-pointer"
                             >
                                 <Plus size={16} className="group-hover:rotate-90 transition-transform" />
                                 Add Another Room

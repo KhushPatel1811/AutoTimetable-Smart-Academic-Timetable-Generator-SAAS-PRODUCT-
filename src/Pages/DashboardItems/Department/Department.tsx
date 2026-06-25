@@ -16,22 +16,24 @@ function Department() {
     const navigate = useNavigate()
     const [departmentData, setDepartmentData] = useState<Department[] | null>(null)
 
-    useEffect(()=>{
+    useEffect(() => {
         async function fetchData() {
-
             try {
-                const response = await axios.get('http://localhost:1000/departments')
-                const department = response.data?.department
-                if(department) {
-                    setDepartmentData(department)
+                const response = await axios.get('http://localhost:1000/departments', {
+                    headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+                });
+                const department = response.data?.department;
+                if (department) {
+                    setDepartmentData(department);
                 }
             }
-            catch(err: any) {
-                console.log('Error Occurred: ',err)
+            catch (err: any) {
+                console.error('Error fetching departments:', err);
+                toast.error('Failed to load departments');
             }
         }
-        fetchData()
-    },[])
+        fetchData();
+    }, []);
 
 
     async function deleteData(departmentId: string) {
@@ -63,12 +65,12 @@ function Department() {
             <Sidebar />
 
             <div className="flex-1 h-full overflow-y-auto animate-page">
-                <div className="sticky top-0 z-10 bg-white/80 backdrop-blur-md border-b border-slate-200">
-                    <ProfileNavbar content="Academic Wing Registry" />
+                <div className="sticky top-0 z-50 bg-white border-b border-slate-200 shadow-sm">
+                    <ProfileNavbar content="Department Management System" />
                     <ToastContainer position="top-right" autoClose={2000} />
                 </div>
 
-                <div className="p-8 max-w-7xl mx-auto space-y-8">
+                <div className="pt-6 px-8 pb-8 max-w-7xl mx-auto space-y-8">
                     {/* Page Header Card */}
                     <div className="bg-linear-to-r from-indigo-600 to-indigo-500 rounded-[2.5rem] p-10 shadow-2xl shadow-indigo-100 flex items-center justify-between border border-indigo-400/20 relative overflow-hidden group">
                         <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full -mr-20 -mt-20 group-hover:scale-110 transition-transform duration-700" />
@@ -78,7 +80,7 @@ function Department() {
                                 <Users className="w-8 h-8 text-white" />
                             </div>
                             <div>
-                                <h1 className="text-3xl font-black text-white tracking-tight">Organization Wings</h1>
+                                <h1 className="text-3xl font-black text-white tracking-tight">Department Registery</h1>
                                 <p className="text-indigo-100 font-bold text-sm tracking-wide opacity-80 uppercase">Manage your departments and classrooms</p>
                             </div>
                         </div>

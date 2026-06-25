@@ -24,7 +24,7 @@ function ProfileNavbar({ onMenuToggle, content }: ProfileNavbarProps) {
     }, []);
 
     return (
-        <div className="flex items-center justify-between w-full gap-4">
+        <div className="flex z-10 items-center justify-between w-full gap-4">
             
             {/* Left Context Group */}
             <div className="flex items-center gap-3 sm:gap-6 min-w-0">
