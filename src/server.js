@@ -2,15 +2,15 @@ import express from "express";
 import mongoose from "mongoose";
 import cors from "cors";
 import dotenv from "dotenv"
-import authRoutes from './src/Routes/auth.route.js'
-import dashboardRoutes from './src/Routes/dashboard.route.js'
-import profileRoutes from './src/Routes/profile.route.js'
-import teacherRoutes from './src/Routes/teacher.route.js'
-import departmentRoutes from './src/Routes/department.route.js'
-import roomRoutes from './src/Routes/room.route.js'
-import subjectRoutes from './src/Routes/subject.route.js'
-import timeTableRoutes from './src/Routes/timetable.route.js'
-dotenv.config();    
+import authRoutes from './Routes/auth.route.js'
+import dashboardRoutes from './Routes/dashboard.route.js'
+import profileRoutes from './Routes/profile.route.js'
+import teacherRoutes from './Routes/teacher.route.js'
+import departmentRoutes from './Routes/department.route.js'
+import roomRoutes from './Routes/room.route.js'
+import subjectRoutes from './Routes/subject.route.js'
+import timeTableRoutes from './Routes/timetable.route.js'
+dotenv.config({path: '../.env'});    
 
 const app = express();
 app.use(cors());

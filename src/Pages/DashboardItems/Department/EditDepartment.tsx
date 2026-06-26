@@ -8,7 +8,7 @@ import { toast, ToastContainer } from "react-toastify"
 import { Building2, Sparkles, ChevronLeft, Save } from "lucide-react"
 
 function EditDepartment() {
-    const { departmentId } = useParams()
+    const { departmentId } = useParams<{departmentId: string}>()
     const navigate = useNavigate()
 
     interface Department {
@@ -34,7 +34,7 @@ function EditDepartment() {
         fetchData()
     }, [reset, departmentId])
 
-    async function updateData(data: Department) {
+    async function updateData(data: Department): Promise<void> {
         try {
             await axios.put('http://localhost:1000/departments/edit', { ...data, departmentId }, {
                 headers: {

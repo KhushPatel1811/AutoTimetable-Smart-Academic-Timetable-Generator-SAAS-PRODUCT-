@@ -36,7 +36,7 @@ function Department() {
     }, []);
 
 
-    async function deleteData(departmentId: string) {
+    async function deleteData(departmentId: string): Promise<void> {
         const permission = confirm('Do You Really Want To Delete Department Data??')
 
         if(permission) {
