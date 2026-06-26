@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { ShieldCheck } from "lucide-react";
 
 const months: string[] = [
@@ -9,7 +9,8 @@ const months: string[] = [
 function ProfileCard() {
     interface User {
         _id: string;
-        adminName: string;
+        userName: string;
+        role: string;
         instituteName: string;
         email: string;
         createdAt: string; // Updated to string since localStorage dates parse as ISO strings
@@ -36,13 +37,13 @@ function ProfileCard() {
     }, [user]);
 
     // Generate initials safely or fallback to placeholder
-    const userInitial = user?.userName?.charAt(0)?.toUpperCase()+ user?.userName?.charAt(1)?.toUpperCase() || "?";
+    const userInitial = user?.userName ? user.userName.slice(0, 2).toUpperCase() : "?";
 
     return (
-        <div className="w-full max-w-sm mx-auto flex flex-col bg-white/[0.02] border border-white/10 rounded-3xl overflow-hidden shadow-2xl backdrop-blur-md">
+        <div className="w-full max-w-sm mx-auto flex flex-col bg-white/2 border border-white/10 rounded-3xl overflow-hidden shadow-2xl backdrop-blur-md">
             
             {/* Top Banner Accent Decoration */}
-            <div className="bg-gradient-to-br from-indigo-600 via-purple-600 to-indigo-800 h-24 w-full opacity-80" />
+            <div className="bg-linear-to-br from-indigo-600 via-purple-600 to-indigo-800 h-24 w-full opacity-80" />
             
             {/* Profile Avatar Container */}
             <div className="flex justify-center z-10 -mt-11">

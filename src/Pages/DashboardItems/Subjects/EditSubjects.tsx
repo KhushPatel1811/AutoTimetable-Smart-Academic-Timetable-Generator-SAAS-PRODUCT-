@@ -22,7 +22,7 @@ type FormData = Subject;
 
 interface Teacher {
     teachers: string;
-    teacherId: string;
+    _id: string;
 }
 
 interface Department {
@@ -49,7 +49,6 @@ function EditSubject() {
     const [teacherData, setTeacherData] = useState<Teacher[]>([]);
     const [allTeacherData, setAllTeacherData] = useState<Teacher[]>([]);
     const [departmentData, setDepartmentData] = useState<Department[]>([]);
-    const [subjectData, setSubjectData] = useState<Subject | null>(null);
     const { subjectId } = useParams();
     const navigate = useNavigate();
 
@@ -79,10 +78,9 @@ function EditSubject() {
                 const formattedSubject = {
                     ...subject,
                     teachers: subject.teachers.map(
-                        (teacher: any) => teacher._id
+                        (teacher: Teacher) => teacher._id
                     )
                 };
-            setSubjectData(formattedSubject);
             console.log("Formatted Subjects",formattedSubject)
             reset(formattedSubject);  
 
@@ -392,7 +390,7 @@ function EditSubject() {
                                                                 </svg>
                                                             )}
                                                         </div>
-                                                        <span className="truncate">{teacher.teacherName}</span>
+                                                        <span className="truncate">{teacher.teachers}</span>
                                                     </div>
                                                 );
                                             })}

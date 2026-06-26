@@ -29,7 +29,8 @@ function AddSubject() {
     }
 
     interface Teacher {
-        teacherId: string;
+        _id: string;
+        teacherId: string,
         teacherName: string;
     }
 
@@ -334,7 +335,7 @@ function AddSubject() {
                         <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-4 border-t border-slate-200">
                             <button 
                                 type="button" 
-                                onClick={() => append({ subjectName: "", subjectCode: "", semester: 1, departmentName: "", subjectType: "Lecture", weekly_Lecture_Hour: 1, weekly_Lab_Hour: 1, preferred_Room_Type: "Lecture", teacherName: [] })} 
+                                onClick={() => append({ subjectName: "", subjectCode: "", semester: 1, departmentName: "", subjectType: "Lecture", weekly_Lecture_Hour: 1, weekly_Lab_Hour: 1, preferred_Room_Type: "Lecture", teachers: [] })} 
                                 className="w-full sm:w-auto px-5 py-3 bg-white border border-slate-300 text-slate-700 font-semibold text-sm rounded-xl hover:border-indigo-500 hover:text-indigo-600 transition-all flex items-center justify-center gap-2 cursor-pointer">
                                 <Plus size={16} /> Add More Subjects
                             </button>

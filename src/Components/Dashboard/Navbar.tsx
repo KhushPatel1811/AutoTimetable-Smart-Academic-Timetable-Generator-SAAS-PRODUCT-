@@ -1,9 +1,9 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import axios from 'axios';
 import { Asterisk, Circle, School } from 'lucide-react';
 
 interface UserProfileData {
-    adminName: string;
+    userName: string;
     instituteName: string;
     email: string;
     role: string;

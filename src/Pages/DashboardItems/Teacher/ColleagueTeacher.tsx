@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import ProfileNavbar from "../Profile/ProfileNavbar";
 import { useNavigate } from "react-router";
 import axios from "axios";
-import { toast, ToastContainer } from "react-toastify";
+import { ToastContainer } from "react-toastify";
 
 function ColleagueTeacher() {
     interface Teacher {
@@ -62,17 +62,17 @@ function ColleagueTeacher() {
         { icon: Send, title: 'On Leave', count: teacherData?.filter(t=> t.teacherAvailability === 'On Leave').length || 0, color: 'from-rose-600 to-rose-500', shadow: 'shadow-rose-100' } 
     ]   
 
-    async function deleteTeacher(id: string) {
-        if(confirm('Are you sure you want to permanently delete this teacher from the records?')) {
-            try {
-                await axios.delete(`http://localhost:1000/teachers/delete/${id}`)
-                toast.success('Teacher removed successfully')
-                setTimeout(() => window.location.reload(), 2000)
-            } catch(err: any) {
-                toast.error('Could not remove teacher. Please try again.')
-            }
-        }
-    }
+    // async function deleteTeacher(id: string) {
+    //     if(confirm('Are you sure you want to permanently delete this teacher from the records?')) {
+    //         try {
+    //             await axios.delete(`http://localhost:1000/teachers/delete/${id}`)
+    //             toast.success('Teacher removed successfully')
+    //             setTimeout(() => window.location.reload(), 2000)
+    //         } catch(err: any) {
+    //             toast.error('Could not remove teacher. Please try again.')
+    //         }
+    //     }
+    // }
 
     return (
         <div className="flex h-screen w-screen bg-slate-50 overflow-hidden">
@@ -84,13 +84,13 @@ function ColleagueTeacher() {
                     <ToastContainer position="top-right" autoClose={2000} />
                 </div>
 
-                <div className="p-8 max-w-[1600px] w-full mx-auto space-y-10">
+                <div className="p-8 max-w-800 w-full mx-auto space-y-10">
                     {/* Hero Section */}
                     <div className="bg-linear-to-r from-indigo-600 to-indigo-500 rounded-[2.5rem] p-10 shadow-2xl shadow-indigo-100 flex flex-col md:flex-row items-center justify-between gap-8 border border-white/10 relative overflow-hidden group">
                         <div className="absolute top-0 right-0 w-96 h-96 bg-white/5 rounded-full -mr-32 -mt-32 group-hover:scale-110 transition-transform duration-700" />
                         
                         <div className="flex items-center space-x-8 relative z-10">
-                            <div className="p-6 bg-white/20 backdrop-blur-2xl rounded-[2rem] shadow-inner border border-white/30">
+                            <div className="p-6 bg-white/20 backdrop-blur-2xl rounded-4xl shadow-inner border border-white/30">
                                 <Users className="w-10 h-10 text-white" />
                             </div>
                             <div>
@@ -109,8 +109,8 @@ function ColleagueTeacher() {
                     {/* Stats Grid */}
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
                         {stats.map((item, index) => (
-                            <div key={index} className="premium-card !p-6 flex items-center gap-6 group hover:-translate-y-1 transition-all duration-300">
-                                <div className={`flex items-center justify-center w-16 h-16 rounded-[1.5rem] bg-linear-to-br ${item.color} ${item.shadow} shadow-lg shrink-0 group-hover:rotate-6 transition-transform`}>
+                            <div key={index} className="premium-card p-6! flex items-center gap-6 group hover:-translate-y-1 transition-all duration-300">
+                                <div className={`flex items-center justify-center w-16 h-16 rounded-3xl bg-linear-to-br ${item.color} ${item.shadow} shadow-lg shrink-0 group-hover:rotate-6 transition-transform`}>
                                     <item.icon size={28} stroke="white" strokeWidth={2.5} />
                                 </div>
                                 <div>
@@ -122,15 +122,15 @@ function ColleagueTeacher() {
                     </div>
 
                     {/* Filter Bar */}
-                    <div className="premium-card !p-4 grid grid-cols-1 md:grid-cols-4 gap-4 bg-slate-50/50">
+                    <div className="premium-card p-4! grid grid-cols-1 md:grid-cols-4 gap-4 bg-slate-50/50">
                         <div className="relative group">
                             <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-indigo-500 transition-colors" />
-                            <input type="text" className="input-box !py-3 !pl-11 !bg-white" value={search} onChange={(e)=>setSearch(e.target.value)} placeholder="Search by name..." />
+                            <input type="text" className="input-box py-3! pl-11! bg-white!" value={search} onChange={(e)=>setSearch(e.target.value)} placeholder="Search by name..." />
                         </div>
 
                         <div className="relative group">
                             <Building2 className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-indigo-500 transition-colors pointer-events-none" />
-                            <select className="input-box !py-3 !pl-11 !bg-white cursor-pointer appearance-none" value={departmentFilter} onChange={(e)=>setDepartmentFilter(e.target.value)}>
+                            <select className="input-box py-3! pl-11! bg-white! cursor-pointer appearance-none" value={departmentFilter} onChange={(e)=>setDepartmentFilter(e.target.value)}>
                                 <option value="">All Departments</option>
                                 {department?.map(dept => <option key={dept.departmentName} value={dept.departmentName}>{dept.departmentName}</option>)}
                             </select>
@@ -138,7 +138,7 @@ function ColleagueTeacher() {
 
                         <div className="relative group">
                             <UserRound className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-indigo-500 transition-colors pointer-events-none" />
-                            <select className="input-box !py-3 !pl-11 !bg-white cursor-pointer appearance-none" value={availabilityFilter} onChange={(e)=>setAvailabilityFilter(e.target.value)}>
+                            <select className="input-box py-3! pl-11! bg-white! cursor-pointer appearance-none" value={availabilityFilter} onChange={(e)=>setAvailabilityFilter(e.target.value)}>
                                 <option value="">Any Status</option>
                                 <option value="Available">Available</option>
                                 <option value="Busy">In a Class</option>
@@ -146,14 +146,14 @@ function ColleagueTeacher() {
                             </select>
                         </div>
 
-                        <button className="secondary-btn w-full !py-3 flex items-center justify-center gap-2 group" onClick={() => { setSearch(''); setDepartmentFilter(''); setAvailabilityFilter(''); }}>
+                        <button className="secondary-btn w-full py-3! flex items-center justify-center gap-2 group" onClick={() => { setSearch(''); setDepartmentFilter(''); setAvailabilityFilter(''); }}>
                             <RefreshCcw size={16} className="group-hover:rotate-180 transition-transform duration-500" />
                             Reset Filters
                         </button>
                     </div>
 
                     {/* Faculty Table */}
-                    <div className="premium-card !p-0 overflow-hidden">
+                    <div className="premium-card p-0! overflow-hidden">
                         <div className="p-8 border-b border-slate-100 flex items-center justify-between bg-slate-50/30">
                             <div className="flex items-center gap-3">
                                 <div className="p-2 bg-indigo-50 rounded-lg text-indigo-600">
@@ -181,7 +181,7 @@ function ColleagueTeacher() {
                                         <tr key={index} className="border-b border-slate-50 last:border-none bg-white">
                                             <td className="p-8">
                                                 <div className="flex items-center gap-4">
-                                                    <div className="w-12 h-12 rounded-2xl bg-slate-100 flex items-center justify-center font-black text-slate-500 bg-indigo-50 text-indigo-600">
+                                                    <div className="w-12 h-12 rounded-2xl bg-indigo-50 flex items-center justify-center font-black text-slate-500">
                                                         {teacher.teacherName.charAt(0)}
                                                     </div>
                                                     <div>
@@ -209,7 +209,7 @@ function ColleagueTeacher() {
                                                 <div className="flex items-center justify-end gap-3">
                                                     {
                                                         email == teacher.teacherEmail && 
-                                                        <button className="secondary-btn !p-3" onClick={() => navigate(`/teachers/edit/${teacher.teacherId}`)}>
+                                                        <button className="secondary-btn p-3!" onClick={() => navigate(`/teachers/edit/${teacher.teacherId}`)}>
                                                             Edit
                                                         </button>
                                                     }

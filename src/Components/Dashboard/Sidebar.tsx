@@ -1,5 +1,4 @@
-import React from "react";
-import { User, LayoutDashboard, Calendar, Users, BookOpen, DoorOpen, Layers, FileText, BarChart3, Settings, LogOut, X, ShieldCheck } from "lucide-react";
+import { User, LayoutDashboard, Calendar, Users, BookOpen, DoorOpen, Layers, FileText, LogOut, X, ShieldCheck } from "lucide-react";
 import { useLocation, useNavigate, Link } from "react-router-dom"; // Switched to Link to prevent full page reloads
 
 interface SidebarProps {

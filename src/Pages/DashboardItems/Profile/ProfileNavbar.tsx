@@ -1,4 +1,4 @@
-import { Menu, Search, Bell, Command, LogOut } from "lucide-react";
+import { Menu, Search, Bell, Command } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router";
 
@@ -9,8 +9,9 @@ interface ProfileNavbarProps {
 
 function ProfileNavbar({ onMenuToggle, content }: ProfileNavbarProps) {
     interface User {
-        adminName: string;
+        userName: string;
         email: string;
+        role: string;
     }
 
     const navigate = useNavigate();
@@ -55,7 +56,7 @@ function ProfileNavbar({ onMenuToggle, content }: ProfileNavbarProps) {
 
                 {/* Text Breadcrumb/Content Heading */}
                 <div className="flex flex-col min-w-0">
-                    <h2 className="text-xs sm:text-sm font-black text-slate-800 uppercase tracking-widest truncate max-w-[140px] sm:max-w-[260px] md:max-w-none">
+                    <h2 className="text-xs sm:text-sm font-black text-slate-800 uppercase tracking-widest truncate max-w-35 sm:max-w-65 md:max-w-none">
                         {content}
                     </h2>
                     <div className="flex items-center gap-1.5 mt-0.5">
@@ -96,7 +97,7 @@ function ProfileNavbar({ onMenuToggle, content }: ProfileNavbarProps) {
 
                     {/* Badge Initial Thumbnail */}
                     <div className="relative shrink-0">
-                        <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg sm:rounded-xl bg-gradient-to-br from-indigo-500 via-purple-500 to-indigo-600 flex items-center justify-center font-black text-white text-xs sm:text-sm shadow-md shadow-indigo-100 group-hover:rotate-6 transition-transform">
+                        <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg sm:rounded-xl bg-linear-to-br from-indigo-500 via-purple-500 to-indigo-600 flex items-center justify-center font-black text-white text-xs sm:text-sm shadow-md shadow-indigo-100 group-hover:rotate-6 transition-transform">
                             {user?.userName ? user.userName.charAt(0).toUpperCase() : 'A'}
                         </div>
                         <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-emerald-500 border-2 border-white rounded-full" />

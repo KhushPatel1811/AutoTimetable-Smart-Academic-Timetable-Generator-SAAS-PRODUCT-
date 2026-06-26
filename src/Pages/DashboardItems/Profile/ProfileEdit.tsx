@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import axios from "axios";
 import { ToastContainer, toast } from "react-toastify";
@@ -22,7 +22,6 @@ function ProfileEdit() {
     }
 
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-    const [user, setUser] = useState<UserProfileData | null>(null);
 
     const { register, handleSubmit, reset, formState: { errors, isSubmitting } } = useForm<UserProfileData>({
         defaultValues: {
@@ -41,7 +40,6 @@ function ProfileEdit() {
         if (storedUser) {
             const parsedUser = JSON.parse(storedUser);
             reset(parsedUser);
-            setUser(parsedUser);
         }
     }, [reset]);
 
@@ -57,7 +55,6 @@ function ProfileEdit() {
             if (response.data.updatedUser) {
                 localStorage.setItem('user', JSON.stringify(response.data.updatedUser));
                 reset(response.data?.updatedUser);
-                setUser(response.data?.updatedUser);
                 toast.success('Your profile has been updated successfully.');
 
                 setTimeout(()=>{

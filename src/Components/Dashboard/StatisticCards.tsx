@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from "react";
-import { Users, BookOpen, DoorOpen, Layers, Calendar, Activity } from "lucide-react";
+import { useEffect, useState } from "react";
+import { Users, BookOpen, DoorOpen, Layers, Activity } from "lucide-react";
 import axios from "axios";
 
 function StatisticCards() {

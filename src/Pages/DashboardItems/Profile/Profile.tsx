@@ -9,9 +9,11 @@ function Profile() {
     interface UserProfile {
         _id: string;
         instituteId: string;
-        adminName: string;
+        userName: string;
         instituteName: string;
+        phoneNumber: string;
         email: string;
+        role: string;
         createdAt: string; // Adjusted from Date object since localStorage returns string types
         updatedAt: string;
     }
@@ -37,7 +39,7 @@ function Profile() {
             <div className="flex-1 flex flex-col h-full overflow-y-auto custom-scrollbar">
                 <ProfileNavbar onMenuToggle={() => setIsSidebarOpen(true)} content="Account Settings Panel" />
 
-                <div className="p-6 md:p-10 max-w-[1600px] w-full mx-auto space-y-10">
+                <div className="p-6 md:p-10 max-w-400 w-full mx-auto space-y-10">
                     
                     {/* Header Heading Text Section */}
                     <div className="text-left space-y-2">
@@ -71,7 +73,7 @@ function Profile() {
                             <div className="bg-white/5 border border-white/10 rounded-3xl overflow-hidden shadow-xl">
                                 
                                 {/* Info Panel Sub-Header */}
-                                <div className="p-6 border-b border-white/5 bg-white/[0.02] flex items-center justify-between flex-wrap gap-4">
+                                <div className="p-6 border-b border-white/5 bg-white/2 flex items-center justify-between flex-wrap gap-4">
                                     <div className="flex items-center gap-2.5">
                                         <div className="p-2 bg-white/5 border border-white/10 rounded-lg text-indigo-400">
                                             <LayoutDashboard className="w-4 h-4" />
@@ -91,7 +93,7 @@ function Profile() {
                                         <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1 flex items-center gap-2">
                                             <UserCircle2 className="w-3 h-3 text-indigo-400" /> Full Name
                                         </label>
-                                        <div className="w-full px-4 py-3 bg-white/[0.02] border border-white/5 rounded-xl font-bold text-slate-200 text-sm">
+                                        <div className="w-full px-4 py-3 bg-white/2 border border-white/5 rounded-xl font-bold text-slate-200 text-sm">
                                             {user?.userName || "Not Configured"}
                                         </div>
                                     </div>
@@ -100,7 +102,7 @@ function Profile() {
                                         <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1 flex items-center gap-2">
                                             <Building2 className="w-3 h-3 text-indigo-400" /> Institute Name
                                         </label>
-                                        <div className="w-full px-4 py-3 bg-white/[0.02] border border-white/5 rounded-xl font-black text-indigo-400 text-sm">
+                                        <div className="w-full px-4 py-3 bg-white/2 border border-white/5 rounded-xl font-black text-indigo-400 text-sm">
                                             {user?.instituteName || "Not Configured"}
                                         </div>
                                     </div>
@@ -109,7 +111,7 @@ function Profile() {
                                         <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1 flex items-center gap-2">
                                             <Mail className="w-3 h-3 text-indigo-400" /> Email Address
                                         </label>
-                                        <div className="w-full px-4 py-3 bg-white/[0.02] border border-white/5 rounded-xl font-bold text-slate-200 text-sm">
+                                        <div className="w-full px-4 py-3 bg-white/2 border border-white/5 rounded-xl font-bold text-slate-200 text-sm">
                                             {user?.email || "Not Configured"}
                                         </div>
                                     </div>
@@ -118,7 +120,7 @@ function Profile() {
                                         <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1 flex items-center gap-2">
                                             <KeyRound className="w-3 h-3 text-indigo-400" /> Phone Number
                                         </label>
-                                        <div className="w-full px-4 py-3 bg-white/[0.02] border border-white/5 rounded-xl font-mono text-xs text-slate-400">
+                                        <div className="w-full px-4 py-3 bg-white/2 border border-white/5 rounded-xl font-mono text-xs text-slate-400">
                                             {user?.phoneNumber || "Null Pointer Node"}
                                         </div>
                                     </div>
@@ -127,14 +129,14 @@ function Profile() {
                                         <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1 flex items-center gap-2">
                                             <KeyRound className="w-3 h-3 text-indigo-400" /> User Role
                                         </label>
-                                        <div className="w-full px-4 py-3 bg-white/[0.02] border border-white/5 rounded-xl font-mono text-xs text-slate-400">
+                                        <div className="w-full px-4 py-3 bg-white/2 border border-white/5 rounded-xl font-mono text-xs text-slate-400">
                                             {user?.role || "Null Pointer Node"}
                                         </div>
                                     </div>
                                 </div>
 
                                 {/* Security Action Operations Area Footer */}
-                                <div className="p-6 bg-white/[0.02] border-t border-white/5">
+                                <div className="p-6 bg-white/2 border-t border-white/5">
                                     <button className="flex items-center gap-2 px-5 py-3 text-xs font-black text-white bg-indigo-600 hover:bg-indigo-500 rounded-xl shadow-lg shadow-indigo-600/10 transition-colors cursor-pointer" onClick={()=>navigate('/auth/changePassword')}>
                                         <KeyRound size={14} />
                                         Change Password
@@ -158,7 +160,6 @@ function Profile() {
                                 </div>
                             </div>
                         </div>
-
                     </div>
                 </div>
             </div>

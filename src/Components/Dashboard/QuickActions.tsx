@@ -1,4 +1,4 @@
-import { CalendarPlus, UserPlus, BookPlus, DoorClosed, Eye, Layers, Zap } from "lucide-react";
+import { CalendarPlus, UserPlus, BookPlus, DoorClosed, Layers, Zap } from "lucide-react";
 import { useNavigate } from "react-router";
 
 function QuickActions() {

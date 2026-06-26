@@ -1,6 +1,6 @@
-import React, { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import axios from "axios";
-import { Activity, BarChart3, Building2, DoorOpen, FileText, GraduationCap, PieChart, Users } from "lucide-react";
+import { BarChart3, Building2, DoorOpen, FileText, GraduationCap, PieChart, Users } from "lucide-react";
 import { toast, ToastContainer } from "react-toastify";
 
 const API = "http://localhost:1000/reports-module";

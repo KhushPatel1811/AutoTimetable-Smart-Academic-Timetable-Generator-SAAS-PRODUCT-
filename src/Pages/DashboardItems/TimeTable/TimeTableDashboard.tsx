@@ -4,12 +4,47 @@ import { useReactToPrint } from 'react-to-print';
 import { Calendar, Printer, Sparkles, GraduationCap, Grid3X3 } from 'lucide-react';
 import { toast, ToastContainer } from 'react-toastify';
 
+type BreakSlot = {
+  slotIndex: number;
+  duration: number;
+  label: string;
+};
+
+type Department = {
+  _id: string;
+  departmentName: string;
+};
+
+type TimetableCell = {
+  free?: boolean;
+  subjectName?: string;
+  subjectCode?: string;
+  subjectType?: string;
+  teacherName?: string;
+  roomNumber?: string;
+};
+
+type DaySchedule = {
+  day: string;
+  slots: TimetableCell[];
+};
+
+type Division = {
+  divisionName: string;
+  schedule: DaySchedule[];
+};
+
+type Timetable = {
+  timeSlots?: string[];
+  divisions?: Division[];
+};
+
 function TimetableDashboard() {
   // ---------------- STATES ----------------
   const [departmentName, setDepartmentName] = useState('');
   const [semester, setSemester] = useState('');
   const [targetMode, setTargetMode] = useState('School');
-  const [generatedBreaks, setGeneratedBreaks] = useState([]);
+  const [generatedBreaks, setGeneratedBreaks] = useState<BreakSlot[]>([]);
 
   const [totalDivisions, setTotalDivisions] = useState('2');
   const [totalDays, setTotalDays] = useState('5');
@@ -21,25 +56,23 @@ function TimetableDashboard() {
   const [labDuration, setLabDuration] = useState('120');
 
   const [breakCount, setBreakCount] = useState('0');
-  const [breakDurations, setBreakDurations] = useState([]);
+  const [breakDurations, setBreakDurations] = useState<string[]>([]);
 
-  const [departments, setDepartments] = useState([]);
-  const [activeSemesters, setActiveSemesters] = useState([]);
-  const [timetable, setTimetable] = useState(null);
-  const [dynamicSlots, setDynamicSlots] = useState([]);
-  const [historyList, setHistoryList] = useState([]);
+  const [departments, setDepartments] = useState<Department[]>([]);
+  const [timetable, setTimetable] = useState<Timetable | null>(null);
+  const [dynamicSlots, setDynamicSlots] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
 
   const printRef = useRef(null);
 
   // ---------------- TIME HELPERS ----------------
-  const minutesToTime = (minutes) => {
+  const minutesToTime = (minutes: number) => {
     const h = Math.floor(minutes / 60);
     const m = minutes % 60;
     return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
   };
 
-  const buildTimetableSlots = (startTime, endTime, lectureMinutes, breaks) => {
+  const buildTimetableSlots = (startTime: string, endTime: string, lectureMinutes: string, breaks: number[]) => {
     const [sh, sm] = startTime.split(":").map(Number);
     const [eh, em] = endTime.split(":").map(Number);
 
@@ -96,12 +129,12 @@ function TimetableDashboard() {
   // ---------------- HISTORY ----------------
   const fetchHistoryLedger = useCallback(async () => {
     try {
-      const res = await axios.get('http://localhost:1000/timetable/history', {
+      await axios.get('http://localhost:1000/timetable/history', {
         headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
       });
-      setHistoryList(res.data || []);
-    } catch (err) {
-      toast.error(err?.response?.data?.message || "History fetch failed");
+    } catch (err: unknown) {
+      const e = err as { response?: { data?: { message?: string } } };
+      toast.error(e?.response?.data?.message || "History fetch failed");
     }
   }, []);
 
@@ -181,8 +214,7 @@ function TimetableDashboard() {
         });
 
         const subs = res.data?.subjects || [];
-        const sems = [...new Set(subs.map(s => s.semester))];
-        setActiveSemesters(sems);
+        void subs;
       } catch (e) {
         console.error(e);
       }
@@ -205,7 +237,6 @@ function TimetableDashboard() {
         lectureDuration,
         breaks
       );
-      const breaksData = slots.breakSlots;
 
       const payload = {
         instituteId: getInstituteId(),
@@ -233,8 +264,9 @@ function TimetableDashboard() {
       setGeneratedBreaks(slots.breakSlots);
       fetchHistoryLedger();
       toast.success("Timetable generated!");
-    } catch (err) {
-      toast.error(err?.response?.data?.message || "Generation failed");
+    } catch (err: unknown) {
+      const e = err as { response?: { data?: { message?: string } } };
+      toast.error(e?.response?.data?.message || "Generation failed");
     } finally {
       setLoading(false);
     }
@@ -276,6 +308,8 @@ const displaySlots = React.useMemo(() => {
   });
   return result;
 }, [dynamicSlots, generatedBreaks]);
+
+
   return (
   <div className="p-6 min-h-screen bg-slate-50 text-slate-800 font-sans">
     <ToastContainer position="top-right" autoClose={2000} />
