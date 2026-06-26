@@ -1,5 +1,5 @@
 import express from "express";
-import TimeTable from "../Models/timetableModel.js";
+import TimeTable from "../Models/TimeTableModel.js";
 import authMiddleware from "../Middleware/AuthMiddleware.js";
 import generateEmptyTimetable, { buildLectureQueue } from "../Services/TimeTableGenerator.js";
 import { solveUsingORTools } from "../Services/ORToolsService.js";
