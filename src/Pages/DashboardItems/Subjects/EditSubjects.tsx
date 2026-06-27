@@ -53,9 +53,6 @@ function EditSubject() {
     const { subjectId } = useParams();
     const navigate = useNavigate();
 
-    // Watch values to dynamically update teachers list and multi-select states
-    const watchedSubjectName = watch("subjectName");
-    const watchedDepartmentName = watch("departmentName");
     const selectedTeacherIds = watch("teachers") || [];
 
     // 1. Fetch Subject and Department Base Data
@@ -100,33 +97,7 @@ function EditSubject() {
         return () => controller.abort();
     }, [subjectId, reset]);
 
-    // 2. Dynamic Teacher Data Fetching on Subject/Department adjustments
-    useEffect(() => {
-        const controller = new AbortController();
-        async function fetchTeachersData() {
-            if (!watchedSubjectName || !watchedDepartmentName) {
-                return;
-            }
 
-            try {
-                const response = await axios.get(`${API}/teachers/fetchDetails`, {
-                    params: { 
-                        department: watchedDepartmentName, 
-                        subject: watchedSubjectName 
-                    },
-                    headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` },
-                    signal: controller.signal
-                });
-                setAllTeacherData(response.data?.teachers || []);
-            } catch (err: unknown) {
-                if (axios.isCancel(err)) return;
-                console.error("Error fetching teachers data:", err);
-            }
-        }
-        fetchTeachersData();
-
-        return () => controller.abort();
-    }, [watchedSubjectName, watchedDepartmentName]);
 
     // Teacher selection toggle handler for custom checkbox UI
     const handleTeacherToggle = (id: string) => {
