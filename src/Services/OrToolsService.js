@@ -1,5 +1,5 @@
-import { spawn } from "child_process";
 import path from "path";
+import { spawn } from "child_process";
 import { fileURLToPath } from "url";
 
 const __filename = fileURLToPath(import.meta.url);
@@ -8,12 +8,11 @@ const __dirname = path.dirname(__filename);
 export const solveUsingORTools = (data) => {
     return new Promise((resolve, reject) => {
 
-        const pythonFile = path.join(__dirname, "../python/solver.py");
+        const pythonFile = path.resolve(__dirname, "..", "Python", "solver.py");
 
         console.log("🚀 Running Python Solver:", pythonFile);
 
-        // IMPORTANT: use python3 for production compatibility
-        const python = spawn(process.env.PYTHON || "python", [pythonFile]);
+        const python = spawn(process.env.PYTHON || "python3", [pythonFile]);
 
         let output = "";
         let error = "";
