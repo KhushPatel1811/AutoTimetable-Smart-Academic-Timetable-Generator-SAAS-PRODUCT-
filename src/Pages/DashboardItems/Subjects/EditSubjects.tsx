@@ -23,7 +23,7 @@ interface Subject {
 type FormData = Subject;
 
 interface Teacher {
-    teachers: string;
+    teacherName: string;
     _id: string;
 }
 
@@ -48,7 +48,6 @@ function EditSubject() {
         reValidateMode: "onChange"
     });
 
-    const [teacherData, setTeacherData] = useState<Teacher[]>([]);
     const [allTeacherData, setAllTeacherData] = useState<Teacher[]>([]);
     const [departmentData, setDepartmentData] = useState<Department[]>([]);
     const { subjectId } = useParams();
@@ -106,7 +105,6 @@ function EditSubject() {
         const controller = new AbortController();
         async function fetchTeachersData() {
             if (!watchedSubjectName || !watchedDepartmentName) {
-                setTeacherData([]);
                 return;
             }
 
@@ -119,12 +117,10 @@ function EditSubject() {
                     headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` },
                     signal: controller.signal
                 });
-                const teachers = response.data?.teachers || [];
-                setTeacherData(teachers);
+                setAllTeacherData(response.data?.teachers || []);
             } catch (err: unknown) {
                 if (axios.isCancel(err)) return;
                 console.error("Error fetching teachers data:", err);
-                setTeacherData([]);
             }
         }
         fetchTeachersData();
@@ -365,19 +361,15 @@ function EditSubject() {
                                         </p>
                                     </div>
 
-                                    {teacherData.length === 0 ? (
+                                    {allTeacherData.length === 0 ? (
                                         <div className="text-center py-6 border border-dashed border-gray-200 rounded-xl bg-gray-50/50">
                                             <p className="text-xs text-gray-400 font-medium">
-                                                {!watchedSubjectName || !watchedDepartmentName 
-                                                    ? "Specify both Subject Name and Department to see eligible teachers." 
-                                                    : "No matching faculty found for the current query filters."}
+                                                No matching faculty found for the current query filters.
                                             </p>
                                         </div>
                                     ) : (
                                         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 p-4 border border-gray-200 rounded-xl max-h-56 overflow-y-auto bg-gray-50/30">
                                             {allTeacherData.map((teacher) => {
-                                                  console.log("teacher._id:", teacher._id);
-                                                    console.log("comparison:",selectedTeacherIds.includes(String(teacher._id)));
                                                 const isChecked = selectedTeacherIds.includes(teacher._id);
                                                 return (
                                                     <div 
@@ -392,7 +384,7 @@ function EditSubject() {
                                                                 </svg>
                                                             )}
                                                         </div>
-                                                        <span className="truncate">{teacher.teachers}</span>
+                                                        <span className="truncate">{teacher.teacherName}</span>
                                                     </div>
                                                 );
                                             })}
