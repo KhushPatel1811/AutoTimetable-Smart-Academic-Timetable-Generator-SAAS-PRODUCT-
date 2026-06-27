@@ -3,6 +3,8 @@ import axios from 'axios';
 import { useReactToPrint } from 'react-to-print';
 import { Calendar, Printer, Sparkles, GraduationCap, Grid3X3 } from 'lucide-react';
 import { toast, ToastContainer } from 'react-toastify';
+import API from '../../../config/api'
+
 
 type BreakSlot = {
   slotIndex: number;
@@ -129,7 +131,7 @@ function TimetableDashboard() {
   // ---------------- HISTORY ----------------
   const fetchHistoryLedger = useCallback(async () => {
     try {
-      await axios.get('https://autotimetable-smart-academic-timetable.onrender.com/timetable/history', {
+      await axios.get(`${API}/timetable/history`, {
         headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
       });
     } catch (err: unknown) {
@@ -144,7 +146,7 @@ function TimetableDashboard() {
 
     setLoading(true);
     try {
-      const res = await axios.get('https://autotimetable-smart-academic-timetable.onrender.com/timetable/latest', {
+      const res = await axios.get(`${API}/timetable/latest`, {
         params: {
           department: departmentName,
           semester: Number(semester),
@@ -174,13 +176,14 @@ function TimetableDashboard() {
   useEffect(() => {
     const fetchDepts = async () => {
       try {
-        const res = await axios.get('https://autotimetable-smart-academic-timetable.onrender.com/departments', {
+        const res = await axios.get(`${API}/departments`, {
           params: { instituteId: getInstituteId() },
           headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
         });
 
         const depts = res.data?.department || [];
         setDepartments(depts);
+        console.log(depts)
         if (depts.length) setDepartmentName(depts[0].departmentName);
       } catch (e) {
         console.error(e);
@@ -205,7 +208,7 @@ function TimetableDashboard() {
 
     (async () => {
       try {
-        const res = await axios.get('https://autotimetable-smart-academic-timetable.onrender.com/subjects', {
+        const res = await axios.get(`${API}/subjects`, {
           params: {
             departmentFilter: departmentName,
             instituteId: getInstituteId()
@@ -253,8 +256,8 @@ function TimetableDashboard() {
         breakSlots: slots.breakSlots,
         slotLabels: slots.slotLabels
       };
-
-      const res = await axios.post('https://autotimetable-smart-academic-timetable.onrender.com/timetable/generate',payload,{
+      console.log('API URL:',API)
+      const res = await axios.post(`${API}/timetable/generate` ,payload,{
           headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
         }
       );

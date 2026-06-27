@@ -6,6 +6,8 @@ import { useEffect } from "react"
 import axios from "axios"
 import { toast, ToastContainer } from "react-toastify"
 import { Building2, Sparkles, ChevronLeft, Save } from "lucide-react"
+import API from '../../../config/api'
+
 
 function EditDepartment() {
     const { departmentId } = useParams<{departmentId: string}>()
@@ -23,7 +25,7 @@ function EditDepartment() {
     useEffect(() => {
         async function fetchData() {
             try {
-                const response = await axios.get(`https://autotimetable-smart-academic-timetable.onrender.com/departments/edit/${departmentId}`, {
+                const response = await axios.get(`${API}/departments/edit/${departmentId}`, {
                     headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
                 })
                 reset({ departmentName: response.data?.department?.departmentName })
@@ -36,7 +38,7 @@ function EditDepartment() {
 
     async function updateData(data: Department): Promise<void> {
         try {
-            await axios.put('https://autotimetable-smart-academic-timetable.onrender.com/departments/edit', { ...data, departmentId }, {
+            await axios.put(`${API}/departments/edit`, { ...data, departmentId }, {
                 headers: {
                     "Content-Type": 'application/json',
                     'Authorization': `Bearer ${localStorage.getItem('token')}`

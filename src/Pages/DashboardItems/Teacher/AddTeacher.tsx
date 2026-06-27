@@ -6,6 +6,8 @@ import { useNavigate } from "react-router";
 import { ToastContainer, toast } from "react-toastify";
 import { useEffect, useState } from "react";
 import { UserPlus, BookCopy, Sparkles, ChevronLeft, Save } from "lucide-react";
+import API from '../../../config/api'
+
 
 function AddTeacher() {
     interface Teacher {
@@ -40,7 +42,7 @@ function AddTeacher() {
     useEffect(() => {
         async function fetchData() {
             try {
-                const response = await axios.get('https://autotimetable-smart-academic-timetable.onrender.com/departments', {
+                const response = await axios.get(`${API}/departments`, {
                     headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
                 });
                 setDepartment(response.data.department);
@@ -54,7 +56,7 @@ function AddTeacher() {
     async function submitData(data: Teacher) {
         console.log(data)
         try {
-            const response = await axios.post('https://autotimetable-smart-academic-timetable.onrender.com/teachers/add', data, {
+            const response = await axios.post(`${API}/teachers/add`, data, {
                 headers: {
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${localStorage.getItem('token')}`

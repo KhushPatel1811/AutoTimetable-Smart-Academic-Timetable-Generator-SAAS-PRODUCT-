@@ -5,6 +5,8 @@ import BackGround from "../../../Utilities/Background";
 import ProfileNavbar from "../Profile/ProfileNavbar";
 import { toast, ToastContainer } from "react-toastify";
 import { useNavigate, useParams } from "react-router";
+import API from '../../../config/api'
+
 
 interface Subject {
     subjectName: string;
@@ -67,8 +69,8 @@ function EditSubject() {
                     headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
                 }
                 const [responseSubject, responseDepartment] = await Promise.all([
-                    axios.get(`https://autotimetable-smart-academic-timetable.onrender.com/subjects/edit/${subjectId}`, config),
-                    axios.get('https://autotimetable-smart-academic-timetable.onrender.com/departments', config)
+                    axios.get(`${API}/subjects/edit/${subjectId}`, config),
+                    axios.get(`${API}/departments`, config)
                 ]);
                 
                 setDepartmentData(responseDepartment.data?.department || []);
@@ -109,7 +111,7 @@ function EditSubject() {
             }
 
             try {
-                const response = await axios.get("https://autotimetable-smart-academic-timetable.onrender.com/teachers/fetchDetails", {
+                const response = await axios.get(`${API}/teachers/fetchDetails`, {
                     params: { 
                         department: watchedDepartmentName, 
                         subject: watchedSubjectName 
@@ -142,7 +144,7 @@ function EditSubject() {
     // 4. PUT Request Form Submission handler
     async function updateData(data: FormData) {
         try {
-            const response = await axios.put(`https://autotimetable-smart-academic-timetable.onrender.com/subjects/edit/${subjectId}`, data, {
+            const response = await axios.put(`${API}/subjects/edit/${subjectId}`, data, {
                 headers: {
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${localStorage.getItem('token')}`

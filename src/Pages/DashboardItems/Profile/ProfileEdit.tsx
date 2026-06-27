@@ -8,6 +8,8 @@ import ProfileNavbar from "./ProfileNavbar";
 import ProfileCard from "./ProfileCard";
 import "react-toastify/dist/ReactToastify.css";
 import { useNavigate } from "react-router";
+import API from '../../../config/api'
+
 
 function ProfileEdit() {
     const navigate = useNavigate()
@@ -45,7 +47,7 @@ function ProfileEdit() {
 
     async function updateData(formData: UserProfileData) {
         try {
-            const response = await axios.post('https://autotimetable-smart-academic-timetable.onrender.com/profile/edit', formData, {
+            const response = await axios.post(`${API}/profile/edit`, formData, {
                 headers: {
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${localStorage.getItem('token')}`

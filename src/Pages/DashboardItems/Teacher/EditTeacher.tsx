@@ -6,6 +6,8 @@ import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router";
 import { ToastContainer, toast } from 'react-toastify';
 import { UserPlus, BookCopy, Sparkles, ChevronLeft, Save } from "lucide-react";
+import API from '../../../config/api'
+
 
 function EditTeacher() {
     interface Teacher {
@@ -53,8 +55,8 @@ function EditTeacher() {
                     headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
                 }
                 const [responseTeacher, responseDept] = await Promise.all([
-                    axios.get(`https://autotimetable-smart-academic-timetable.onrender.com/teachers/edit/${teacherId}`, config),
-                    axios.get('https://autotimetable-smart-academic-timetable.onrender.com/departments', config)
+                    axios.get(`${API}/teachers/edit/${teacherId}`, config),
+                    axios.get(`${API}/departments`, config)
                 ])
                 reset(responseTeacher?.data?.teacher)
                 setDepartments(responseDept.data.department)
@@ -67,7 +69,7 @@ function EditTeacher() {
 
     async function submitData(data: Teacher) {
         try {
-            await axios.put(`https://autotimetable-smart-academic-timetable.onrender.com/teachers/edit/${teacherId}`, data, {
+            await axios.put(`${API}/teachers/edit/${teacherId}`, data, {
                 headers: {
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${localStorage.getItem('token')}`

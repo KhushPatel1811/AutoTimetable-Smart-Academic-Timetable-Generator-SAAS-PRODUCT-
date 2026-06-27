@@ -4,6 +4,8 @@ import axios from 'axios';
 import { useNavigate } from "react-router";
 import { toast, ToastContainer } from "react-toastify";
 import { ShieldCheck, Mail, LockKeyhole, ArrowRight, Sparkles } from "lucide-react";
+import API from '../config/api'
+
 
 function Login() {
     interface LoginFormData {
@@ -11,6 +13,7 @@ function Login() {
         password: string;
     }
     const navigate = useNavigate();
+    console.log("API:", API)
 
     const { register, handleSubmit, formState: { errors, isValid, isSubmitting } } = useForm<LoginFormData>({
         defaultValues: { email: "", password: "" },
@@ -21,7 +24,7 @@ function Login() {
 
     async function handleData(data: LoginFormData): Promise<void> {
         try {
-            const response = await axios.post('https://autotimetable-smart-academic-timetable.onrender.com/auth/login', data);
+            const response = await axios.post(`${API}/auth/login`, data);
             localStorage.setItem('token', response.data.token);
             localStorage.setItem('user', JSON.stringify(response.data.user));
             toast.success('Login successful');

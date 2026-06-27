@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import axios from 'axios';
 import { Asterisk, Circle, School } from 'lucide-react';
+import API from '../../config/api'
 
 interface UserProfileData {
     userName: string;
@@ -24,7 +25,7 @@ function Navbar() {
         async function fetchDashboardProfile() {
             try {
                 const token = localStorage.getItem('token');
-                const response = await axios.get(`https://autotimetable-smart-academic-timetable.onrender.com/dashboard`, {
+                const response = await axios.get(`${API}/dashboard`, {
                     headers: {
                         Authorization: `Bearer ${token}`
                     }

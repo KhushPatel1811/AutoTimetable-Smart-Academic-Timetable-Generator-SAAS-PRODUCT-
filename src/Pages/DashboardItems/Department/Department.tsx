@@ -5,6 +5,7 @@ import { useNavigate } from "react-router";
 import { useEffect, useState } from "react";
 import axios from "axios";
 import { toast, ToastContainer } from "react-toastify";
+import API from '../../../config/api'
 
 function Department() {
     interface Department {
@@ -19,7 +20,7 @@ function Department() {
     useEffect(() => {
         async function fetchData() {
             try {
-                const response = await axios.get('https://autotimetable-smart-academic-timetable.onrender.com/departments', {
+                const response = await axios.get(`${API}/departments`, {
                     headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
                 });
                 const department = response.data?.department;
@@ -41,7 +42,7 @@ function Department() {
 
         if(permission) {
             try {
-                const response = await axios.delete(`https://autotimetable-smart-academic-timetable.onrender.com/departments/delete/${departmentId}`, {
+                const response = await axios.delete(`${API}/departments/delete/${departmentId}`, {
                     headers: {
                         'Authorization' : `Bearer ${localStorage.getItem('token')}`
                     }

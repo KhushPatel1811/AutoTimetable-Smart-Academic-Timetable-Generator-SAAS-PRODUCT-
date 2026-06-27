@@ -2,8 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import axios from "axios";
 import { BarChart3, Building2, DoorOpen, FileText, GraduationCap, PieChart, Users } from "lucide-react";
 import { toast, ToastContainer } from "react-toastify";
-
-const API = "https://autotimetable-smart-academic-timetable.onrender.com/reports-module";
+import API from '../../../config/api'
 
 const getInstituteId = () => {
   const userItem = localStorage.getItem("user");

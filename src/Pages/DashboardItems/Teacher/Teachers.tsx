@@ -5,6 +5,8 @@ import ProfileNavbar from "../Profile/ProfileNavbar";
 import { useNavigate } from "react-router";
 import axios from "axios";
 import { toast, ToastContainer } from "react-toastify";
+import API from '../../../config/api'
+
 
 function Teachers() {
     interface Teacher {
@@ -36,11 +38,11 @@ function Teachers() {
                     headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
                 };
                 const [responseTeacher, responseDepartment] = await Promise.all([
-                    axios.get('https://autotimetable-smart-academic-timetable.onrender.com/teachers', {
+                    axios.get(`${API}/teachers`, {
                         ...config,
                         params: { search, departmentFilter, availabilityFilter }
                     }),
-                    axios.get('https://autotimetable-smart-academic-timetable.onrender.com/departments', config)
+                    axios.get(`${API}/departments`, config)
                 ]);
                 setTeacherData(responseTeacher?.data?.teachers);
                 setDepartment(responseDepartment.data.department);
@@ -62,7 +64,7 @@ function Teachers() {
     async function deleteTeacher(id: string) {
         if(confirm('Are you sure you want to permanently delete this teacher from the records?')) {
             try {
-                await axios.delete(`https://autotimetable-smart-academic-timetable.onrender.com/teachers/delete/${id}`, {
+                await axios.delete(`${API}/teachers/delete/${id}`, {
                     headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
                 });
                 toast.success('Teacher removed successfully');

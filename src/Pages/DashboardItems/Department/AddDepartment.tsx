@@ -5,6 +5,8 @@ import axios from "axios"
 import { toast, ToastContainer } from "react-toastify"
 import { useNavigate } from "react-router"
 import { Building2, Sparkles, ChevronLeft, Save, Plus, Trash2 } from "lucide-react"
+import API from '../../../config/api'
+
 
 function AddDepartment() {
     const navigate = useNavigate()
@@ -29,7 +31,7 @@ function AddDepartment() {
 
     async function submitData(data: Department): Promise<void> {
         try {
-            await axios.post('https://autotimetable-smart-academic-timetable.onrender.com/departments/add', data, {
+            await axios.post(`${API}/departments/add`, data, {
                 headers: {
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${localStorage.getItem('token')}`

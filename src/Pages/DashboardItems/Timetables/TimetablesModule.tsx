@@ -2,8 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import axios from "axios";
 import { Calendar, Download, Filter, History, Printer, Search, Share2, Sparkles } from "lucide-react";
 import { toast, ToastContainer } from "react-toastify";
-
-const API = "https://autotimetable-smart-academic-timetable.onrender.com/timetables-module";
+import API from '../../../config/api'
 
 const getInstituteId = () => {
   const userItem = localStorage.getItem("user");
@@ -35,8 +34,8 @@ function TimetablesModule() {
     setLoading(true);
     try {
       const [latestRes, historyRes] = await Promise.all([
-        axios.get(`${API}/latest`, { params: filters, headers: authHeaders() }).catch(() => ({ data: { timetable: null } })),
-        axios.get(`${API}/history`, { params: { ...filters, search }, headers: authHeaders() })
+        axios.get(`${API}/timetables-module/latest`, { params: filters, headers: authHeaders() }).catch(() => ({ data: { timetable: null } })),
+        axios.get(`${API}/timetables-module/history`, { params: { ...filters, search }, headers: authHeaders() })
       ]);
 
       setLatest(latestRes.data.timetable);
@@ -65,7 +64,7 @@ function TimetablesModule() {
   const handleDownloadPdf = async () => {
     if (!latest?._id) return;
 
-    const res = await axios.get(`${API}/${latest._id}/pdf`, {
+    const res = await axios.get(`${API}/timetables-module/${latest._id}/pdf`, {
       headers: authHeaders(),
       responseType: "blob"
     });
@@ -88,7 +87,7 @@ function TimetablesModule() {
 
   const handleShare = async () => {
     if (!latest?._id) return;
-    const res = await axios.get(`${API}/${latest._id}/share`, { headers: authHeaders() });
+    const res = await axios.get(`${API}/timetables-module/${latest._id}/share`, { headers: authHeaders() });
     await navigator.clipboard.writeText(res.data.shareUrl);
     toast.success("Share link copied");
   };

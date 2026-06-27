@@ -12,6 +12,7 @@ const router = express.Router();
  * =========================
  */
 router.post("/generate", authMiddleware, async (req, res) => {
+    console.log("🚀 /generate route called");
     try {
         const {
             instituteId,
@@ -102,7 +103,6 @@ lectureQueue.sort(() => Math.random() - 0.5);
             divisions: divisions.map(d => ({
                 name: d.divisionName
             })),
-
             teachers: teachers.map(t => ({
                 id: t._id?.toString(),
                 teacherId: t.teacherId?.toString(),

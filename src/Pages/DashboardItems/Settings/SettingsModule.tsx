@@ -2,8 +2,8 @@ import { useCallback, useEffect, useState } from "react";
 import axios from "axios";
 import { ArchiveRestore, Building2, CalendarDays, Clock, Database, Palette, Save, Shield, Users } from "lucide-react";
 import { toast, ToastContainer } from "react-toastify";
+import API from '../../../config/api'
 
-const API = "https://autotimetable-smart-academic-timetable.onrender.com/settings-module";
 const DAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
 
 const authHeaders = () => ({
@@ -68,7 +68,7 @@ function SettingsModule() {
   const saveSettings = async () => {
     setLoading(true);
     try {
-      const res = await axios.post(API, settings, { headers: authHeaders() });
+      const res = await axios.post(`${API}/settings-module`, settings, { headers: authHeaders() });
       setSettings(res.data.settings);
       toast.success("Settings saved");
     } catch (err: unknown) {

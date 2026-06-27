@@ -6,6 +6,8 @@ import { useEffect, useState } from "react";
 import { toast, ToastContainer } from "react-toastify";
 import { useNavigate } from "react-router";
 import { BookOpen, Plus, Trash2, GraduationCap, Layers3, Hash, CalendarDays, Building2, Sliders, ShieldAlert } from "lucide-react";
+import API from '../../../config/api'
+
 
 function AddSubject() {
     interface Department {
@@ -65,7 +67,7 @@ function AddSubject() {
     useEffect(() => {
         async function fetchData() {
             try {
-                const response = await axios.get('https://autotimetable-smart-academic-timetable.onrender.com/departments', {
+                const response = await axios.get(`${API}/departments`, {
                     headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
                 });
                 setDepartmentData(response.data?.department || []);
@@ -83,7 +85,7 @@ function AddSubject() {
         if (!department || !subject) return;
 
         try {
-            const response = await axios.get("https://autotimetable-smart-academic-timetable.onrender.com/teachers/fetchDetails",{ 
+            const response = await axios.get(`${API}/teachers/fetchDetails`,{ 
                     params: { department, subject },
                     headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
                 }
@@ -105,7 +107,7 @@ function AddSubject() {
     async function submitData(data: FormData) {
         console.log(data)
         try {
-            const response = await axios.post('https://autotimetable-smart-academic-timetable.onrender.com/subjects/add', data, {
+            const response = await axios.post(`${API}/subjects/add`, data, {
                 headers: {
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${localStorage.getItem('token')}`

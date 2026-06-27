@@ -5,6 +5,7 @@ import { useEffect, useState } from "react"
 import { useNavigate, useParams } from "react-router"
 import { ToastContainer, toast } from 'react-toastify'
 import { Building2, LayoutGrid, CheckCircle, ArrowLeft } from 'lucide-react'
+import API from '../../../config/api'
 
 function EditRoom() {
     interface Department {
@@ -43,8 +44,8 @@ function EditRoom() {
                     headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
                 }
                 const [responseRoom, responseDepartment] = await Promise.all([
-                    axios.get(`https://autotimetable-smart-academic-timetable.onrender.com/rooms/edit/${roomId}`, config),
-                    axios.get('https://autotimetable-smart-academic-timetable.onrender.com/departments', config)
+                    axios.get(`${API}/rooms/edit/${roomId}`, config),
+                    axios.get(`${API}/departments`, config)
                 ]);
                 
                 setDepartmentData(responseDepartment.data?.department || [])
@@ -59,7 +60,7 @@ function EditRoom() {
 
     async function submitData(data: Rooms) {
         try {
-            const response = await axios.put(`https://autotimetable-smart-academic-timetable.onrender.com/rooms/edit/${roomId}`, { ...data, roomId }, {
+            const response = await axios.put(`${API}/rooms/edit/${roomId}`, { ...data, roomId }, {
                 headers: {
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${localStorage.getItem('token')}`

@@ -4,6 +4,7 @@ import { useNavigate } from "react-router";
 import axios from "axios";
 import { toast, ToastContainer } from "react-toastify";
 import { ShieldCheck, User, Building2, Mail, Phone, LockKeyhole, Sparkles, ArrowRight } from "lucide-react";
+import API from '../config/api'
 
 function Register() {
     interface RegistrationFormData {
@@ -37,7 +38,7 @@ function Register() {
         try {
             const { confirmPassword, ...payload } = data;
 
-            const response = await axios.post("https://autotimetable-smart-academic-timetable.onrender.com/auth/register",payload);
+            const response = await axios.post(`${API}/auth/register`,payload);
 
             if (response.data) {
                 toast.success("Account created successfully!");

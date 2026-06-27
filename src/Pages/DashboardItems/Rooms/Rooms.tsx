@@ -5,6 +5,7 @@ import ProfileNavbar from "../Profile/ProfileNavbar"
 import { useNavigate } from "react-router"
 import axios from "axios"
 import { toast, ToastContainer } from "react-toastify"
+import API from '../../../config/api'
 
 function Rooms() {
     const navigate = useNavigate()
@@ -35,8 +36,8 @@ function Rooms() {
                     headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
                 }
                 const [responseDepartment, responseRoom] = await Promise.all([
-                    axios.get('https://autotimetable-smart-academic-timetable.onrender.com/departments', config),
-                    axios.get('https://autotimetable-smart-academic-timetable.onrender.com/rooms', {
+                    axios.get(`${API}/departments`, config),
+                    axios.get(`${API}/rooms`, {
                         ...config,
                         params: { search, departmentFilter, availabilityFilter }
                     })
@@ -62,7 +63,7 @@ function Rooms() {
     async function deleteRoom(id: string) {
         if(confirm('Are you sure you want to delete this room?')) { 
             try {
-                await axios.delete(`https://autotimetable-smart-academic-timetable.onrender.com/rooms/delete/${id}`, {
+                await axios.delete(`${API}/rooms/delete/${id}`, {
                     headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
                 })
                 toast.success('Room deleted successfully')

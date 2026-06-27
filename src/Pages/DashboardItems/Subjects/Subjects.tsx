@@ -5,6 +5,8 @@ import Sidebar from "../../../Components/Dashboard/Sidebar";
 import ProfileNavbar from "../Profile/ProfileNavbar";
 import { useNavigate } from "react-router";
 import { toast, ToastContainer } from "react-toastify";
+import API from '../../../config/api'
+
 
 function Subjects() {
     const navigate = useNavigate();
@@ -36,12 +38,10 @@ function Subjects() {
                 const config = {
                     headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
                 };
-                const [res, dept] = await Promise.all([
-                    axios.get("https://autotimetable-smart-academic-timetable.onrender.com/subjects", {
-                        ...config,
+                const [res, dept] = await Promise.all([axios.get(`${API}/subjects`, {...config,
                         params: { search, departmentFilter, semesterFilter, type }
                     }),
-                    axios.get("https://autotimetable-smart-academic-timetable.onrender.com/departments", config)
+                    axios.get(`${API}/departments`, config)
                 ]);
                 setSubjects(res.data.subjects);
                 setDepartments(dept.data.department);
@@ -56,7 +56,7 @@ function Subjects() {
     const deleteSubject = async (id: string) => {
         if (!confirm("Remove this subject from the official curriculum?")) return;
         try {
-            await axios.delete(`https://autotimetable-smart-academic-timetable.onrender.com/subjects/delete/${id}`, {
+            await axios.delete(`${API}/subjects/delete/${id}`, {
                 headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
             });
             toast.success("Curriculum updated: Subject removed");

@@ -4,6 +4,7 @@ import { useNavigate } from "react-router";
 import { useForm } from "react-hook-form";
 import axios from "axios";
 import { toast, ToastContainer } from "react-toastify";
+import API from '../config/api'
 
 function ChangePassword() {
     const navigate = useNavigate()
@@ -29,7 +30,7 @@ function ChangePassword() {
     async function updatePassword(data: Password) {
         console.log(data)
         try {
-            const response = await axios.put('https://autotimetable-smart-academic-timetable.onrender.com/auth/changePassword', data, {
+            const response = await axios.put(`${API}/auth/changePassword`, data, {
                 headers:{
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${localStorage.getItem('token')}`

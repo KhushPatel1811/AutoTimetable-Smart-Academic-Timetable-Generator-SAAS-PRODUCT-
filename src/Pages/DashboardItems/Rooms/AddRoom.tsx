@@ -5,6 +5,7 @@ import { useEffect, useState } from "react"
 import axios from "axios"
 import { toast, ToastContainer } from "react-toastify"
 import { Building2, LayoutGrid, CheckCircle, Plus, Trash2, ArrowLeft } from 'lucide-react'
+import API from '../../../config/api'
 
 function AddRooms() {
     const navigate = useNavigate()
@@ -45,7 +46,7 @@ function AddRooms() {
     useEffect(() => {
         async function fetchData() {
             try {
-                const response = await axios.get('https://autotimetable-smart-academic-timetable.onrender.com/departments', {
+                const response = await axios.get(`{API}/departments`, {
                     headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
                 });
                 setDepartmentData(response.data?.department || []);
@@ -59,7 +60,7 @@ function AddRooms() {
 
     async function submitData(data: Rooms): Promise<void> {
         try {
-            const response = await axios.post('https://autotimetable-smart-academic-timetable.onrender.com/rooms/add', data, {
+            const response = await axios.post(`${API}/rooms/add`, data, {
                 headers: {
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${localStorage.getItem('token')}`

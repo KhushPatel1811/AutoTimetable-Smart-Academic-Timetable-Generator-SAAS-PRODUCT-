@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Users, BookOpen, DoorOpen, Layers, Activity } from "lucide-react";
 import axios from "axios";
+import API from '../../config/api'
 
 function StatisticCards() {
     const [counts, setCounts] = useState({
@@ -21,10 +22,10 @@ function StatisticCards() {
 
                 // Concurrent fetch request handling utilizing system token configurations
                 const [t, s, r, d] = await Promise.all([
-                    axios.get('https://autotimetable-smart-academic-timetable.onrender.com/teachers', config),
-                    axios.get('https://autotimetable-smart-academic-timetable.onrender.com/subjects', config),
-                    axios.get('https://autotimetable-smart-academic-timetable.onrender.com/rooms', config),
-                    axios.get('https://autotimetable-smart-academic-timetable.onrender.com/departments', config)
+                    axios.get(`${API}/teachers`, config),
+                    axios.get(`${API}/subjects`, config),
+                    axios.get(`${API}/rooms`, config),
+                    axios.get(`${API}/departments`, config)
                 ]);
 
                 setCounts({
