@@ -53,8 +53,8 @@ function EditTeacher() {
                     headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
                 }
                 const [responseTeacher, responseDept] = await Promise.all([
-                    axios.get(`http://localhost:1000/teachers/edit/${teacherId}`, config),
-                    axios.get('http://localhost:1000/departments', config)
+                    axios.get(`https://autotimetable-smart-academic-timetable.onrender.com/teachers/edit/${teacherId}`, config),
+                    axios.get('https://autotimetable-smart-academic-timetable.onrender.com/departments', config)
                 ])
                 reset(responseTeacher?.data?.teacher)
                 setDepartments(responseDept.data.department)
@@ -67,7 +67,7 @@ function EditTeacher() {
 
     async function submitData(data: Teacher) {
         try {
-            await axios.put(`http://localhost:1000/teachers/edit/${teacherId}`, data, {
+            await axios.put(`https://autotimetable-smart-academic-timetable.onrender.com/teachers/edit/${teacherId}`, data, {
                 headers: {
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${localStorage.getItem('token')}`

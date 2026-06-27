@@ -24,7 +24,7 @@ function Navbar() {
         async function fetchDashboardProfile() {
             try {
                 const token = localStorage.getItem('token');
-                const response = await axios.get(`http://localhost:1000/dashboard`, {
+                const response = await axios.get(`https://autotimetable-smart-academic-timetable.onrender.com/dashboard`, {
                     headers: {
                         Authorization: `Bearer ${token}`
                     }

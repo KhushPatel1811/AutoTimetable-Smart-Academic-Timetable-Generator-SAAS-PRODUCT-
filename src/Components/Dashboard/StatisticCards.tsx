@@ -21,10 +21,10 @@ function StatisticCards() {
 
                 // Concurrent fetch request handling utilizing system token configurations
                 const [t, s, r, d] = await Promise.all([
-                    axios.get('http://localhost:1000/teachers', config),
-                    axios.get('http://localhost:1000/subjects', config),
-                    axios.get('http://localhost:1000/rooms', config),
-                    axios.get('http://localhost:1000/departments', config)
+                    axios.get('https://autotimetable-smart-academic-timetable.onrender.com/teachers', config),
+                    axios.get('https://autotimetable-smart-academic-timetable.onrender.com/subjects', config),
+                    axios.get('https://autotimetable-smart-academic-timetable.onrender.com/rooms', config),
+                    axios.get('https://autotimetable-smart-academic-timetable.onrender.com/departments', config)
                 ]);
 
                 setCounts({

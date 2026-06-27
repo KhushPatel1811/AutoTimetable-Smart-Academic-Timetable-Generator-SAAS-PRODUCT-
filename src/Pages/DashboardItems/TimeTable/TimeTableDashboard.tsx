@@ -129,7 +129,7 @@ function TimetableDashboard() {
   // ---------------- HISTORY ----------------
   const fetchHistoryLedger = useCallback(async () => {
     try {
-      await axios.get('http://localhost:1000/timetable/history', {
+      await axios.get('https://autotimetable-smart-academic-timetable.onrender.com/timetable/history', {
         headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
       });
     } catch (err: unknown) {
@@ -144,7 +144,7 @@ function TimetableDashboard() {
 
     setLoading(true);
     try {
-      const res = await axios.get('http://localhost:1000/timetable/latest', {
+      const res = await axios.get('https://autotimetable-smart-academic-timetable.onrender.com/timetable/latest', {
         params: {
           department: departmentName,
           semester: Number(semester),
@@ -174,7 +174,7 @@ function TimetableDashboard() {
   useEffect(() => {
     const fetchDepts = async () => {
       try {
-        const res = await axios.get('http://localhost:1000/departments', {
+        const res = await axios.get('https://autotimetable-smart-academic-timetable.onrender.com/departments', {
           params: { instituteId: getInstituteId() },
           headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
         });
@@ -205,7 +205,7 @@ function TimetableDashboard() {
 
     (async () => {
       try {
-        const res = await axios.get('http://localhost:1000/subjects', {
+        const res = await axios.get('https://autotimetable-smart-academic-timetable.onrender.com/subjects', {
           params: {
             departmentFilter: departmentName,
             instituteId: getInstituteId()
@@ -254,7 +254,7 @@ function TimetableDashboard() {
         slotLabels: slots.slotLabels
       };
 
-      const res = await axios.post('http://localhost:1000/timetable/generate',payload,{
+      const res = await axios.post('https://autotimetable-smart-academic-timetable.onrender.com/timetable/generate',payload,{
           headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
         }
       );

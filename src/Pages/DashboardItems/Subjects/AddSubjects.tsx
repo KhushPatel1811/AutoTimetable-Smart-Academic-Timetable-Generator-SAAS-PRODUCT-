@@ -65,7 +65,7 @@ function AddSubject() {
     useEffect(() => {
         async function fetchData() {
             try {
-                const response = await axios.get('http://localhost:1000/departments', {
+                const response = await axios.get('https://autotimetable-smart-academic-timetable.onrender.com/departments', {
                     headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
                 });
                 setDepartmentData(response.data?.department || []);
@@ -83,7 +83,7 @@ function AddSubject() {
         if (!department || !subject) return;
 
         try {
-            const response = await axios.get("http://localhost:1000/teachers/fetchDetails",{ 
+            const response = await axios.get("https://autotimetable-smart-academic-timetable.onrender.com/teachers/fetchDetails",{ 
                     params: { department, subject },
                     headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
                 }
@@ -105,7 +105,7 @@ function AddSubject() {
     async function submitData(data: FormData) {
         console.log(data)
         try {
-            const response = await axios.post('http://localhost:1000/subjects/add', data, {
+            const response = await axios.post('https://autotimetable-smart-academic-timetable.onrender.com/subjects/add', data, {
                 headers: {
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${localStorage.getItem('token')}`

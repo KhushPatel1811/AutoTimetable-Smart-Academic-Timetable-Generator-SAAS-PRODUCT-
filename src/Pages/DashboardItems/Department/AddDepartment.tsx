@@ -29,7 +29,7 @@ function AddDepartment() {
 
     async function submitData(data: Department): Promise<void> {
         try {
-            await axios.post('http://localhost:1000/departments/add', data, {
+            await axios.post('https://autotimetable-smart-academic-timetable.onrender.com/departments/add', data, {
                 headers: {
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${localStorage.getItem('token')}`

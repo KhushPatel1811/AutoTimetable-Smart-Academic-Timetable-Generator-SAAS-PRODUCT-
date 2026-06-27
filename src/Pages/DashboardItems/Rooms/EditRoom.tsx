@@ -43,8 +43,8 @@ function EditRoom() {
                     headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
                 }
                 const [responseRoom, responseDepartment] = await Promise.all([
-                    axios.get(`http://localhost:1000/rooms/edit/${roomId}`, config),
-                    axios.get('http://localhost:1000/departments', config)
+                    axios.get(`https://autotimetable-smart-academic-timetable.onrender.com/rooms/edit/${roomId}`, config),
+                    axios.get('https://autotimetable-smart-academic-timetable.onrender.com/departments', config)
                 ]);
                 
                 setDepartmentData(responseDepartment.data?.department || [])
@@ -59,7 +59,7 @@ function EditRoom() {
 
     async function submitData(data: Rooms) {
         try {
-            const response = await axios.put(`http://localhost:1000/rooms/edit/${roomId}`, { ...data, roomId }, {
+            const response = await axios.put(`https://autotimetable-smart-academic-timetable.onrender.com/rooms/edit/${roomId}`, { ...data, roomId }, {
                 headers: {
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${localStorage.getItem('token')}`

@@ -67,8 +67,8 @@ function EditSubject() {
                     headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
                 }
                 const [responseSubject, responseDepartment] = await Promise.all([
-                    axios.get(`http://localhost:1000/subjects/edit/${subjectId}`, config),
-                    axios.get('http://localhost:1000/departments', config)
+                    axios.get(`https://autotimetable-smart-academic-timetable.onrender.com/subjects/edit/${subjectId}`, config),
+                    axios.get('https://autotimetable-smart-academic-timetable.onrender.com/departments', config)
                 ]);
                 
                 setDepartmentData(responseDepartment.data?.department || []);
@@ -109,7 +109,7 @@ function EditSubject() {
             }
 
             try {
-                const response = await axios.get("http://localhost:1000/teachers/fetchDetails", {
+                const response = await axios.get("https://autotimetable-smart-academic-timetable.onrender.com/teachers/fetchDetails", {
                     params: { 
                         department: watchedDepartmentName, 
                         subject: watchedSubjectName 
@@ -142,7 +142,7 @@ function EditSubject() {
     // 4. PUT Request Form Submission handler
     async function updateData(data: FormData) {
         try {
-            const response = await axios.put(`http://localhost:1000/subjects/edit/${subjectId}`, data, {
+            const response = await axios.put(`https://autotimetable-smart-academic-timetable.onrender.com/subjects/edit/${subjectId}`, data, {
                 headers: {
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${localStorage.getItem('token')}`

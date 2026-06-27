@@ -20,6 +20,7 @@ app.use(express.urlencoded({ extended: true }));
 const PORT = process.env.PORT || 2000;
 const MONGODB_URI = process.env.MONGODB_URI || "mongodb://localhost:27017/Institute_Time_Table";
 
+console.log("MONGODB_URI:", process.env.MONGODB_URI);
 // Connecting Backend With MongoDB
 mongoose.connect(MONGODB_URI).then(() => {
     console.log("Connected to MongoDB Database");
@@ -30,6 +31,10 @@ mongoose.connect(MONGODB_URI).then(() => {
     });
   }).catch((err) => {
     console.error("Error connecting to MongoDB Database:", err);
+    console.log("Name:", err.name);
+    console.log("Message:", err.message);
+    console.log("Cause:", err.cause);
+    console.log(err);
 });
 
 

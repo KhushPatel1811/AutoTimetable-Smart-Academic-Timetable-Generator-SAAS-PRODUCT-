@@ -45,7 +45,7 @@ function AddRooms() {
     useEffect(() => {
         async function fetchData() {
             try {
-                const response = await axios.get('http://localhost:1000/departments', {
+                const response = await axios.get('https://autotimetable-smart-academic-timetable.onrender.com/departments', {
                     headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
                 });
                 setDepartmentData(response.data?.department || []);
@@ -59,7 +59,7 @@ function AddRooms() {
 
     async function submitData(data: Rooms): Promise<void> {
         try {
-            const response = await axios.post('http://localhost:1000/rooms/add', data, {
+            const response = await axios.post('https://autotimetable-smart-academic-timetable.onrender.com/rooms/add', data, {
                 headers: {
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${localStorage.getItem('token')}`

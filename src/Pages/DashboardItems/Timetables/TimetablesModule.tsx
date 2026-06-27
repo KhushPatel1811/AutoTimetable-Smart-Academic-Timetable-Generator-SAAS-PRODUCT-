@@ -3,7 +3,7 @@ import axios from "axios";
 import { Calendar, Download, Filter, History, Printer, Search, Share2, Sparkles } from "lucide-react";
 import { toast, ToastContainer } from "react-toastify";
 
-const API = "http://localhost:1000/timetables-module";
+const API = "https://autotimetable-smart-academic-timetable.onrender.com/timetables-module";
 
 const getInstituteId = () => {
   const userItem = localStorage.getItem("user");

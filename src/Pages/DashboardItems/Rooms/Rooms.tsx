@@ -35,8 +35,8 @@ function Rooms() {
                     headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
                 }
                 const [responseDepartment, responseRoom] = await Promise.all([
-                    axios.get('http://localhost:1000/departments', config),
-                    axios.get('http://localhost:1000/rooms', {
+                    axios.get('https://autotimetable-smart-academic-timetable.onrender.com/departments', config),
+                    axios.get('https://autotimetable-smart-academic-timetable.onrender.com/rooms', {
                         ...config,
                         params: { search, departmentFilter, availabilityFilter }
                     })
@@ -62,7 +62,7 @@ function Rooms() {
     async function deleteRoom(id: string) {
         if(confirm('Are you sure you want to delete this room?')) { 
             try {
-                await axios.delete(`http://localhost:1000/rooms/delete/${id}`, {
+                await axios.delete(`https://autotimetable-smart-academic-timetable.onrender.com/rooms/delete/${id}`, {
                     headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
                 })
                 toast.success('Room deleted successfully')

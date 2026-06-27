@@ -21,7 +21,7 @@ function Login() {
 
     async function handleData(data: LoginFormData): Promise<void> {
         try {
-            const response = await axios.post('http://localhost:1000/auth/login', data);
+            const response = await axios.post('https://autotimetable-smart-academic-timetable.onrender.com/auth/login', data);
             localStorage.setItem('token', response.data.token);
             localStorage.setItem('user', JSON.stringify(response.data.user));
             toast.success('Login successful');

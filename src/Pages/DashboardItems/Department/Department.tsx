@@ -19,7 +19,7 @@ function Department() {
     useEffect(() => {
         async function fetchData() {
             try {
-                const response = await axios.get('http://localhost:1000/departments', {
+                const response = await axios.get('https://autotimetable-smart-academic-timetable.onrender.com/departments', {
                     headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
                 });
                 const department = response.data?.department;
@@ -41,7 +41,7 @@ function Department() {
 
         if(permission) {
             try {
-                const response = await axios.delete(`http://localhost:1000/departments/delete/${departmentId}`, {
+                const response = await axios.delete(`https://autotimetable-smart-academic-timetable.onrender.com/departments/delete/${departmentId}`, {
                     headers: {
                         'Authorization' : `Bearer ${localStorage.getItem('token')}`
                     }

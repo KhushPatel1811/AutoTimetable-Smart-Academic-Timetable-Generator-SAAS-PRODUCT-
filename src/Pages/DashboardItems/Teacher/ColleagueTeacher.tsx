@@ -39,13 +39,13 @@ function ColleagueTeacher() {
     useEffect(() => {
         async function fetchData() {
             try {
-                const responseTeacher = await axios.get('http://localhost:1000/teachers', {
+                const responseTeacher = await axios.get('https://autotimetable-smart-academic-timetable.onrender.com/teachers', {
                     params: { search, departmentFilter, availabilityFilter },
                     headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
                 })
                 setTeacherData(responseTeacher?.data?.teachers)
 
-                const responseDepartment = await axios.get('http://localhost:1000/departments')
+                const responseDepartment = await axios.get('https://autotimetable-smart-academic-timetable.onrender.com/departments')
                 setDepartment(responseDepartment.data.department)
             }
             catch(err: any) {
@@ -65,7 +65,7 @@ function ColleagueTeacher() {
     // async function deleteTeacher(id: string) {
     //     if(confirm('Are you sure you want to permanently delete this teacher from the records?')) {
     //         try {
-    //             await axios.delete(`http://localhost:1000/teachers/delete/${id}`)
+    //             await axios.delete(`https://autotimetable-smart-academic-timetable.onrender.com/teachers/delete/${id}`)
     //             toast.success('Teacher removed successfully')
     //             setTimeout(() => window.location.reload(), 2000)
     //         } catch(err: any) {

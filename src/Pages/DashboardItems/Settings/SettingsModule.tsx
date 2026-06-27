@@ -3,7 +3,7 @@ import axios from "axios";
 import { ArchiveRestore, Building2, CalendarDays, Clock, Database, Palette, Save, Shield, Users } from "lucide-react";
 import { toast, ToastContainer } from "react-toastify";
 
-const API = "http://localhost:1000/settings-module";
+const API = "https://autotimetable-smart-academic-timetable.onrender.com/settings-module";
 const DAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
 
 const authHeaders = () => ({

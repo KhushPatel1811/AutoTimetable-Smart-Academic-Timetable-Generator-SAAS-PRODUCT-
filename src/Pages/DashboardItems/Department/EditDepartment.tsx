@@ -23,7 +23,7 @@ function EditDepartment() {
     useEffect(() => {
         async function fetchData() {
             try {
-                const response = await axios.get(`http://localhost:1000/departments/edit/${departmentId}`, {
+                const response = await axios.get(`https://autotimetable-smart-academic-timetable.onrender.com/departments/edit/${departmentId}`, {
                     headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
                 })
                 reset({ departmentName: response.data?.department?.departmentName })
@@ -36,7 +36,7 @@ function EditDepartment() {
 
     async function updateData(data: Department): Promise<void> {
         try {
-            await axios.put('http://localhost:1000/departments/edit', { ...data, departmentId }, {
+            await axios.put('https://autotimetable-smart-academic-timetable.onrender.com/departments/edit', { ...data, departmentId }, {
                 headers: {
                     "Content-Type": 'application/json',
                     'Authorization': `Bearer ${localStorage.getItem('token')}`

@@ -37,7 +37,7 @@ function Register() {
         try {
             const { confirmPassword, ...payload } = data;
 
-            const response = await axios.post("http://localhost:1000/auth/register",payload);
+            const response = await axios.post("https://autotimetable-smart-academic-timetable.onrender.com/auth/register",payload);
 
             if (response.data) {
                 toast.success("Account created successfully!");

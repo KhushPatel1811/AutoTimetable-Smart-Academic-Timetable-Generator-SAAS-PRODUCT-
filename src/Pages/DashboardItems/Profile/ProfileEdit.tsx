@@ -45,7 +45,7 @@ function ProfileEdit() {
 
     async function updateData(formData: UserProfileData) {
         try {
-            const response = await axios.post('http://localhost:1000/profile/edit', formData, {
+            const response = await axios.post('https://autotimetable-smart-academic-timetable.onrender.com/profile/edit', formData, {
                 headers: {
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${localStorage.getItem('token')}`

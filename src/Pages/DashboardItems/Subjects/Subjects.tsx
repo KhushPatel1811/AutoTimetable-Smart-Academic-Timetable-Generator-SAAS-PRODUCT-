@@ -37,11 +37,11 @@ function Subjects() {
                     headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
                 };
                 const [res, dept] = await Promise.all([
-                    axios.get("http://localhost:1000/subjects", {
+                    axios.get("https://autotimetable-smart-academic-timetable.onrender.com/subjects", {
                         ...config,
                         params: { search, departmentFilter, semesterFilter, type }
                     }),
-                    axios.get("http://localhost:1000/departments", config)
+                    axios.get("https://autotimetable-smart-academic-timetable.onrender.com/departments", config)
                 ]);
                 setSubjects(res.data.subjects);
                 setDepartments(dept.data.department);
@@ -56,7 +56,7 @@ function Subjects() {
     const deleteSubject = async (id: string) => {
         if (!confirm("Remove this subject from the official curriculum?")) return;
         try {
-            await axios.delete(`http://localhost:1000/subjects/delete/${id}`, {
+            await axios.delete(`https://autotimetable-smart-academic-timetable.onrender.com/subjects/delete/${id}`, {
                 headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
             });
             toast.success("Curriculum updated: Subject removed");

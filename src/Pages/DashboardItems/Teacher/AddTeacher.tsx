@@ -40,7 +40,7 @@ function AddTeacher() {
     useEffect(() => {
         async function fetchData() {
             try {
-                const response = await axios.get('http://localhost:1000/departments', {
+                const response = await axios.get('https://autotimetable-smart-academic-timetable.onrender.com/departments', {
                     headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
                 });
                 setDepartment(response.data.department);
@@ -54,7 +54,7 @@ function AddTeacher() {
     async function submitData(data: Teacher) {
         console.log(data)
         try {
-            const response = await axios.post('http://localhost:1000/teachers/add', data, {
+            const response = await axios.post('https://autotimetable-smart-academic-timetable.onrender.com/teachers/add', data, {
                 headers: {
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${localStorage.getItem('token')}`

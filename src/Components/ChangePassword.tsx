@@ -29,7 +29,7 @@ function ChangePassword() {
     async function updatePassword(data: Password) {
         console.log(data)
         try {
-            const response = await axios.put('http://localhost:1000/auth/changePassword', data, {
+            const response = await axios.put('https://autotimetable-smart-academic-timetable.onrender.com/auth/changePassword', data, {
                 headers:{
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${localStorage.getItem('token')}`
