@@ -13,9 +13,13 @@ import timeTableRoutes from './Routes/timetable.route.js'
 dotenv.config({path: '../.env'});    
 
 const app = express();
-app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+app.use(cors({
+  origin: "https://smart-academic-timetable-generator.vercel.app",
+  methods: ["GET", "POST", "PUT", "DELETE"],
+  credentials: true
+}));
 
 const PORT = process.env.PORT || 2000;
 const MONGODB_URI = process.env.MONGODB_URI || "mongodb://localhost:27017/Institute_Time_Table";
