@@ -1,75 +1,106 @@
-# React + TypeScript + Vite
+# 📚 AutoTimetable – Smart Academic Timetable Generator
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+AutoTimetable is a full-stack web application that automatically generates **conflict-free academic timetables** for colleges.  
+It helps administrators efficiently manage **teachers, subjects, departments, rooms, and schedules** in one centralized system.
 
-Currently, two official plugins are available:
+🌐 Live Demo: https://smart-academic-timetable-generator.vercel.app
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+---
 
-## React Compiler
+## 🚀 Features
 
-The React Compiler is enabled on this template. See [this documentation](https://react.dev/learn/react-compiler) for more information.
+- 🧠 Automatic conflict-free timetable generation
+- 👨‍🏫 Teacher management system
+- 📚 Subject & department management
+- 🏫 Room allocation system (labs + lecture rooms)
+- 📅 Dynamic timetable creation
+- 🔐 Authentication system (Login/Register)
+- 📊 Clean and responsive UI
+- 🖨️ Printable timetable view
+- ⚡ Fast and optimized performance
 
-Note: This will impact Vite dev & build performances.
+---
 
-## Expanding the ESLint configuration
+## 🛠️ Tech Stack
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+### Frontend
+- React.js
+- TypeScript
+- Vite
+- Tailwind CSS
+- React Router
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+### Backend
+- Node.js
+- Express.js
+- MongoDB
+- Mongoose
+- JWT Authentication
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+### Deployment
+- Frontend: Vercel
+- Backend: (Add your backend hosting here)
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+---
+## 📸 Screenshots
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+### 🏠 Home Page
+![Home Page](./public/screenshots/home.png)
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+---
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+### ✨ Features Page
+![Features](./public/screenshots/features.png)
+
+---
+
+### 🔐 Authentication
+
+#### Login Page
+![Login](./public/screenshots/login.png)
+
+#### Register Page
+![Register](./public/screenshots/register.png)
+
+---
+
+### 📊 Dashboard
+![Dashboard](./public/screenshots/dashboard.png)
+
+---
+
+### 👨‍🏫 Teacher Management
+![Teacher Management](./public/screenshots/teacher-management.png)
+
+---
+
+### 📚 Subject Management
+![Subject Management](./public/screenshots/subject-management.png)
+
+---
+
+### 🏫 Room Management
+![Room Management](./public/screenshots/room-management.png)
+
+---
+
+### 🏢 Department Management
+![Department Management](./public/screenshots/department-management.png)
+
+---
+
+### 👤 Profile Page
+![Profile](./public/screenshots/profile.png)
+
+---
+
+### 📅 Timetable Views
+
+#### Timetable View 1
+![Timetable 1](./public/screenshots/timetable1.png)
+
+#### Timetable View 2
+![Timetable 2](./public/screenshots/timetable2.png)
+
+#### Timetable View 3
+![Timetable 3](./public/screenshots/timetable3.png)
