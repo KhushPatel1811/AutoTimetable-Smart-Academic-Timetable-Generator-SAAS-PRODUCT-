@@ -45,62 +45,62 @@ It helps administrators efficiently manage **teachers, subjects, departments, ro
 ## 📸 Screenshots
 
 ### 🏠 Home Page
-![Home Page](./public/screenshots/home.png)
+![Home Page](./public/screenshot/Home%20Page.png)
 
 ---
 
 ### ✨ Features Page
-![Features](./public/screenshots/features.png)
+![Features](./public/screenshot/Features.png)
 
 ---
 
 ### 🔐 Authentication
 
 #### Login Page
-![Login](./public/screenshots/login.png)
+![Login](./public/screenshot/Login.png)
 
 #### Register Page
-![Register](./public/screenshots/register.png)
+![Register](./public/screenshot/Registration.png)
 
 ---
 
 ### 📊 Dashboard
-![Dashboard](./public/screenshots/dashboard.png)
+![Dashboard](./public/screenshot/Dashboard.png)
 
 ---
 
 ### 👨‍🏫 Teacher Management
-![Teacher Management](./public/screenshots/teacher-management.png)
+![Teacher Management](./public/screenshot/Teacher%20Management.png)
 
 ---
 
 ### 📚 Subject Management
-![Subject Management](./public/screenshots/subject-management.png)
+![Subject Management](./public/screenshot/Subject%20Management.png)
 
 ---
 
 ### 🏫 Room Management
-![Room Management](./public/screenshots/room-management.png)
+![Room Management](./public/screenshot/Room%20Management.png)
 
 ---
 
 ### 🏢 Department Management
-![Department Management](./public/screenshots/department-management.png)
+![Department Management](./public/screenshot/Department%20Management.png)
 
 ---
 
 ### 👤 Profile Page
-![Profile](./public/screenshots/profile.png)
+![Profile](./public/screenshot/Profile.png)
 
 ---
 
 ### 📅 Timetable Views
 
 #### Timetable View 1
-![Timetable 1](./public/screenshots/timetable1.png)
+![Timetable 1](./public/screenshot/timetable1.png)
 
 #### Timetable View 2
-![Timetable 2](./public/screenshots/timetable2.png)
+![Timetable 2](./public/screenshot/timetable2.png)
 
 #### Timetable View 3
-![Timetable 3](./public/screenshots/timetable3.png)
+![Timetable 3](./public/screenshot/timetable3.png)
