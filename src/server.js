@@ -10,8 +10,8 @@ import departmentRoutes from './Routes/department.route.js'
 import roomRoutes from './Routes/room.route.js'
 import subjectRoutes from './Routes/subject.route.js'
 import timeTableRoutes from './Routes/timetable.route.js'
+import API from './config/api.js'   
 dotenv.config({path: '../.env'}); 
-import API from './config/api'   
 
 const app = express();
 app.use(express.json());
@@ -21,6 +21,7 @@ app.use(cors({
   methods: ["GET", "POST", "PUT", "DELETE"],
   credentials: true
 }));
+console.log(API)
 
 const PORT = process.env.PORT || 2000;
 const MONGODB_URI = process.env.MONGODB_URI || "mongodb://localhost:27017/Institute_Time_Table";
