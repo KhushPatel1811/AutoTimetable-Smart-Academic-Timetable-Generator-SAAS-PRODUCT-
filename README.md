@@ -97,10 +97,10 @@ It helps administrators efficiently manage **teachers, subjects, departments, ro
 ### 📅 Timetable Views
 
 #### Timetable View 1
-![Timetable 1](./public/screenshot/timetable1.png)
+![Timetable 1](./public/screenshot/Timetable1.png)
 
 #### Timetable View 2
-![Timetable 2](./public/screenshot/timetable2.png)
+![Timetable 2](./public/screenshot/Timetable2.png)
 
 #### Timetable View 3
-![Timetable 3](./public/screenshot/timetable3.png)
+![Timetable 3](./public/screenshot/Timetable3.png)
