@@ -23,6 +23,7 @@ function Login() {
     const isButtonDisabled = !isValid || isSubmitting;
 
     async function handleData(data: LoginFormData): Promise<void> {
+        console.log(data)
         try {
             const response = await axios.post(`${API}/auth/login`, data);
             localStorage.setItem('token', response.data.token);

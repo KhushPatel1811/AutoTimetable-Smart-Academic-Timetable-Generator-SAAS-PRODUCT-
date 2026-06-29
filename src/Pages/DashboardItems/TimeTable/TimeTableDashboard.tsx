@@ -52,7 +52,7 @@ function TimetableDashboard() {
   const [totalDays, setTotalDays] = useState('5');
 
   const [dayStartTime, setDayStartTime] = useState('09:00');
-  const [dayEndTime, setDayEndTime] = useState('16:00');
+  const [lecturesPerDay, setLecturesPerDay] = useState('6');
 
   const [lectureDuration, setLectureDuration] = useState('60');
   const [labDuration, setLabDuration] = useState('120');
@@ -74,34 +74,21 @@ function TimetableDashboard() {
     return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
   };
 
-  const buildTimetableSlots = (startTime: string, endTime: string, lectureMinutes: string, breaks: number[]) => {
+  const buildTimetableSlots = (startTime: string, numLectures: number, lectureMinutes: string, breaks: number[]) => {
     const [sh, sm] = startTime.split(":").map(Number);
-    const [eh, em] = endTime.split(":").map(Number);
-
-    let current = sh * 60 + sm;
-    const end = eh * 60 + em;
-
     const safeLecture = Math.max(1, Number(lectureMinutes) || 60);
     const safeBreaks = breaks.map(b => Math.max(0, Number(b) || 0)).filter(b => b > 0);
 
-    // Simulate the timeline to compute exact break-after-slot positions
-    // by evenly distributing breaks across the available lecture slots
-    const totalBreakTime = safeBreaks.reduce((a, b) => a + b, 0);
-    const availableTime = (end - current) - totalBreakTime;
-    const totalLectureSlots = Math.floor(availableTime / safeLecture);
-
     const breakAfterSlot: number[] = safeBreaks.map((_, i) =>
-      Math.floor((i + 1) * totalLectureSlots / (safeBreaks.length + 1))
+      Math.floor((i + 1) * numLectures / (safeBreaks.length + 1))
     );
 
     const slotLabels: string[] = [];
     const breakSlots: { slotIndex: number; duration: number; label: string }[] = [];
     let breakIndex = 0;
-
-    // Simulate actual clock to generate time-accurate labels
     let clock = sh * 60 + sm;
 
-    for (let n = 0; n < totalLectureSlots; n++) {
+    for (let n = 0; n < numLectures; n++) {
       slotLabels.push(`${minutesToTime(clock)} - ${minutesToTime(clock + safeLecture)}`);
       clock += safeLecture;
 
@@ -236,7 +223,7 @@ function TimetableDashboard() {
       const breaks = parsedBreakDurations();
       const slots = buildTimetableSlots(
         dayStartTime,
-        dayEndTime,
+        Number(lecturesPerDay),
         lectureDuration,
         breaks
       );
@@ -249,7 +236,7 @@ function TimetableDashboard() {
         totalDays: Number(totalDays),
         totalSlotsPerDay: slots.slotLabels.length,
         dayStartTime,
-        dayEndTime,
+        lecturesPerDay: Number(lecturesPerDay),
         lectureDuration: Number(lectureDuration),
         labDuration: Number(labDuration),
         breakDurations: breaks,
@@ -459,13 +446,16 @@ const displaySlots = React.useMemo(() => {
 
           <div>
             <label className="block text-xs font-semibold text-slate-500 mb-1">
-              Day End Time
+              Lectures per Day
             </label>
             <input
-              type="time"
-              value={dayEndTime}
-              onChange={(e) => setDayEndTime(e.target.value)}
+              type="number"
+              value={lecturesPerDay}
+              onChange={(e) => setLecturesPerDay(e.target.value)}
               className="p-2.5 bg-slate-50 border rounded-xl text-sm w-full"
+              placeholder="e.g. 6"
+              min="1"
+              max="12"
             />
           </div>
 

@@ -80,8 +80,8 @@ const timeTableSchema = new mongoose.Schema({
         required: true
     },
 
-    dayEndTime: {
-        type: String,
+    lecturesPerDay: {
+        type: Number,
         required: true
     },
 
