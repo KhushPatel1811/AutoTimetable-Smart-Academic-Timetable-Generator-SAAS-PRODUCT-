@@ -4,9 +4,9 @@ import { useNavigate } from "react-router"
 import { useEffect, useState } from "react"
 import axios from "axios"
 import { toast, ToastContainer } from "react-toastify"
-import { Building2, LayoutGrid, CheckCircle, Plus, Trash2, ArrowLeft, Sidebar } from 'lucide-react'
+import { Building2, LayoutGrid, CheckCircle, Plus, Trash2, ArrowLeft } from 'lucide-react'
 import API from '../../../config/api'
-import Sidebar1 from "../../../Components/Dashboard/Sidebar"
+import Sidebar from "../../../Components/Dashboard/Sidebar"
 
 function AddRooms() {
     const navigate = useNavigate()
@@ -92,7 +92,7 @@ function AddRooms() {
 
     return (
         <div className="flex h-screen w-screen bg-slate-50 overflow-hidden">
-            <Sidebar1 isOpen={isSidebarOpen} onClose={handleSidebarClose} />
+            <Sidebar isOpen={isSidebarOpen} onClose={handleSidebarClose} />
             <div className="flex-1 flex flex-col h-full overflow-y-auto animate-page">
                 {/* Header Navbar */}
                 <div className="sticky top-0 z-50 bg-white border-b border-slate-200 px-6 py-4 flex items-center justify-between">
