@@ -96,7 +96,11 @@ function Register() {
                                 <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1 flex items-center gap-2">
                                     <User className="w-3 h-3 text-indigo-400" /> Full Name
                                 </label>
-                                <input type="text" placeholder="John Doe" className="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-4 text-white placeholder:text-slate-600 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 transition-all text-sm font-bold" {...register("userName", { required: "Name is required" })} />
+                                <input type="text" placeholder="John Doe" className="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-4 text-white placeholder:text-slate-600 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 transition-all text-sm font-bold" {...register("userName", { required: "Name is required",
+                                    pattern: {
+                                    value: /^[A-Za-z ]+$/,
+                                    message: "Name should contain only alphabets and spaces",
+                                }})} />
                                 {errors.userName && <p className="text-xs text-rose-400 font-bold pl-1">{errors.userName.message}</p>}
                             </div>
 
@@ -104,7 +108,12 @@ function Register() {
                                 <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1 flex items-center gap-2">
                                     <Building2 className="w-3 h-3 text-indigo-400" /> Institute Name
                                 </label>
-                                <input type="text" placeholder="University Name" className="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-4 text-white placeholder:text-slate-600 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 transition-all text-sm font-bold" {...register("instituteName", { required: "Institute name is required" })} />
+                                <input type="text" placeholder="University Name" className="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-4 text-white placeholder:text-slate-600 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 transition-all text-sm font-bold" {...register("instituteName", { required: "Institute name is required",
+                                     pattern: {
+                                        value: /^[A-Za-z0-9\s.,&()-]+$/,
+                                        message: "Invalid institute name",
+                                    },
+                                 })} />
                                 {errors.instituteName && <p className="text-xs text-rose-400 font-bold pl-1">{errors.instituteName.message}</p>}
                             </div>
                         </div>
@@ -115,7 +124,12 @@ function Register() {
                                 <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1 flex items-center gap-2">
                                     <Mail className="w-3 h-3 text-indigo-400" /> Email Address
                                 </label>
-                                <input type="email" placeholder="name@college.edu" className="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-4 text-white placeholder:text-slate-600 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 transition-all text-sm font-bold" {...register("email", { required: "Email is required" })} />
+                                <input type="email" placeholder="name@college.edu" className="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-4 text-white placeholder:text-slate-600 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 transition-all text-sm font-bold" {...register("email", { required: "Email is required", 
+                                    pattern: {
+                                    value: /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[A-Za-z]{2,}$/,
+                                    message: "Please enter a valid email address",
+                                },
+                                 })} />
                                 {errors.email && <p className="text-xs text-rose-400 font-bold pl-1">{errors.email.message}</p>}
                             </div>
 
@@ -123,7 +137,12 @@ function Register() {
                                 <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1 flex items-center gap-2">
                                     <Phone className="w-3 h-3 text-indigo-400" /> Phone Number
                                 </label>
-                                <input type="tel" placeholder="+1 (000) 000-0000" className="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-4 text-white placeholder:text-slate-600 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 transition-all text-sm font-bold" {...register("phoneNumber", { required: "Phone number is required" })} />
+                                <input type="tel" placeholder="1234567890" className="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-4 text-white placeholder:text-slate-600 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 transition-all text-sm font-bold" {...register("phoneNumber", { required: "Phone number is required", 
+                                    pattern: {
+                                        value: /^[0-9]{10}$/,
+                                        message: "Phone number must contain exactly 10 digits",
+                                    },
+                                 })} />
                                 {errors.phoneNumber && <p className="text-xs text-rose-400 font-bold pl-1">{errors.phoneNumber.message}</p>}
                             </div>
                         </div>
@@ -152,7 +171,16 @@ function Register() {
                                     <LockKeyhole className="w-3 h-3 text-indigo-400" /> Password
                                 </label>
                                 <input type="password" placeholder="••••••••" className="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-4 text-white placeholder:text-slate-600 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 transition-all text-sm font-bold" {...register("password", { 
-                                    required: "Password is required" })} />
+                                    required: "Password is required",
+                                    minLength: {
+                                        value: 6,
+                                        message: "Password must be at least 6 characters long",
+                                    },
+                                    pattern: {
+                                        value: /^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[!@#$%^&*()_+]).{6,}$/,
+                                        message:
+                                            "Password must contain an uppercase letter, lowercase letter, number, and special character",
+                                    }, })} />
                                 {errors.password && <p className="text-xs text-rose-400 font-bold pl-1">{errors.password.message}</p>}
                             </div>
 
