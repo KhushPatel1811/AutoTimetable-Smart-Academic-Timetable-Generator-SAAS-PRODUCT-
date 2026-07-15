@@ -31,6 +31,16 @@ function Subjects() {
     const [departmentFilter, setDepartmentFilter] = useState("");
     const [semesterFilter, setSemesterFilter] = useState("");
     const [type, setType] = useState("");
+    const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+
+    const handleMenuToggle = () => {
+        setIsSidebarOpen((prev) => !prev);
+    };
+
+    const handleSidebarClose = () => {
+        setIsSidebarOpen(false);
+    };
+
 
     useEffect(() => {
         async function fetchData() {
@@ -76,11 +86,11 @@ function Subjects() {
 
     return (
         <div className="flex h-screen w-screen bg-slate-50 overflow-hidden">
-            <Sidebar />
+            <Sidebar isOpen={isSidebarOpen} onClose={handleSidebarClose} />
 
             <div className="flex-1 flex flex-col h-full overflow-y-auto animate-page">
                 <div className="sticky top-0 z-50 bg-white border-b border-slate-200 px-6 py-4">
-                    <ProfileNavbar content="Subject Management System" />
+                    <ProfileNavbar content="Subject Management System"  onMenuToggle={handleMenuToggle}/>
                     <ToastContainer position="top-right" autoClose={2000} />
                 </div>
 

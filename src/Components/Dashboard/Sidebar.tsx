@@ -59,10 +59,16 @@ function Sidebar({ isOpen, onClose }: SidebarProps) {
             )}
 
             {/* Sidebar Structural Frame Wrapper */}
-            <aside className={`
-                bg-slate-950 w-72 fixed md:sticky top-0 h-screen z-50 transition-all duration-500 ease-[cubic-bezier(0.2,0.8,0.2,1)] flex flex-col border-r border-white/5
-                ${isOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}
-            `}>
+            <aside
+                className={`
+                bg-slate-950 w-72 fixed md:sticky top-0 h-screen z-100 transition-all duration-500 ease-[cubic-bezier(0.2,0.8,0.2,1)] flex flex-col border-r border-white/5
+                    ${
+                        isOpen
+                            ? "translate-x-0 pointer-events-auto"
+                            : "-translate-x-full pointer-events-none md:translate-x-0 md:pointer-events-auto"
+                    }
+                `}
+            >
                 {/* Branding Core Section */}
                 <div className="p-8 pb-10 border-b border-white/5 relative group">
                     <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-600/10 rounded-full blur-3xl -mr-16 -mt-16 group-hover:bg-indigo-600/20 transition-all duration-1000" />

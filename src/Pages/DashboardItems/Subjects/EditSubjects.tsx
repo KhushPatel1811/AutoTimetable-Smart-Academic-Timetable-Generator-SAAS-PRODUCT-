@@ -6,6 +6,7 @@ import ProfileNavbar from "../Profile/ProfileNavbar";
 import { toast, ToastContainer } from "react-toastify";
 import { useNavigate, useParams } from "react-router";
 import API from '../../../config/api'
+import Sidebar from "../../../Components/Dashboard/Sidebar";
 
 
 interface Subject {
@@ -50,6 +51,17 @@ function EditSubject() {
 
     const [allTeacherData, setAllTeacherData] = useState<Teacher[]>([]);
     const [departmentData, setDepartmentData] = useState<Department[]>([]);
+    const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+
+    const handleMenuToggle = () => {
+        setIsSidebarOpen((prev) => !prev);
+    };
+
+    const handleSidebarClose = () => {
+        setIsSidebarOpen(false);
+    };
+
+
     const { subjectId } = useParams();
     const navigate = useNavigate();
 
@@ -133,13 +145,14 @@ function EditSubject() {
     return (
         <>
             <div className="flex min-h-screen w-screen overflow-x-hidden text-gray-800 antialiased">
+                <Sidebar isOpen={isSidebarOpen} onClose={handleSidebarClose} />
                 <div className="h-full -z-10 fixed">
                     <BackGround />
                 </div>
 
                 <div className="flex-1 flex flex-col min-w-0">
-                    <div className="bg-white/80 px-5 backdrop-blur-md border-b border-gray-200 sticky top-0 z-40">
-                        <ProfileNavbar content="Edit Subject Page" />
+                    <div className="bg-white/80 px-5 backdrop-blur-md border-b border-gray-200 sticky top-0 z-40" style={{ opacity: isSidebarOpen ? 0.5 : 1 }}>
+                        <ProfileNavbar content="Edit Subject Page" onMenuToggle={handleMenuToggle} />
                     </div>
                     <ToastContainer position="top-right" autoClose={2000} />
 

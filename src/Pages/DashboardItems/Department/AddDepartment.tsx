@@ -6,6 +6,7 @@ import { toast, ToastContainer } from "react-toastify"
 import { useNavigate } from "react-router"
 import { Building2, Sparkles, ChevronLeft, Save, Plus, Trash2 } from "lucide-react"
 import API from '../../../config/api'
+import { useState } from "react"
 
 
 function AddDepartment() {
@@ -16,6 +17,17 @@ function AddDepartment() {
             departmentName: string
         }[]
     }
+
+    const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+
+    const handleMenuToggle = () => {
+        setIsSidebarOpen((prev) => !prev);
+    };
+
+    const handleSidebarClose = () => {
+        setIsSidebarOpen(false);
+    };
+    
 
     const { register, handleSubmit, control, formState: {errors, isSubmitting, isValid } } = useForm<Department>({
         defaultValues: {
@@ -47,7 +59,7 @@ function AddDepartment() {
 
     return (
         <div className="flex h-screen w-screen bg-slate-50 overflow-hidden">
-            <Sidebar />
+            <Sidebar isOpen={isSidebarOpen} onClose={handleSidebarClose} />
 
             <div className="flex-1 flex flex-col h-full overflow-y-auto animate-page">
                 {/* Header Sticky Bar Container */}
@@ -59,7 +71,7 @@ function AddDepartment() {
                         </button>
                         
                         {/* The Navbar component now safely gets full structural space */}
-                        <ProfileNavbar content="Add New Department" />
+                        <ProfileNavbar content="Add New Department" onMenuToggle={handleMenuToggle} />
                     </div>
                     <ToastContainer position="top-right" autoClose={2000} />
                 </div>

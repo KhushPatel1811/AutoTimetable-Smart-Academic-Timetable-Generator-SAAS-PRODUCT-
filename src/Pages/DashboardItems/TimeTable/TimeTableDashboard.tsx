@@ -4,6 +4,7 @@ import { useReactToPrint } from 'react-to-print';
 import { Calendar, Printer, Sparkles, GraduationCap, Grid3X3 } from 'lucide-react';
 import { toast, ToastContainer } from 'react-toastify';
 import API from '../../../config/api'
+import ProfileNavbar from '../Profile/ProfileNavbar';
 
 
 type BreakSlot = {
@@ -305,6 +306,7 @@ const displaySlots = React.useMemo(() => {
     <ToastContainer position="top-right" autoClose={2000} />
 
     <div className="max-w-7xl mx-auto space-y-6">
+      <ProfileNavbar content='Generate Timetable Page' />
 
       {/* Top Header Row */}
       <header className="bg-gradient-to-r from-indigo-600 to-indigo-500 rounded-[2.5rem] p-8 shadow-2xl shadow-indigo-100 border border-white/10 relative overflow-hidden group">

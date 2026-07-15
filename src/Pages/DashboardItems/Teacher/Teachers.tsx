@@ -30,6 +30,16 @@ function Teachers() {
     const [search, setSearch] = useState('')
     const [departmentFilter, setDepartmentFilter] = useState('')
     const [availabilityFilter, setAvailabilityFilter] = useState('')
+    const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+
+    const handleMenuToggle = () => {
+        setIsSidebarOpen((prev) => !prev);
+    };
+
+    const handleSidebarClose = () => {
+        setIsSidebarOpen(false);
+    };
+
 
     useEffect(() => {
         async function fetchData() {
@@ -78,11 +88,11 @@ function Teachers() {
 
     return (
         <div className="flex h-screen w-screen bg-slate-50 overflow-hidden">
-            <Sidebar />
+            <Sidebar isOpen={isSidebarOpen} onClose={handleSidebarClose} />
 
             <div className="flex-1 flex flex-col h-full overflow-y-auto animate-page">
                 <div className="sticky top-0 z-50 bg-white border-b border-slate-200 px-6 py-4 flex items-center justify-between">
-                    <ProfileNavbar content="Teachers Management System"/>
+                    <ProfileNavbar content="Teachers Management System" onMenuToggle={handleMenuToggle} />
                     <ToastContainer position="top-right" autoClose={2000} />
                 </div>
 

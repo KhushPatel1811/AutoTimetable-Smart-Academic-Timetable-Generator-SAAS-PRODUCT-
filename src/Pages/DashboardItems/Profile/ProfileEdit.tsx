@@ -25,6 +25,15 @@ function ProfileEdit() {
 
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
+    const handleMenuToggle = () => {
+        setIsSidebarOpen((prev) => !prev);
+    };
+
+    const handleSidebarClose = () => {
+        setIsSidebarOpen(false);
+    };
+
+
     const { register, handleSubmit, reset, formState: { errors, isSubmitting } } = useForm<UserProfileData>({
         defaultValues: {
             _id: '',
@@ -70,11 +79,11 @@ function ProfileEdit() {
 
     return (
         <div className="flex h-screen w-screen bg-slate-950 text-slate-100 overflow-hidden">
-            <Sidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
+            <Sidebar isOpen={isSidebarOpen} onClose={handleSidebarClose} />
             <ToastContainer theme="dark" position="top-right" autoClose={2500} />
 
-            <div className="flex-1 flex flex-col h-full overflow-y-auto custom-scrollbar">
-                <ProfileNavbar onMenuToggle={() => setIsSidebarOpen(true)} content="Edit Profile Settings" />
+            <div className="flex-1 flex flex-col h-full overflow-y-auto custom-scrollbar" style={{ opacity: isSidebarOpen ? 0.5 : 1 }}>
+                <ProfileNavbar onMenuToggle={handleMenuToggle} content="Edit Profile Settings" />
 
                 <div className="p-6 md:p-10 max-w-400 w-full mx-auto space-y-10">
                     

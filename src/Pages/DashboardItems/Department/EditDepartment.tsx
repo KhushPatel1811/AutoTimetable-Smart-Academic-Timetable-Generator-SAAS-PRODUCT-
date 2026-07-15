@@ -2,7 +2,7 @@ import { useNavigate, useParams } from "react-router"
 import ProfileNavbar from "../Profile/ProfileNavbar"
 import Sidebar from "../../../Components/Dashboard/Sidebar"
 import { useForm } from "react-hook-form"
-import { useEffect } from "react"
+import { useEffect, useState } from "react"
 import axios from "axios"
 import { toast, ToastContainer } from "react-toastify"
 import { Building2, Sparkles, ChevronLeft, Save } from "lucide-react"
@@ -16,6 +16,17 @@ function EditDepartment() {
     interface Department {
         departmentName: string
     }
+
+    const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+
+    const handleMenuToggle = () => {
+    setIsSidebarOpen((prev) => !prev);
+    };
+
+    const handleSidebarClose = () => {
+        setIsSidebarOpen(false);
+    };
+    
 
     const { register, handleSubmit, reset, formState: { errors, isValid, isSubmitting } } = useForm<Department>({
         defaultValues: { departmentName: '' },
@@ -54,7 +65,7 @@ function EditDepartment() {
 
     return (
         <div className="flex h-screen w-screen bg-slate-50 overflow-hidden">
-            <Sidebar />
+            <Sidebar isOpen={isSidebarOpen} onClose={handleSidebarClose} />
 
             <div className="flex-1 flex flex-col h-full overflow-y-auto animate-page">
                 {/* Header Sticky Bar Container */}
@@ -66,7 +77,7 @@ function EditDepartment() {
                         </button>
                         
                         {/* The Navbar component now safely gets full structural space */}
-                        <ProfileNavbar content="Edit Department Profile" />
+                        <ProfileNavbar content="Edit Department Profile" onMenuToggle={handleMenuToggle} />
                     </div>
                     <ToastContainer position="top-right" autoClose={2000} />
                 </div>

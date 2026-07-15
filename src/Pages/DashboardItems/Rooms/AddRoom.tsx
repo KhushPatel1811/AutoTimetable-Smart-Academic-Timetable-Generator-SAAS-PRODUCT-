@@ -4,8 +4,9 @@ import { useNavigate } from "react-router"
 import { useEffect, useState } from "react"
 import axios from "axios"
 import { toast, ToastContainer } from "react-toastify"
-import { Building2, LayoutGrid, CheckCircle, Plus, Trash2, ArrowLeft } from 'lucide-react'
+import { Building2, LayoutGrid, CheckCircle, Plus, Trash2, ArrowLeft, Sidebar } from 'lucide-react'
 import API from '../../../config/api'
+import Sidebar1 from "../../../Components/Dashboard/Sidebar"
 
 function AddRooms() {
     const navigate = useNavigate()
@@ -42,6 +43,15 @@ function AddRooms() {
     })
 
     const [departmentData, setDepartmentData] = useState<Department[]>([])
+    const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+
+    const handleMenuToggle = () => {
+        setIsSidebarOpen((prev) => !prev);
+    };
+
+    const handleSidebarClose = () => {
+        setIsSidebarOpen(false);
+    };
 
     useEffect(() => {
         async function fetchData() {
@@ -82,10 +92,11 @@ function AddRooms() {
 
     return (
         <div className="flex h-screen w-screen bg-slate-50 overflow-hidden">
+            <Sidebar1 isOpen={isSidebarOpen} onClose={handleSidebarClose} />
             <div className="flex-1 flex flex-col h-full overflow-y-auto animate-page">
                 {/* Header Navbar */}
                 <div className="sticky top-0 z-50 bg-white border-b border-slate-200 px-6 py-4 flex items-center justify-between">
-                    <ProfileNavbar content="Add New Rooms" />
+                    <ProfileNavbar content="Add New Rooms" onMenuToggle={handleMenuToggle}/>
                     <ToastContainer position="top-right" autoClose={2000} />
                 </div>
 

@@ -22,6 +22,14 @@ function Profile() {
     const [user, setUser] = useState<UserProfile | null>(null);
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
+    const handleMenuToggle = () => {
+        setIsSidebarOpen((prev) => !prev);
+    };
+
+    const handleSidebarClose = () => {
+        setIsSidebarOpen(false);
+    };
+
     useEffect(() => {
         const storedUser = localStorage.getItem('user') || null;
         if (storedUser) {
@@ -31,13 +39,13 @@ function Profile() {
     }, []);
 
     return (
-        <div className="flex h-screen w-screen bg-slate-950 text-slate-100 overflow-hidden">
+        <div className="flex h-screen w-screen bg-slate-950 text-slate-100 overflow-hidden" >
             {/* Control Sidebar Element Navigation Node */}
-            <Sidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)}/>
+            <Sidebar isOpen={isSidebarOpen} onClose={handleSidebarClose}/>
 
             {/* Dashboard Workspace Main Frame */}
-            <div className="flex-1 flex flex-col h-full overflow-y-auto custom-scrollbar">
-                <ProfileNavbar onMenuToggle={() => setIsSidebarOpen(true)} content="Account Settings Panel" />
+            <div className="flex-1 flex flex-col h-full overflow-y-auto custom-scrollbar" style={{ opacity: isSidebarOpen ? 0.5 : 1 }}>
+                <ProfileNavbar content="Account Settings Panel" onMenuToggle={handleMenuToggle} />
 
                 <div className="p-6 md:p-10 max-w-400 w-full mx-auto space-y-10">
                     

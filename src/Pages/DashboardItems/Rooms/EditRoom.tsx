@@ -6,6 +6,7 @@ import { useNavigate, useParams } from "react-router"
 import { ToastContainer, toast } from 'react-toastify'
 import { Building2, LayoutGrid, CheckCircle, ArrowLeft } from 'lucide-react'
 import API from '../../../config/api'
+import Sidebar from "../../../Components/Dashboard/Sidebar"
 
 function EditRoom() {
     interface Department {
@@ -35,6 +36,16 @@ function EditRoom() {
     const navigate = useNavigate()
     const { roomId } = useParams()
     const [departmentData, setDepartmentData] = useState<Department[]>([])
+    const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+
+    const handleMenuToggle = () => {
+        setIsSidebarOpen((prev) => !prev);
+    };
+
+    const handleSidebarClose = () => {
+        setIsSidebarOpen(false);
+    };
+
 
     // Fetch room and department details
     useEffect(() => {
@@ -82,10 +93,11 @@ function EditRoom() {
 
     return (
         <div className="flex h-screen w-screen bg-slate-50 overflow-hidden">
+            <Sidebar isOpen={isSidebarOpen} onClose={handleSidebarClose} />
             <div className="flex-1 flex flex-col h-full overflow-y-auto animate-page">
                 {/* Header Navbar */}
                 <div className="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b border-slate-200 px-6 py-4 flex items-center justify-between">
-                    <ProfileNavbar content="Edit Room" />
+                    <ProfileNavbar content="Edit Room" onMenuToggle={handleMenuToggle}/>
                     <ToastContainer position="top-right" autoClose={2000} />
                 </div>
 

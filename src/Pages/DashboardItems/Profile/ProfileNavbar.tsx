@@ -25,16 +25,13 @@ function ProfileNavbar({ onMenuToggle, content }: ProfileNavbarProps) {
     }, []);
 
     return (
-        <div className="flex z-10 items-center justify-between w-full gap-4">
+        <div className="flex z-100 items-center justify-between w-full gap-4">
             
             {/* Left Context Group */}
             <div className="flex items-center gap-3 sm:gap-6 min-w-0">
                 {/* Mobile Hamburger Trigger */}
-                <button 
-                    type="button"
-                    onClick={onMenuToggle}
-                    className="md:hidden p-2.5 bg-indigo-600 text-white rounded-xl shadow-lg shadow-indigo-100 hover:bg-indigo-700 transition-all active:scale-95 shrink-0"
-                >
+                <button type="button" onClick={onMenuToggle}
+                className="md:hidden m-5 p-2.5 bg-indigo-600 text-white rounded-xl shadow-lg shadow-indigo-100 hover:bg-indigo-700 transition-all active:scale-95 shrink-0">
                     <Menu size={18} />
                 </button>
 

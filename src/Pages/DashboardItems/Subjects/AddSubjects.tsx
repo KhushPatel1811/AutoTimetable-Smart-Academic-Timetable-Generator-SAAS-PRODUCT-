@@ -7,6 +7,7 @@ import { toast, ToastContainer } from "react-toastify";
 import { useNavigate } from "react-router";
 import { BookOpen, Plus, Trash2, GraduationCap, Layers3, Hash, CalendarDays, Building2, Sliders, ShieldAlert } from "lucide-react";
 import API from '../../../config/api'
+import Sidebar from "../../../Components/Dashboard/Sidebar";
 
 
 function AddSubject() {
@@ -36,6 +37,7 @@ function AddSubject() {
         teacherName: string;
     }
 
+    
     const { register, control, watch, handleSubmit, formState: { errors, isSubmitting, isValid } } = useForm<FormData>({
         defaultValues: {
             Subjects: [{
@@ -62,6 +64,16 @@ function AddSubject() {
     const [departmentData, setDepartmentData] = useState<Department[]>([]);
     const navigate = useNavigate();
     const [teacherData, setTeacherData] = useState<Record<number, Teacher[]>>({});
+    const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+
+    const handleMenuToggle = () => {
+        setIsSidebarOpen((prev) => !prev);
+    };
+
+    const handleSidebarClose = () => {
+        setIsSidebarOpen(false);
+    };
+
 
     // Fetch departments on page load
     useEffect(() => {
@@ -128,14 +140,15 @@ function AddSubject() {
 
     return (
         <div className="flex min-h-screen w-screen bg-slate-100 relative">
+            <Sidebar isOpen={isSidebarOpen} onClose={handleSidebarClose} />
             <div className="fixed inset-0 -z-10">
                 <BackGround />
             </div>
 
             <div className="flex-1 flex flex-col pb-12">
                 {/* Navbar Header */}
-                <div className="sticky top-0 z-50 bg-white border-b border-slate-200 px-6 py-4 shadow-xs">
-                    <ProfileNavbar content="Add New Subject" />
+                <div className="sticky top-0 z-50 bg-white border-b border-slate-200 px-6 py-4 shadow-xs" style={{ opacity: isSidebarOpen ? 0.5 : 1 }}>
+                    <ProfileNavbar content="Add New Subject" onMenuToggle={handleMenuToggle}/>
                     <ToastContainer position="top-right" autoClose={2000} />
                 </div>
 

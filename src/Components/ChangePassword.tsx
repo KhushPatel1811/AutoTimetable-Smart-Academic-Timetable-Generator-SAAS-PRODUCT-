@@ -15,6 +15,7 @@ function ChangePassword() {
         newPassword: string,
         confirmNewPassword:string,
     }
+
     
     const {register, handleSubmit, watch, formState:{errors, isSubmitting, isValid}} = useForm<Password>({
         defaultValues: {

@@ -7,6 +7,7 @@ import { useNavigate, useParams } from "react-router";
 import { ToastContainer, toast } from 'react-toastify';
 import { UserPlus, BookCopy, Sparkles, ChevronLeft, Save } from "lucide-react";
 import API from '../../../config/api'
+import Sidebar from "../../../Components/Dashboard/Sidebar";
 
 
 function EditTeacher() {
@@ -44,6 +45,16 @@ function EditTeacher() {
     })
 
     const [departments, setDepartments] = useState<{departmentName: string}[]>([])
+    const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+
+    const handleMenuToggle = () => {
+        setIsSidebarOpen((prev) => !prev);
+    };
+
+    const handleSidebarClose = () => {
+        setIsSidebarOpen(false);
+    };
+
 
     const navigate = useNavigate()
     const { teacherId } = useParams()
@@ -88,6 +99,7 @@ function EditTeacher() {
 
     return (
         <div className="flex h-screen w-screen bg-slate-50 overflow-hidden relative">
+            <Sidebar isOpen={isSidebarOpen} onClose={handleSidebarClose} />
             {/* Structural Background Layout component */}
             <div className="absolute inset-0 pointer-events-none z-0">
                 <BackGround />
@@ -103,7 +115,7 @@ function EditTeacher() {
                         </button>
                         
                         {/* The Navbar component now safely gets full structural space */}
-                        <ProfileNavbar content="Modify Teacher Profile" />
+                        <ProfileNavbar content="Modify Teacher Profile" onMenuToggle={handleMenuToggle} />
                     </div>
                     <ToastContainer position="top-right" autoClose={2000} />
                 </div>

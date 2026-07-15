@@ -4,9 +4,20 @@ import QuickActions from "../Components/Dashboard/QuickActions";
 import StatisticCards from "../Components/Dashboard/StatisticCards";
 import { ToastContainer } from "react-toastify";
 import { useEffect, useState } from "react";
+import ProfileNavbar from "./DashboardItems/Profile/ProfileNavbar";
 
 function DashBoard() {
     const [userRole, setUserRole] = useState<string>('')
+    const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+
+    const handleMenuToggle = () => {
+        setIsSidebarOpen((prev) => !prev);
+    };
+
+    const handleSidebarClose = () => {
+        setIsSidebarOpen(false);
+    };
+
 
     useEffect(()=>{
         const user = localStorage.getItem('user')
@@ -21,7 +32,7 @@ function DashBoard() {
         <>
         <div className="flex h-screen w-screen overflow-hidden bg-slate-50 selection:bg-indigo-500/30 selection:text-indigo-900">
             {/* Locked Sidebar */}
-            <Sidebar />
+            <Sidebar isOpen={isSidebarOpen} onClose={handleSidebarClose} />
 
             <div className="flex-1 flex flex-col h-full overflow-y-auto animate-page">
                 {/* Global Toast Container */}
@@ -29,11 +40,12 @@ function DashBoard() {
 
                 {/* Main Header / Navigation */}
                 <div className="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b border-slate-200 px-8 py-4">
-                    <Navbar />
+                    <ProfileNavbar content={'Dashboard Page'} onMenuToggle={handleMenuToggle} />
                 </div>
 
                 {/* Dashboard Intelligence Stream */}
                 <main className="p-8 max-w-[1600px] w-full mx-auto space-y-12">
+                    <Navbar />
                     {/* Hero Welcome branding could go here if needed, but StatisticCards usually handle stats */}
                     
                     <section className="space-y-6">

@@ -38,6 +38,16 @@ function AddTeacher() {
     const { fields, append, remove } = useFieldArray({ control, name: 'Subjects' })
     const navigate = useNavigate()
     const [department, setDepartment] = useState<Department[] | null>([])
+    const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+
+    const handleMenuToggle = () => {
+        setIsSidebarOpen((prev) => !prev);
+    };
+
+    const handleSidebarClose = () => {
+        setIsSidebarOpen(false);
+    };
+
 
     useEffect(() => {
         async function fetchData() {
@@ -73,7 +83,7 @@ function AddTeacher() {
 
     return (
         <div className="flex h-screen w-screen bg-slate-50 overflow-hidden">
-            <Sidebar />
+            <Sidebar isOpen={isSidebarOpen} onClose={handleSidebarClose} />
 
             <div className="flex-1 flex flex-col h-full overflow-y-auto animate-page">
                 {/* Header Sticky Bar Container */}
@@ -85,7 +95,7 @@ function AddTeacher() {
                         </button>
                         
                         {/* The Navbar component now safely gets full structural space */}
-                        <ProfileNavbar content="Modify Teacher Profile" />
+                        <ProfileNavbar content="Modify Teacher Profile" onMenuToggle={handleMenuToggle}/>
                     </div>
                     <ToastContainer position="top-right" autoClose={2000} />
                 </div>
