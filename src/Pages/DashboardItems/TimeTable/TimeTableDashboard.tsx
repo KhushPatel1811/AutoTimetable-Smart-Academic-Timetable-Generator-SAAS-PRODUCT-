@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import axios from 'axios';
 import { useReactToPrint } from 'react-to-print';
-import { Calendar, Printer, Sparkles, GraduationCap, Grid3X3 } from 'lucide-react';
+import { Calendar, Printer, Sparkles, GraduationCap, Grid3X3, Save } from 'lucide-react';
 import { toast, ToastContainer } from 'react-toastify';
 import API from '../../../config/api'
 import ProfileNavbar from '../Profile/ProfileNavbar';
@@ -263,6 +263,40 @@ function TimetableDashboard() {
     }
   };
 
+  // ---------------- SAVE ----------------
+  const [saving, setSaving] = useState(false);
+
+  const handleSaveTimetable = async () => {
+    if (!timetable?.divisions?.length) {
+      toast.error("No timetable to save. Please generate first.");
+      return;
+    }
+    setSaving(true);
+    try {
+      const savePromises = timetable.divisions.map((div: Division) =>
+        axios.post(`${API}/saved-timetables/save`, {
+          departmentName,
+          semester: semester ? Number(semester) : undefined,
+          divisionName: div.divisionName,
+          timeSlots: dynamicSlots,
+          totalDays: Number(totalDays),
+          dayStartTime,
+          schedule: div.schedule,
+          sourceTimeTableId: (timetable as any)._id,
+        }, {
+          headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+        })
+      );
+      await Promise.all(savePromises);
+      toast.success("All timetables saved successfully!");
+    } catch (err: unknown) {
+      const e = err as { response?: { data?: { message?: string } } };
+      toast.error(e?.response?.data?.message || "Save failed");
+    } finally {
+      setSaving(false);
+    }
+  };
+
   // ---------------- PRINT ----------------
   const handlePrint = useReactToPrint({
   contentRef: printRef,
@@ -333,6 +367,11 @@ const displaySlots = React.useMemo(() => {
             <button onClick={handlePrint} disabled={!timetable} className={`bg-white/15 backdrop-blur-xl border border-white/25 text-white px-8 py-4 rounded-2xl font-black uppercase tracking-widest text-xs hover:bg-white/25 transition-all disabled:opacity-40 flex items-center justify-center gap-3 ${!timetable ? 'cursor-not-allowed' : 'cursor-pointer'}`}>
               <Printer className="w-5 h-5" />
               Print
+            </button>
+
+            <button onClick={handleSaveTimetable} disabled={!timetable || saving} className={`bg-white/15 backdrop-blur-xl border border-white/25 text-white px-8 py-4 rounded-2xl font-black uppercase tracking-widest text-xs hover:bg-white/25 transition-all disabled:opacity-40 flex items-center justify-center gap-3 ${!timetable || saving ? 'cursor-not-allowed' : 'cursor-pointer'}`}>
+              <Save className={`w-5 h-5 ${saving ? 'animate-pulse' : ''}`} />
+              {saving ? "Saving..." : "Save"}
             </button>
 
             <button onClick={triggerGenerationPipeline} disabled={loading} className="bg-white text-indigo-600 px-8 py-4 rounded-2xl font-black uppercase tracking-widest text-xs shadow-2xl hover:scale-105 hover:cursor-pointer transition-all disabled:opacity-50 flex items-center justify-center gap-3">

@@ -78,10 +78,10 @@ function Subjects() {
     };
 
     const stats = [
-        { icon: BookOpen, title: "Curriculum Total", count: subjects.length, color: "from-indigo-600 to-indigo-500", shadow: "shadow-indigo-100" },
-        { icon: GraduationCap, title: "Primary Lectures", count: subjects.filter((s) => s.subjectType?.toUpperCase() === "LECTURE").length, color: "from-emerald-600 to-emerald-500", shadow: "shadow-emerald-100" },
-        { icon: FlaskConical, title: "Laboratory Units", count: subjects.filter((s) => s.subjectType?.toUpperCase() === "LAB").length, color: "from-amber-600 to-amber-500", shadow: "shadow-amber-100" },
-        { icon: Binary, title: "Hybrid Modules", count: subjects.filter((s) => s.subjectType?.toUpperCase() === "LECTURE + LAB").length, color: "from-rose-600 to-rose-500", shadow: "shadow-rose-100" }
+        { icon: BookOpen, title: "Total Subjects", count: subjects.length, color: "from-indigo-600 to-indigo-500", shadow: "shadow-indigo-100" },
+        { icon: GraduationCap, title: "Lectures", count: subjects.filter((s) => s.subjectType?.toUpperCase() === "LECTURE").length, color: "from-emerald-600 to-emerald-500", shadow: "shadow-emerald-100" },
+        { icon: FlaskConical, title: "Labs", count: subjects.filter((s) => s.subjectType?.toUpperCase() === "LAB").length, color: "from-amber-600 to-amber-500", shadow: "shadow-amber-100" },
+        { icon: Binary, title: "Lecture + Lab", count: subjects.filter((s) => s.subjectType?.toUpperCase() === "LECTURE + LAB").length, color: "from-rose-600 to-rose-500", shadow: "shadow-rose-100" }
     ];
 
     return (
@@ -104,15 +104,15 @@ function Subjects() {
                                 <BookOpen className="w-10 h-10 text-white" />
                             </div>
                             <div>
-                                <h1 className="text-4xl font-black text-white tracking-tight">Subject Registry</h1>
-                                <p className="text-indigo-100 font-bold text-sm tracking-widest opacity-80 uppercase mt-1">Manage academic modules & workload</p>
+                                <h1 className="text-4xl font-black text-white tracking-tight">Subjects</h1>
+                                <p className="text-indigo-100 font-bold text-sm tracking-widest opacity-80 uppercase mt-1">Manage all subjects and their details</p>
                             </div>
                         </div>
 
                         <button 
                             className="bg-white px-10 py-5 rounded-2xl font-black text-indigo-600 text-sm shadow-2xl hover:shadow-indigo-200 hover:scale-105 active:scale-95 transition-all duration-300 cursor-pointer relative z-10 uppercase tracking-[0.2em]" 
                             onClick={() => navigate("/subjects/add")}>
-                            + Define New Subject
+                            + Add New Subject
                         </button>  
                     </div>
 
@@ -167,7 +167,7 @@ function Subjects() {
 
                         <button className="secondary-btn w-full py-3! flex items-center justify-center gap-2 group" onClick={() => { setSearch(''); setDepartmentFilter(''); setSemesterFilter(''); setType(''); }}>
                             <RefreshCcw size={16} className="group-hover:rotate-180 transition-transform duration-500" />
-                            Reset Matrix
+                            Reset Filters
                         </button>
                     </div>
 
@@ -178,20 +178,20 @@ function Subjects() {
                                 <div className="p-2 bg-indigo-50 rounded-lg text-indigo-600">
                                     <Filter className="w-4 h-4" />
                                 </div>
-                                <h3 className="text-sm font-black text-slate-800 uppercase tracking-widest">Active Curriculum Registry</h3>
+                                <h3 className="text-sm font-black text-slate-800 uppercase tracking-widest">All Subjects</h3>
                             </div>
-                            <div className="badge-indigo">Verified Content</div>
+                            <div className="badge-indigo">Total: {subjects.length}</div>
                         </div>
 
                         <div className="overflow-x-auto custom-scrollbar">
                             <table className="w-full text-left">
                                 <thead>
                                     <tr className="border-b border-slate-100 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">
-                                        <th className="p-8">Subject Identity</th>
-                                        <th className="p-8">Classification</th>
-                                        <th className="p-8">Academic Span</th>
-                                        <th className="p-8">Instructional Node</th>
-                                        <th className="p-8 text-right">Operations</th>
+                                        <th className="p-8">Subject Name</th>
+                                        <th className="p-8">Type</th>
+                                        <th className="p-8">Department & Semester</th>
+                                        <th className="p-8">Teachers</th>
+                                        <th className="p-8 text-right">Actions</th>
                                     </tr>
                                 </thead>
 
@@ -223,18 +223,18 @@ function Subjects() {
                                                     </div>
                                                 </td>
                                                 <td className="p-8">
-                                                    <div className={`${badgeClasses} px-4 py-2 inline-flex items-center gap-2 rounded-xl text-xs font-black tracking-wide uppercase`}>
-                                                        <div className={`w-1.5 h-1.5 rounded-full ${dotClasses} opacity-80`} />
-                                                        {s.subjectType}
+                                                    <div className={`${badgeClasses} inline-flex items-center gap-2 px-4 py-2 rounded-full text-xs font-black tracking-wide uppercase whitespace-nowrap`}>
+                                                        <span className={`w-2 h-2 rounded-full ${dotClasses} shrink-0`}></span>
+                                                        <span>{s.subjectType}</span>
                                                     </div>
                                                 </td>
                                                 <td className="p-8">
                                                     <div className="font-bold text-slate-700">{s.departmentName}</div>
-                                                    <div className="text-[10px] text-slate-400 font-black uppercase tracking-tighter">Level: {s.semester}</div>
+                                                    <div className="text-[10px] text-slate-400 font-black uppercase tracking-tighter">Semester: {s.semester}</div>
                                                 </td>
                                                 <td className="p-8">
-                                                    <span className="px-3 py-1.5 bg-blue-50 text-blue-700 font-black text-[10px] rounded-lg tracking-widest uppercase border border-blue-100/50">
-                                                        {s.teachers?.length || 0} Assignees
+                                                   <span className="inline-flex items-center justify-center px-4 py-1.5 rounded-full bg-blue-50 text-blue-700 border border-blue-100 font-black text-[10px] tracking-widest uppercase whitespace-nowrap">
+                                                        {s.teachers?.length || 0} Teachers
                                                     </span>
                                                 </td>
                                                 <td className="p-8 text-right">
@@ -255,7 +255,7 @@ function Subjects() {
                             {(!subjects || subjects.length === 0) && (
                                 <div className="p-32 text-center space-y-4 opacity-30 grayscale">
                                     <BookOpen className="w-16 h-16 mx-auto text-slate-200" />
-                                    <p className="font-black uppercase tracking-[0.4em] text-xs">Curriculum Registry Empty</p>
+                                    <p className="font-black uppercase tracking-[0.4em] text-xs">No subjects found</p>
                                 </div>
                             )}
                         </div>

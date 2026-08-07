@@ -1,8 +1,11 @@
 import express from "express";
 import TimeTable from "../Models/TimeTableModel.js";
 import authMiddleware from "../Middleware/AuthMiddleware.js";
+import roleMiddleware from "../Middleware/RoleMiddleware.js";
 import generateEmptyTimetable, { buildLectureQueue } from "../Services/TimeTableGenerator.js";
 import { solveUsingORTools } from "../Services/OrToolsService.js";
+import createNotification from "../Services/NotificationService.js";
+import logActivity from "../Services/ActivityLogService.js";
 
 const router = express.Router();
 
@@ -11,7 +14,7 @@ const router = express.Router();
  * GENERATE TIMETABLE
  * =========================
  */
-router.post("/generate", authMiddleware, async (req, res) => {
+router.post("/generate", authMiddleware, roleMiddleware("Admin"), async (req, res) => {
     console.log("🚀 /generate route called");
     try {
         const {
@@ -192,6 +195,16 @@ lectureQueue.sort(() => Math.random() - 0.5);
         });
 
         await timetable.save();
+
+        // Notification: timetable generated
+        await createNotification({
+            instituteId,
+            type: "timetable_generated",
+            message: `A new timetable was generated for ${departmentName}${safeSemester ? ` (Semester ${safeSemester})` : ""}.`,
+            metadata: { departmentName, semester: safeSemester }
+        });
+
+        await logActivity({ req, module: "Timetable", action: "Generate", description: `Timetable generated for ${departmentName}${safeSemester ? ` Sem ${safeSemester}` : ""}.`, newValue: { departmentName, semester: safeSemester } });
 
         // -----------------------------
         // RESPONSE

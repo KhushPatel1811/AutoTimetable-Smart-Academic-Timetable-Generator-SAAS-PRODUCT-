@@ -15,6 +15,7 @@ function Teachers() {
         teacherEmail: string,
         teacherPhoneNumber: string,
         teacherDepartment: string,
+        teacherDepartments?: string[],
         teacherAvailability: string,
         Subjects: {subjects: ''}[]
     }
@@ -207,9 +208,18 @@ function Teachers() {
                                                 <div className="text-[10px] text-slate-400 font-black">{teacher.teacherPhoneNumber}</div>
                                             </td>
                                             <td className="p-8">
-                                                <span className="px-3 py-1.5 bg-slate-100 text-slate-600 font-black text-[10px] rounded-lg tracking-widest uppercase">
-                                                    {teacher.teacherDepartment}
-                                                </span>
+                                                <div className="flex flex-wrap gap-1">
+                                                    {(teacher.teacherDepartments?.length
+                                                        ? teacher.teacherDepartments
+                                                        : teacher.teacherDepartment
+                                                            ? [teacher.teacherDepartment]
+                                                            : ["—"]
+                                                    ).map(dept => (
+                                                        <span key={dept} className="px-3 py-1.5 bg-slate-100 text-slate-600 font-black text-[10px] rounded-lg tracking-widest uppercase">
+                                                            {dept}
+                                                        </span>
+                                                    ))}
+                                                </div>
                                             </td>
                                             <td className="p-8">
                                                 <div className={`badge-${teacher.teacherAvailability === 'Available' ? 'emerald' : teacher.teacherAvailability === 'Busy' ? 'indigo' : 'rose'} px-4! py-2! inline-flex items-center gap-2`}>

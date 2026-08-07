@@ -50,6 +50,12 @@ const userSchema = new mongoose.Schema(
       required: [true, "Password is required"],
       minlength: 6,
     },
+
+    // Founder flag — set manually in MongoDB; grants access to Activity Logs
+    isFounder: {
+      type: Boolean,
+      default: false,
+    },
   },
   {
     timestamps: true,

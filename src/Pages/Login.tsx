@@ -29,7 +29,14 @@ function Login() {
             localStorage.setItem('token', response.data.token);
             localStorage.setItem('user', JSON.stringify(response.data.user));
             toast.success('Login successful');
-            setTimeout(() => navigate(`/dashboard`), 1000);
+            const role = response.data.user?.role;
+            setTimeout(() => {
+                if (role === 'Teacher') {
+                    navigate('/teacher/dashboard');
+                } else {
+                    navigate('/dashboard');
+                }
+            }, 1000);
         }
         catch(err: any) {
             toast.error(err.response?.data?.message || 'Invalid email or password');

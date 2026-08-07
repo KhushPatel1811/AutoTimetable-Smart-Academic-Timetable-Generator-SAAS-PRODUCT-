@@ -38,9 +38,21 @@ const teacherSchema = new mongoose.Schema(
       match: [/^[0-9]{10}$/, "Phone number must contain 10 digits"],
     },
 
+    // ✅ MULTI-DEPARTMENT: array of department names
+    teacherDepartments: {
+      type: [String],
+      default: [],
+      validate: {
+        validator: function (arr) {
+          return arr.length > 0;
+        },
+        message: "At least one department is required",
+      },
+    },
+
+    // ✅ LEGACY SUPPORT: keep teacherDepartment as virtual/first element for backward compat
     teacherDepartment: {
       type: String,
-      required: [true, "Department is required"],
       trim: true,
     },
 
@@ -61,26 +73,47 @@ const teacherSchema = new mongoose.Schema(
       index: true,
     },
 
-    // optional audit
+    // Optional linked user account (for teacher portal login)
+    userId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      default: null,
+    },
+
     createdBy: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
     },
 
-    // proper relation
     Subjects: [
       {
         subjects: {
           type: String,
-          required: true
-        }
-      }
-    ]
+          required: true,
+        },
+      },
+    ],
   },
   {
     timestamps: true,
   }
 );
+
+// Pre-save: keep teacherDepartment in sync with first element of teacherDepartments
+teacherSchema.pre("save", function (next) {
+  if (this.teacherDepartments && this.teacherDepartments.length > 0) {
+    this.teacherDepartment = this.teacherDepartments[0];
+  }
+  next();
+});
+
+teacherSchema.pre("findOneAndUpdate", function (next) {
+  const update = this.getUpdate();
+  if (update.$set?.teacherDepartments?.length > 0) {
+    update.$set.teacherDepartment = update.$set.teacherDepartments[0];
+  }
+  next();
+});
 
 const Teacher = mongoose.model("Teacher", teacherSchema);
 
