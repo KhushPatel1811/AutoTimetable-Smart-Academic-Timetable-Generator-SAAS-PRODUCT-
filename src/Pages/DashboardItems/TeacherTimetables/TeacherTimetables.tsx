@@ -28,7 +28,6 @@ function TeacherTimetables() {
     const [teachers, setTeachers] = useState<Teacher[]>([]);
     const [departments, setDepartments] = useState<Department[]>([]);
     const [loading, setLoading] = useState(false);
-    const [downloadingId, setDownloadingId] = useState<string | null>(null);
 
     const [search, setSearch] = useState("");
     const [departmentFilter, setDepartmentFilter] = useState("");
@@ -90,116 +89,13 @@ function TeacherTimetables() {
     }
 
     async function handleDownload(teacher: Teacher) {
-        setDownloadingId(teacher.teacherId);
-        try {
-            // Fetch teacher timetable slots
-            const response = await axios.get(`${API}/saved-timetables/teacher/${teacher.teacherId}`, {
-                headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
-            });
-
-            const { slots, teacher: teacherData } = response.data;
-            const user = JSON.parse(localStorage.getItem("user") || "{}");
-            const instituteName = user.instituteName || "Institute";
-
-            // Build printable HTML for PDF
-            const html = buildTeacherTimetableHtml(teacherData, slots, instituteName);
-
-            const win = window.open("", "_blank");
-            if (!win) {
-                toast.error("Popup blocked. Please allow popups to download PDF.");
-                return;
-            }
-            win.document.write(html);
-            win.document.close();
-            win.focus();
-            setTimeout(() => win.print(), 600);
-        } catch (err: unknown) {
-            const error = err as { response?: { data?: { message?: string } } };
-            toast.error(error.response?.data?.message || "Failed to generate timetable");
-        } finally {
-            setDownloadingId(null);
-        }
-    }
-
-    function buildTeacherTimetableHtml(teacher: any, slots: any[], instituteName: string): string {
-        // Group by day
-        const days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
-        const dayOrder = days.reduce((acc, d, i) => ({ ...acc, [d]: i }), {} as Record<string, number>);
-
-        const grouped: Record<string, any[]> = {};
-        for (const slot of slots) {
-            if (!grouped[slot.day]) grouped[slot.day] = [];
-            grouped[slot.day].push(slot);
-        }
-
-        const sortedDays = Object.keys(grouped).sort((a, b) => (dayOrder[a] ?? 99) - (dayOrder[b] ?? 99));
-
-        const rows = sortedDays.map(day => {
-            return grouped[day].map((slot, i) => `
-                <tr>
-                    ${i === 0 ? `<td rowspan="${grouped[day].length}" style="background:#f8fafc;font-weight:900;text-align:center;vertical-align:middle;border:1px solid #e2e8f0;padding:8px;color:#4f46e5;">${day}</td>` : ''}
-                    <td style="border:1px solid #e2e8f0;padding:8px;">${slot.timeSlot}</td>
-                    <td style="border:1px solid #e2e8f0;padding:8px;font-weight:700;">${slot.subject}</td>
-                    <td style="border:1px solid #e2e8f0;padding:8px;">${slot.subjectCode || "-"}</td>
-                    <td style="border:1px solid #e2e8f0;padding:8px;"><span style="background:${slot.subjectType === 'Lab' ? '#ecfdf5' : '#eef2ff'};color:${slot.subjectType === 'Lab' ? '#059669' : '#4f46e5'};padding:2px 8px;border-radius:4px;font-size:10px;font-weight:900;">${slot.subjectType}</span></td>
-                    <td style="border:1px solid #e2e8f0;padding:8px;">${slot.division}</td>
-                    <td style="border:1px solid #e2e8f0;padding:8px;">${slot.room}</td>
-                </tr>
-            `).join('');
-        }).join('');
-
-        const depts = (teacher.teacherDepartments?.join(", ") || teacher.teacherDepartment || "—");
-
-        return `<!DOCTYPE html>
-<html>
-<head>
-    <title>Timetable - ${teacher.teacherName}</title>
-    <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: Arial, sans-serif; font-size: 12px; color: #1e293b; padding: 20px; }
-        .header { text-align: center; margin-bottom: 20px; padding-bottom: 16px; border-bottom: 3px solid #4f46e5; }
-        .header h1 { font-size: 20px; font-weight: 900; color: #1e293b; }
-        .header h2 { font-size: 14px; font-weight: 700; color: #6366f1; margin-top: 4px; }
-        .info-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 20px; background: #f8fafc; padding: 12px; border-radius: 8px; border: 1px solid #e2e8f0; }
-        .info-item label { font-size: 9px; font-weight: 900; text-transform: uppercase; letter-spacing: 0.1em; color: #94a3b8; display: block; }
-        .info-item span { font-size: 12px; font-weight: 700; color: #1e293b; }
-        table { width: 100%; border-collapse: collapse; }
-        thead tr { background: #4f46e5; }
-        thead th { color: white; padding: 10px 8px; text-align: left; font-size: 10px; font-weight: 900; text-transform: uppercase; letter-spacing: 0.1em; border: 1px solid #4338ca; }
-        .footer { margin-top: 20px; text-align: center; font-size: 9px; color: #94a3b8; }
-        @page { margin: 15mm; size: A4 portrait; }
-        @media print { body { -webkit-print-color-adjust: exact; print-color-adjust: exact; } }
-    </style>
-</head>
-<body>
-    <div class="header">
-        <h1>${instituteName}</h1>
-        <h2>Teacher Timetable — ${teacher.teacherName}</h2>
-    </div>
-    <div class="info-grid">
-        <div class="info-item"><label>Teacher ID</label><span>${teacher.teacherId}</span></div>
-        <div class="info-item"><label>Email</label><span>${teacher.teacherEmail}</span></div>
-        <div class="info-item"><label>Department(s)</label><span>${depts}</span></div>
-    </div>
-    <table>
-        <thead>
-            <tr>
-                <th>Day</th>
-                <th>Time</th>
-                <th>Subject</th>
-                <th>Code</th>
-                <th>Type</th>
-                <th>Division</th>
-                <th>Room</th>
-            </tr>
-        </thead>
-        <tbody>
-            ${rows || '<tr><td colspan="7" style="text-align:center;padding:20px;color:#94a3b8;">No classes assigned</td></tr>'}
-        </tbody>
-    </table>
-    <div class="footer">Generated on ${new Date().toLocaleDateString(undefined, { year: "numeric", month: "long", day: "numeric" })} • ${instituteName}</div>
-</body>
-</html>`;
+        // Open the preview page in a new tab with ?print=1 so it
+        // auto-triggers the browser print dialog once the timetable
+        // has loaded — giving the exact same visual as the view page.
+        window.open(
+            `/teacher-timetables/preview/${teacher.teacherId}?print=1`,
+            "_blank"
+        );
     }
 
     const getDepts = (teacher: Teacher) => {
@@ -366,18 +262,17 @@ function TeacherTimetables() {
                                             <td className="p-6 text-right">
                                                 <div className="flex items-center justify-end gap-2">
                                                     <button
-                                                        className="secondary-btn py-2! px-4! flex items-center gap-1.5"
+                                                        className="secondary-btn py-2! px-4! flex items-center gap-1.5 bg-slate-100 hover:bg-slate-200 text-slate-600 border border-slate-200"
                                                         onClick={() => navigate(`/teacher-timetables/preview/${teacher.teacherId}`)}
                                                     >
                                                         <Eye className="w-3.5 h-3.5" /> View
                                                     </button>
                                                     <button
                                                         className="add-btn py-2! px-4! flex items-center gap-1.5"
-                                                        disabled={downloadingId === teacher.teacherId}
                                                         onClick={() => handleDownload(teacher)}
                                                     >
                                                         <Download className="w-3.5 h-3.5" />
-                                                        {downloadingId === teacher.teacherId ? "..." : "PDF"}
+                                                        PDF
                                                     </button>
                                                 </div>
                                             </td>
@@ -415,18 +310,17 @@ function TeacherTimetables() {
                                     </div>
                                     <div className="flex gap-3">
                                         <button
-                                            className="secondary-btn flex-1 py-2! flex items-center justify-center gap-1.5"
+                                            className="secondary-btn flex-1 py-2! flex items-center justify-center gap-1.5 bg-slate-100 hover:bg-slate-200 text-slate-600 border border-slate-200"
                                             onClick={() => navigate(`/teacher-timetables/preview/${teacher.teacherId}`)}
                                         >
                                             <Eye className="w-3.5 h-3.5" /> View
                                         </button>
                                         <button
                                             className="add-btn flex-1 py-2! flex items-center justify-center gap-1.5"
-                                            disabled={downloadingId === teacher.teacherId}
                                             onClick={() => handleDownload(teacher)}
                                         >
                                             <Download className="w-3.5 h-3.5" />
-                                            {downloadingId === teacher.teacherId ? "Downloading..." : "Download PDF"}
+                                            Download PDF
                                         </button>
                                     </div>
                                 </div>

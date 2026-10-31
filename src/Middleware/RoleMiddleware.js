@@ -3,23 +3,33 @@
  * Restricts route access based on user roles embedded in JWT.
  * Usage: roleMiddleware('Admin') or roleMiddleware('Admin', 'Teacher')
  */
+
+import User from "../Models/LoginModel.js";
+ 
 function roleMiddleware(...allowedRoles) {
-    return (req, res, next) => {
-        // authMiddleware must run first and attach req.user
-        if (!req.user) {
-            return res.status(401).json({ message: 'Authentication required' });
+    return async (req, resp, next) => {
+        try {
+            if (!req.user || !req.user.id) {
+                return resp.status(401).json({ message: "Unauthorized" });
+            }
+ 
+            const user = await User.findById(req.user.id).select("role");
+ 
+            if (!user) {
+                return resp.status(401).json({ message: "Unauthorized" });
+            }
+ 
+            if (!allowedRoles.includes(user.role)) {
+                return resp.status(403).json({ message: "Forbidden: Admin access required" });
+            }
+ 
+            req.user.role = user.role;
+            next();
         }
-
-        const userRole = req.user.role;
-
-        if (!allowedRoles.includes(userRole)) {
-            return res.status(403).json({
-                message: `Access denied. Required role: ${allowedRoles.join(' or ')}`
-            });
+        catch (err) {
+            return resp.status(500).json({ message: err.message });
         }
-
-        next();
     };
 }
-
+ 
 export default roleMiddleware;

@@ -81,3 +81,326 @@
     transform: translateY(0) scale(1);
   }
 }
+
+
+
+/* =========================================================
+   TIMETABLE PRINTING
+   ========================================================= */
+
+@media print {
+    @page {
+        size: A4 landscape;
+        margin: 6mm;
+    }
+
+    html,
+    body {
+        margin: 0 !important;
+        padding: 0 !important;
+        width: 100% !important;
+        height: 100% !important;
+        background: white !important;
+        overflow: hidden !important;
+    }
+
+    /* Hide everything except timetable */
+    body * {
+        visibility: hidden !important;
+    }
+
+    .teacher-timetable-print-area,
+    .teacher-timetable-print-area * {
+        visibility: visible !important;
+    }
+
+    /* Main print area */
+    .teacher-timetable-print-area {
+        position: absolute !important;
+        left: 0 !important;
+        top: 0 !important;
+
+        width: 100% !important;
+        max-width: none !important;
+
+        margin: 0 !important;
+        padding: 0 !important;
+
+        background: white !important;
+        overflow: visible !important;
+
+        /* Use the full printable page */
+        height: auto !important;
+        max-height: none !important;
+    }
+
+    /* Timetable card */
+    .teacher-timetable-print-area .timetable-card {
+        width: 100% !important;
+        max-width: none !important;
+
+        margin: 0 !important;
+        padding: 0 !important;
+
+        box-shadow: none !important;
+        border: 1px solid #cbd5e1 !important;
+
+        border-radius: 0 !important;
+
+        overflow: visible !important;
+    }
+
+    /* Remove horizontal scrolling */
+    .teacher-timetable-print-area .overflow-x-auto {
+        overflow: visible !important;
+        width: 100% !important;
+    }
+
+    /* ============================================================
+       TABLE
+       ============================================================ */
+
+    .teacher-timetable-print-area table {
+        width: 100% !important;
+        min-width: 0 !important;
+        max-width: none !important;
+
+        table-layout: fixed !important;
+        border-collapse: collapse !important;
+
+        margin: 0 !important;
+    }
+
+    /* Time column */
+    .teacher-timetable-print-area th:first-child,
+    .teacher-timetable-print-area td:first-child {
+        width: 13% !important;
+    }
+
+    /* Six day columns */
+    .teacher-timetable-print-area th:not(:first-child),
+    .teacher-timetable-print-area td:not(:first-child) {
+        width: 14.5% !important;
+    }
+
+    /* ============================================================
+       HEADER
+       ============================================================ */
+
+    .teacher-timetable-print-area table thead th {
+        padding: 8px 6px !important;
+
+        height: 34px !important;
+        min-height: 34px !important;
+
+        font-size: 9px !important;
+        line-height: 1.1 !important;
+
+        white-space: nowrap !important;
+
+        border-bottom: 1px solid #cbd5e1 !important;
+        border-right: 1px solid #e2e8f0 !important;
+    }
+
+    /* ============================================================
+       TABLE ROWS
+       ============================================================ */
+
+    .teacher-timetable-print-area table tbody tr {
+        height: 76px !important;
+        min-height: 76px !important;
+
+        break-inside: avoid !important;
+        page-break-inside: avoid !important;
+    }
+
+    /* Time cells */
+    .teacher-timetable-print-area table tbody td:first-child {
+        padding: 6px 4px !important;
+
+        height: 76px !important;
+
+        vertical-align: middle !important;
+
+        border-right: 1px solid #cbd5e1 !important;
+        border-bottom: 1px solid #e2e8f0 !important;
+    }
+
+    /* Day cells */
+    .teacher-timetable-print-area table tbody td:not(:first-child) {
+        padding: 5px !important;
+
+        height: 76px !important;
+
+        vertical-align: middle !important;
+
+        border-right: 1px solid #e2e8f0 !important;
+        border-bottom: 1px solid #e2e8f0 !important;
+    }
+
+    /* ============================================================
+       TIME TEXT
+       ============================================================ */
+
+    .teacher-timetable-print-area table tbody td:first-child span {
+        font-size: 8px !important;
+        line-height: 1.2 !important;
+    }
+
+    /* ============================================================
+       TIMETABLE CELLS
+       ============================================================ */
+
+    .teacher-timetable-print-area .timetable-cell {
+        min-height: 0 !important;
+        height: 64px !important;
+
+        padding: 6px !important;
+
+        border-radius: 8px !important;
+
+        box-sizing: border-box !important;
+
+        overflow: hidden !important;
+    }
+
+    /* Free cells */
+    .teacher-timetable-print-area
+        .timetable-cell.flex.items-center.justify-center {
+        min-height: 0 !important;
+        height: 64px !important;
+
+        padding: 6px !important;
+    }
+
+    /* ============================================================
+       SUBJECT CONTENT
+       ============================================================ */
+
+    .teacher-timetable-print-area .timetable-cell span {
+        line-height: 1.15 !important;
+    }
+
+    /* Subject name */
+    .teacher-timetable-print-area
+        .timetable-cell
+        .font-black.text-xs {
+        font-size: 9px !important;
+        line-height: 1.15 !important;
+
+        display: -webkit-box !important;
+        -webkit-line-clamp: 2 !important;
+        -webkit-box-orient: vertical !important;
+
+        overflow: hidden !important;
+    }
+
+    /* Subject code */
+    .teacher-timetable-print-area
+        .timetable-cell
+        .text-\[10px\] {
+        font-size: 7.5px !important;
+        line-height: 1.1 !important;
+    }
+
+    /* Division / Department / Room */
+    .teacher-timetable-print-area
+        .timetable-cell
+        .text-\[10px\].text-slate-500 {
+        font-size: 7px !important;
+        line-height: 1.1 !important;
+
+        white-space: nowrap !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
+    }
+
+    /* LEC / LAB badge */
+    .teacher-timetable-print-area
+        .timetable-cell
+        .text-\[9px\] {
+        font-size: 7px !important;
+        padding: 2px 4px !important;
+    }
+
+    /* ============================================================
+       BREAK CELLS
+       ============================================================ */
+
+    .teacher-timetable-print-area
+        .timetable-cell.bg-amber-50 {
+        height: 64px !important;
+
+        padding: 6px !important;
+    }
+
+    .teacher-timetable-print-area
+        .timetable-cell.bg-amber-50
+        .text-xl {
+        font-size: 14px !important;
+    }
+
+    /* ============================================================
+       WEEKLY SCHEDULE HEADER
+       ============================================================ */
+
+    .teacher-timetable-print-area
+        .timetable-card
+        > div:first-child {
+        padding: 8px 12px !important;
+    }
+
+    .teacher-timetable-print-area
+        .timetable-card
+        > div:first-child
+        h2 {
+        font-size: 12px !important;
+        line-height: 1.2 !important;
+    }
+
+    .teacher-timetable-print-area
+        .timetable-card
+        > div:first-child
+        p {
+        font-size: 8px !important;
+        margin-top: 2px !important;
+    }
+
+    .teacher-timetable-print-area
+        .timetable-card
+        > div:first-child
+        span {
+        padding: 4px 8px !important;
+        font-size: 8px !important;
+    }
+
+    /* ============================================================
+       PREVENT PAGE BREAKS
+       ============================================================ */
+
+    .teacher-timetable-print-area,
+    .teacher-timetable-print-area table,
+    .teacher-timetable-print-area tbody,
+    .teacher-timetable-print-area tr {
+        break-inside: avoid !important;
+        page-break-inside: avoid !important;
+    }
+
+    /* ============================================================
+       COLORS
+       ============================================================ */
+
+    .teacher-timetable-print-area,
+    .teacher-timetable-print-area * {
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+
+        transition: none !important;
+        animation: none !important;
+    }
+
+    /* Remove links after-print text */
+    a[href]::after {
+        content: none !important;
+    }
+}

@@ -90,10 +90,9 @@ lectureQueue.sort(() => Math.random() - 0.5);
             });
         }
 
-        console.log(
-  "ROOMS SENT TO SOLVER:",
-  JSON.stringify(rooms, null, 2)
-);
+        console.log("ROOMS SENT TO SOLVER:",
+            JSON.stringify(rooms, null, 2)
+        );
 
         // -----------------------------
         // CALL OR-TOOLS SOLVER
@@ -139,10 +138,10 @@ lectureQueue.sort(() => Math.random() - 0.5);
 // console.log("=======================================");
 
 
-// console.log(
-//   "FIRST ORTOOLS SLOT:",
-//   JSON.stringify(result.timetable[0].schedule[0].slots[0], null, 2)
-// );
+console.log(
+  "FIRST OR TOOLS SLOT:",
+  JSON.stringify(result.timetable[0].schedule[0].slots[0], null, 2)
+);
 
         // -----------------------------
         // VALIDATE SOLVER OUTPUT
@@ -157,19 +156,29 @@ lectureQueue.sort(() => Math.random() - 0.5);
         // NORMALIZE OUTPUT
         // -----------------------------
         const allocatedDivisions = result.timetable.map(div => ({
-            divisionName: div.division || "Unknown Division",
-            schedule: (div.schedule || []).map(day => ({
-                day: day.day,
-                slots: (day.slots || []).map(slot => ({
-    subjectName: slot.subjectName || "-",
-    subjectCode: slot.subjectCode || "-",
-    subjectType: slot.subjectType || "Free",
-    teacherName: slot.teacherName || "-",
-    roomNumber: slot.roomNumber || "-",
-    free: slot.subjectType === "Free" || !slot.subjectName || slot.subjectName === "-"
-}))
+        divisionName: div.division || "Unknown Division",
+
+        schedule: (div.schedule || []).map(day => ({
+            day: day.day,
+
+            slots: (day.slots || []).map(slot => ({
+                subjectName: slot.subjectName || "-",
+                subjectCode: slot.subjectCode || "-",
+                subjectType: slot.subjectType || "Free",
+
+                // IMPORTANT: Preserve teacherId from OR-Tools
+                teacherId: slot.teacherId || "-",
+
+                teacherName: slot.teacherName || "-",
+                roomNumber: slot.roomNumber || "-",
+
+                free:
+                    slot.subjectType === "Free" ||
+                    !slot.subjectName ||
+                    slot.subjectName === "-"
             }))
-        }));
+        }))
+    }));
 
 //         console.log(
 //   "FIRST MAPPED SLOT:",

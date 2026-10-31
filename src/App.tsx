@@ -29,6 +29,7 @@ import TeacherMyTimetable from "./Pages/Teacher/TeacherMyTimetable"
 import TeacherProfile from "./Pages/Teacher/TeacherProfile"
 import Notifications from "./Pages/Notifications/Notifications"
 import ActivityLogs from "./Pages/ActivityLogs/ActivityLogs"
+import TeacherTimetablePreview from "./Pages/DashboardItems/TeacherTimetables/TeacherTimetablePreview"
 
 function App() {
   return (
@@ -99,7 +100,7 @@ function App() {
           <ProtectedRoute allowedRoles={["Admin"]}><TeacherTimetables /></ProtectedRoute>
         } />
         <Route path="/teacher-timetables/preview/:teacherId" element={
-          <ProtectedRoute allowedRoles={["Admin"]}><TeacherMyTimetable /></ProtectedRoute>
+          <ProtectedRoute allowedRoles={["Admin"]}><TeacherTimetablePreview /></ProtectedRoute>
         } />
 
         {/* ── NOTIFICATIONS (Admin + Teacher) ── */}

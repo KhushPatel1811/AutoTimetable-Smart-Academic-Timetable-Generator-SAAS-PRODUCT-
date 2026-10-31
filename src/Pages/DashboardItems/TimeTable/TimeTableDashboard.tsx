@@ -5,6 +5,8 @@ import { Calendar, Printer, Sparkles, GraduationCap, Grid3X3, Save } from 'lucid
 import { toast, ToastContainer } from 'react-toastify';
 import API from '../../../config/api'
 import ProfileNavbar from '../Profile/ProfileNavbar';
+import BackGround from "../../../Utilities/Background";
+import Sidebar from "../../../Components/Dashboard/Sidebar";
 
 
 type BreakSlot = {
@@ -65,6 +67,16 @@ function TimetableDashboard() {
   const [timetable, setTimetable] = useState<Timetable | null>(null);
   const [dynamicSlots, setDynamicSlots] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
+
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+
+  const handleMenuToggle = () => {
+    setIsSidebarOpen((prev) => !prev);
+  };
+
+  const handleSidebarClose = () => {
+    setIsSidebarOpen(false);
+  };
 
   const printRef = useRef(null);
 
@@ -336,11 +348,27 @@ const displaySlots = React.useMemo(() => {
 
 
   return (
-  <div className="p-6 min-h-screen bg-slate-50 text-slate-800 font-sans">
+  <div className="min-h-screen bg-slate-50 text-slate-800 font-sans">
+
+    {/* BACKGROUND */}
+    <div className="fixed inset-0 -z-10 pointer-events-none">
+      <BackGround />
+    </div>
+
+    <div className="flex min-h-screen w-full">
+
+    {/* SIDEBAR */}
+    <aside className='shrink-0'>
+    <Sidebar isOpen={isSidebarOpen} onClose={handleSidebarClose}/>
+    </aside>
+
+
+    <div className="flex-1 flex flex-col min-w-0">
+
     <ToastContainer position="top-right" autoClose={2000} />
 
     <div className="max-w-7xl mx-auto space-y-6">
-      <ProfileNavbar content='Generate Timetable Page' />
+      <ProfileNavbar content='Generate Timetable Page' onMenuToggle={handleMenuToggle}/>
 
       {/* Top Header Row */}
       <header className="bg-gradient-to-r from-indigo-600 to-indigo-500 rounded-[2.5rem] p-8 shadow-2xl shadow-indigo-100 border border-white/10 relative overflow-hidden group">
@@ -696,6 +724,9 @@ const displaySlots = React.useMemo(() => {
         __html: `.custom-scrollbar::-webkit-scrollbar{width:4px}.custom-scrollbar::-webkit-scrollbar-thumb{background:#cbd5e1;border-radius:4px}`
       }} />
     </div>
+  </div>
+    </div>
+
   </div>
 );
 }

@@ -55,8 +55,7 @@ function MainNavBar() {
                         isActive 
                             ? "bg-indigo-600/20 text-indigo-400 border-l-4 border-indigo-500 pl-3" 
                             : "text-slate-300 hover:bg-white/5 hover:text-white"
-                    }`}
-                >
+                    }`}>
                     {label}
                 </a>
             );
@@ -70,8 +69,7 @@ function MainNavBar() {
                     isActive 
                         ? "text-indigo-400 bg-white/5 shadow-inner" 
                         : "text-slate-400 hover:bg-white/5 hover:text-slate-200"
-                }`}
-            >
+                }`}>
                 {label}
                 {/* Active bottom underline indicator bar */}
                 {isActive && (
@@ -87,9 +85,11 @@ function MainNavBar() {
                 <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 sm:px-6 lg:px-8">
                     
                     {/* Brand / Logo */}
-                    <a href="#home" onClick={(e) => handleScroll(e, "home")} className="flex items-center gap-3 transition-opacity hover:opacity-90">
-                        <img 
-                            className="h-10 w-10 md:h-11 md:w-11 rounded-full border border-white/20 bg-white/5 p-1 backdrop-blur-xl" 
+                    <a 
+                        href="#home" 
+                        onClick={(e) => handleScroll(e, "home")} 
+                        className="flex items-center gap-3 transition-opacity hover:opacity-90">
+                        <img className="h-10 w-10 md:h-11 md:w-11 rounded-full border border-white/20 bg-white/5 p-1 backdrop-blur-xl" 
                             src="https://cdn-icons-png.flaticon.com/512/1048/1048953.png" 
                             alt="Timetable Logo"
                         />
@@ -121,8 +121,8 @@ function MainNavBar() {
                             onClick={() => setIsOpen(!isOpen)} 
                             className="p-2 rounded-xl border border-white/10 bg-white/5 hover:bg-white/10 focus:outline-none transition-colors"
                             aria-label="Toggle Navigation Menu"
-                        >
-                            {isOpen ? <X className="w-5 h-5 text-indigo-400" /> : <Menu className="w-5 h-5 text-slate-300" />}
+                            >
+                            {isOpen ? <X className="w-5 h-5 text-indigo-400" /> : <Menu className="w-5 h-5 text-slate-300 hover:cursor-pointer" />}
                         </button>
                     </div>
                 </div>

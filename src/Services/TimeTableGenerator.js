@@ -46,14 +46,40 @@ const generateEmptyTimetable = async ({
     const subjects = await Subject.find(subjectQuery).lean();
     // console.log("Subjects Found:", subjects.length);
 
-    const teacherQuery = {
+    let teachers = await Teacher.find({
+    instituteId: instituteObjectId,
+    teacherAvailability: "Available",
+    $or: [
+        { teacherDepartments: departmentName.trim() },
+        { teacherDepartment: departmentName.trim() }
+    ]
+}).lean();
+
+// Fallback for old teacher records where availability
+// may not have been stored as "Available"
+if (!teachers.length) {
+    teachers = await Teacher.find({
         instituteId: instituteObjectId,
-        teacherDepartment: departmentName.trim()
-    };
+        $or: [
+            { teacherDepartments: departmentName.trim() },
+            { teacherDepartment: departmentName.trim() }
+        ]
+    }).lean();
+}
+
+console.log(
+    "TEACHERS FOUND:",
+    teachers.length,
+    teachers.map(t => ({
+        id: t._id,
+        name: t.teacherName,
+        departments: t.teacherDepartments,
+        department: t.teacherDepartment
+    }))
+);
 
     // console.log("TEACHER QUERY:", teacherQuery);
 
-    const teachers = await Teacher.find(teacherQuery).lean();
     // console.log("TEACHERS FOUND:", teachers.length);
 
     let rooms = await Room.find({
@@ -121,7 +147,7 @@ export const buildLectureQueue = (subjects, lectureDuration, labDuration) => {
         const type = (subject.subjectType || "Lecture").trim();
 
         const teacherIds = Array.isArray(subject.teachers)
-            ? subject.teachers.map(t => String(t))
+            ? subject.teachers.map(t => String(t?._id || t))
             : [];
 
         const lectureCount = Number(subject.weekly_Lecture_Hour || 5);
@@ -168,6 +194,11 @@ export const buildLectureQueue = (subjects, lectureDuration, labDuration) => {
  * STEP 3: ALLOCATION ENGINE
  * =========================
  */
+/**
+ * =========================
+ * STEP 3: ALLOCATION ENGINE
+ * =========================
+ */
 export const allocateSubjects = (
     lectureQueue,
     divisions,
@@ -179,85 +210,395 @@ export const allocateSubjects = (
     const teacherBusy = {};
     const roomBusy = {};
 
+    // Track how many classes each teacher has been assigned
+    const teacherLoad = {};
+
+    // Create teacher lookup
     const teacherMap = new Map(
-    teachers.map(t => [String(t._id), t])
-);
+        teachers.map(teacher => [
+            String(teacher._id),
+            teacher
+        ])
+    );
+
+    // Initialize teacher load
+    teachers.forEach(teacher => {
+        teacherLoad[String(teacher._id)] = 0;
+    });
+
+    /**
+     * Check whether a teacher is free
+     */
+    const isTeacherFree = (
+        teacher,
+        dayIndex,
+        slotIndex,
+        duration
+    ) => {
+
+        const teacherId = String(teacher._id);
+
+        return Array.from(
+            { length: duration },
+            (_, k) => {
+
+                const key =
+                    `${teacherId}_${dayIndex}_${slotIndex + k}`;
+
+                return !teacherBusy[key];
+
+            }
+        ).every(Boolean);
+    };
+
+
+    /**
+     * Check whether a room is free
+     */
+    const isRoomFree = (
+        room,
+        dayIndex,
+        slotIndex,
+        duration
+    ) => {
+
+        return Array.from(
+            { length: duration },
+            (_, k) => {
+
+                const key =
+                    `${room._id}_${dayIndex}_${slotIndex + k}`;
+
+                return !roomBusy[key];
+
+            }
+        ).every(Boolean);
+    };
+
+
+    /**
+     * Mark teacher busy
+     */
+    const markTeacherBusy = (
+        teacher,
+        dayIndex,
+        slotIndex,
+        duration
+    ) => {
+
+        const teacherId = String(teacher._id);
+
+        for (let k = 0; k < duration; k++) {
+
+            const key =
+                `${teacherId}_${dayIndex}_${slotIndex + k}`;
+
+            teacherBusy[key] = true;
+        }
+
+        teacherLoad[teacherId] += duration;
+    };
+
+
+    /**
+     * Mark room busy
+     */
+    const markRoomBusy = (
+        room,
+        dayIndex,
+        slotIndex,
+        duration
+    ) => {
+
+        for (let k = 0; k < duration; k++) {
+
+            const key =
+                `${room._id}_${dayIndex}_${slotIndex + k}`;
+
+            roomBusy[key] = true;
+        }
+    };
+
+
+    /**
+     * =========================
+     * PROCESS EACH DIVISION
+     * =========================
+     */
+
     for (const division of divisions) {
 
+        /*
+         * Shuffle so that subjects don't always
+         * get allocated in exactly the same order.
+         */
         const shuffledQueue = [...lectureQueue];
+
+        shuffledQueue.sort(
+            () => Math.random() - 0.5
+        );
+
+
         for (const lecture of shuffledQueue) {
 
             let placed = false;
 
-                const selectedTeacher =
-    lecture.teacherIds
-        .map(id => teacherMap.get(String(id)))
-        .find(Boolean)
-    || teachers[0];
 
-            const teacherKey = String(selectedTeacher._id);
-const roomPool = rooms.filter(r =>
-    String(r.roomType || "").toLowerCase() ===
-    String(lecture.preferredRoomType || "").toLowerCase()
+            /**
+             * =========================
+             * FIND SUBJECT TEACHERS
+             * =========================
+             */
+
+            // Use all available department teachers
+// and distribute workload as evenly as possible.
+
+let possibleTeachers = [...teachers];
+
+possibleTeachers.sort(
+    (a, b) =>
+        teacherLoad[String(a._id)] -
+        teacherLoad[String(b._id)]
 );
 
-const finalRooms = roomPool.length > 0 ? roomPool : rooms;
-            for (let d = 0; d < division.schedule.length && !placed; d++) {
+            /**
+             * IMPORTANT:
+             *
+             * Sort teachers by current workload.
+             *
+             * Teacher with fewer assigned classes
+             * gets priority.
+             *
+             * This prevents one teacher from getting
+             * almost the entire timetable.
+             */
+            possibleTeachers.sort(
+                (a, b) =>
+                    teacherLoad[String(a._id)] -
+                    teacherLoad[String(b._id)]
+            );
 
-                const day = division.schedule[d];
 
-                for (let slot = 0; slot <= totalSlotsPerDay - lecture.duration && !placed; slot++) {
+            /**
+             * =========================
+             * FIND ROOMS
+             * =========================
+             */
 
-const isFree = Array.from(
-    { length: lecture.duration },
-    (_, k) => day.slots[slot + k]
-).every(v => v.subjectType  === "Free");
-                    if (!isFree) continue;
+            const roomPool = rooms.filter(room =>
 
-                    for (const room of finalRooms) {
+                String(room.roomType || "")
+                    .toLowerCase() ===
 
-                        const roomFree = Array.from(
-                            { length: lecture.duration },
-                            (_, k) => {
-                                const key = `${room._id}_${d}_${slot + k}`;
-                                return !roomBusy[key];
-                            }
-                        ).every(Boolean);
+                String(lecture.preferredRoomType || "")
+                    .toLowerCase()
 
-                        if (!roomFree) continue;
+            );
 
-                        for (let k = 0; k < lecture.duration; k++) {
 
-                            const tKey = `${teacherKey}_${d}_${slot + k}`;
-                            const rKey = `${room._id}_${d}_${slot + k}`;
+            const finalRooms =
+                roomPool.length > 0
+                    ? roomPool
+                    : rooms;
 
-                            teacherBusy[tKey] = true;
-                            roomBusy[rKey] = true;
 
-                            day.slots[slot + k] = {
-    subjectName: lecture.subjectName,
-    subjectCode: lecture.subjectCode,
-    subjectType: lecture.subjectType,
-    teacherName: selectedTeacher.teacherName,
-    roomNumber: room.roomName,
-    free: false
-};
-                        }
+            /**
+             * =========================
+             * SEARCH DAYS
+             * =========================
+             */
 
-                        placed = true;
-                        break;
+            for (
+                let d = 0;
+                d < division.schedule.length && !placed;
+                d++
+            ) {
+
+                const day =
+                    division.schedule[d];
+
+
+                /**
+                 * =========================
+                 * SEARCH SLOTS
+                 * =========================
+                 */
+
+                for (
+                    let slot = 0;
+                    slot <=
+                    totalSlotsPerDay - lecture.duration &&
+                    !placed;
+                    slot++
+                ) {
+
+
+                    /**
+                     * =========================
+                     * CHECK DIVISION FREE
+                     * =========================
+                     */
+
+                    const divisionFree =
+                        Array.from(
+                            {
+                                length:
+                                    lecture.duration
+                            },
+                            (_, k) =>
+                                day.slots[
+                                    slot + k
+                                ]
+                        ).every(
+                            cell =>
+                                cell.subjectType ===
+                                "Free"
+                        );
+
+
+                    if (!divisionFree) {
+                        continue;
                     }
+
+
+                    /**
+                     * =========================
+                     * FIND FREE TEACHER
+                     * =========================
+                     */
+
+                    /*
+                     * Re-sort before every allocation.
+                     *
+                     * This is important because teacher
+                     * workload changes after every class.
+                     */
+                    possibleTeachers.sort(
+                        (a, b) =>
+                            teacherLoad[
+                                String(a._id)
+                            ] -
+                            teacherLoad[
+                                String(b._id)
+                            ]
+                    );
+
+
+                    const availableTeacher =
+                        possibleTeachers.find(
+                            teacher =>
+                                isTeacherFree(
+                                    teacher,
+                                    d,
+                                    slot,
+                                    lecture.duration
+                                )
+                        );
+
+
+                    if (!availableTeacher) {
+
+                        continue;
+
+                    }
+
+
+                    /**
+                     * =========================
+                     * FIND FREE ROOM
+                     * =========================
+                     */
+
+                    const availableRoom =
+                        finalRooms.find(
+                            room =>
+                                isRoomFree(
+                                    room,
+                                    d,
+                                    slot,
+                                    lecture.duration
+                                )
+                        );
+
+
+                    if (!availableRoom) {
+
+                        continue;
+
+                    }
+
+
+                    /**
+                     * =========================
+                     * ALLOCATE
+                     * =========================
+                     */
+
+                    markTeacherBusy(
+                        availableTeacher,
+                        d,
+                        slot,
+                        lecture.duration
+                    );
+
+
+                    markRoomBusy(
+                        availableRoom,
+                        d,
+                        slot,
+                        lecture.duration
+                    );
+
+
+                    for (
+                        let k = 0;
+                        k < lecture.duration;
+                        k++
+                    ) {
+
+                        day.slots[
+                            slot + k
+                        ] = {
+
+                            subjectName:
+                                lecture.subjectName,    
+                            subjectCode:lecture.subjectCode,
+                            subjectType:lecture.subjectType,
+                            teacherName:availableTeacher.teacherName,
+                            roomNumber:availableRoom.roomName,
+                            free: false
+                        };
+                    }
+                    placed = true;
                 }
             }
+            /**
+             * =========================
+             * COULD NOT PLACE
+             * =========================
+             */
 
             if (!placed) {
-                console.warn("Could not place:", lecture.subjectName);
+                console.warn(`Could not place: ${lecture.subjectName} (${lecture.subjectCode})`);
             }
         }
     }
-return divisions.map(d => ({
-    division: d.divisionName,
-    schedule: d.schedule
-}));};
+    /**
+     * =========================
+     * DEBUG
+     * =========================
+     */
+    console.log(
+        "FINAL TEACHER LOAD:",
+        teacherLoad
+    );
+
+
+    return divisions.map(d => ({
+        division:d.divisionName,
+        schedule:d.schedule
+    }));
+
+};
 
 export default generateEmptyTimetable;

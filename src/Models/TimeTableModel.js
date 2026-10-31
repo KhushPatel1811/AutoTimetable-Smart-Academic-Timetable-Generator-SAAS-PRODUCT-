@@ -14,6 +14,10 @@ const ScheduleSlotSchema = new mongoose.Schema({
         enum: ["Lecture", "Lab", "Lecture + Lab", "Break", "Free"],
         default: "Free"
     },
+    teacherId: {
+        type: String,
+        default: "-"
+    },
     teacherName: {
         type: String,
         default: "-"

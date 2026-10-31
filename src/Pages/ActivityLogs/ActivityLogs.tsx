@@ -1,8 +1,4 @@
-import {
-    ClipboardList, Search, Filter, RefreshCcw, Download,
-    ChevronLeft, ChevronRight, Calendar, User, Layers,
-    CheckCircle, XCircle, AlertCircle
-} from "lucide-react";
+import { ClipboardList, Search, Filter, RefreshCcw, Download,ChevronLeft, ChevronRight, Calendar, User, Layers,CheckCircle, XCircle, AlertCircle} from "lucide-react";
 import Sidebar from "../../Components/Dashboard/Sidebar";
 import ProfileNavbar from "../DashboardItems/Profile/ProfileNavbar";
 import { useEffect, useState, useCallback } from "react";
@@ -94,7 +90,9 @@ function ActivityLogs() {
         }
     }, [search, mod, action, status, userFilt, dateFrom, dateTo, page]);
 
-    useEffect(() => { fetchLogs(); }, [fetchLogs]);
+    useEffect(() => { 
+        fetchLogs(); 
+    }, [fetchLogs]);
 
     function resetFilters() {
         setSearch(""); setMod(""); setAction(""); setStatus("");

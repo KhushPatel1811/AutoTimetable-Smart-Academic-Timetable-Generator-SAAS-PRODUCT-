@@ -296,10 +296,11 @@ function Timetables() {
                                             <Eye className="w-3.5 h-3.5" /> Preview
                                         </button>
                                         <button
-                                            className="delete-btn flex-1"
+                                            className="delete-btn flex-1 flex items-center justify-center gap-1.5"
                                             onClick={() => deleteTimetable(tt._id, tt.divisionName)}
                                         >
-                                            <Trash2 className="w-3.5 h-3.5" /> Delete
+                                            <Trash2 className="w-3.5 h-3.5 shrink-0" />
+                                            <span>Delete</span>
                                         </button>
                                     </div>
                                 </div>
