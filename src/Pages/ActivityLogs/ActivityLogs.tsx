@@ -5,6 +5,7 @@ import { useEffect, useState, useCallback } from "react";
 import axios from "axios";
 import { toast, ToastContainer } from "react-toastify";
 import API from "../../config/api";
+import React from "react";
 
 interface ActivityLog {
     _id: string;
@@ -134,7 +135,7 @@ function ActivityLogs() {
     }
 
     function StatusBadge({ s }: { s: string }) {
-        const icons: Record<string, JSX.Element> = {
+        const icons: Record<string, React.ReactElement> = {
             Success:      <CheckCircle  className="w-3 h-3" />,
             Failed:       <XCircle      className="w-3 h-3" />,
             Unauthorized: <AlertCircle  className="w-3 h-3" />,

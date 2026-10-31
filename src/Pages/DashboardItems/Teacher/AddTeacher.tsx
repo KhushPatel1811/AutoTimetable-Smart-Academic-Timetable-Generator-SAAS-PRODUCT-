@@ -5,7 +5,7 @@ import { useForm, Controller } from "react-hook-form";
 import { useNavigate } from "react-router";
 import { ToastContainer, toast } from "react-toastify";
 import { useEffect, useState } from "react";
-import { UserPlus, Sparkles, ChevronLeft, Save, X, BookOpen } from "lucide-react";
+import { UserPlus, Sparkles, ChevronLeft, Save, BookOpen } from "lucide-react";
 import API from '../../../config/api';
 import Select from 'react-select'
 
@@ -30,7 +30,7 @@ interface Subject {
 }
 
 function AddTeacher() {
-    const { register, handleSubmit, control, watch, setValue, formState: { errors, isValid, isSubmitting } } = useForm<Teacher>({
+    const { register, handleSubmit, control, formState: { errors, isValid, isSubmitting } } = useForm<Teacher>({
         defaultValues: {
             teacherName: '',
             teacherEmail: '',
